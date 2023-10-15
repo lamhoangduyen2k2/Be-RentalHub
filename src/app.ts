@@ -1,0 +1,36 @@
+import "reflect-metadata";
+import express from "express";
+import compression from "compression";
+import helmet from "helmet";
+import cors from "cors";
+import morgan from "morgan";
+import "dotenv/config";
+import DBconnect from "./database/database";
+import route from "./modules/posts/posts.route";
+import routerUser from "./modules/user/user.route";
+import erroHandler from "./helpers/handle-errors";
+
+(async () => {
+  const app = express();
+  const port = 3000;
+
+  app.use(express.json());
+  app.use(compression());
+  app.use(helmet());
+  app.use(cors());
+  app.use(morgan("combined"));
+
+  await DBconnect();
+  //   app.get("/", (req, res) => {
+  //     res.send("Hello World!");
+  //   });
+
+  app.use("/api/users", routerUser)
+  app.use("/api/posts", route);
+
+  app.use(erroHandler)
+
+  app.listen(port, () => {
+    return console.log(`Express is listening at http://localhost:${port}`);
+  });
+})();
