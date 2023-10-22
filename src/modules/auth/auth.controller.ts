@@ -24,6 +24,20 @@ export class AuthController {
     }
   };
 
+  public logoutController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const message = await this.authSerivce.logoutService(req.body.userId, req.body.refreshToken);
+
+      res.json(new ResponseData(message, null, null));
+    } catch (error) {
+      next(error);
+    }
+  };
+
   public resetTokenController = async (
     req: Request,
     res: Response,

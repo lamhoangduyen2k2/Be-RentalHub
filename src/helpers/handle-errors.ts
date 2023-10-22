@@ -19,9 +19,27 @@ export class ErrorModel extends Error {
 export const Errors = {
   FileNotFound: new ErrorModel("File not found!", "fileNotFound", 404),
 
-  PasswordNotFound: new ErrorModel("Password not found!", "passwordNotFound", 400),
+  FnameNotFound: new ErrorModel("Firstname not found!", "fnameNotFound", 404),
+  FnameInvalid: new ErrorModel("Firstname invalid!", "fnameInvalid", 404),
+
+  LnameNotFound: new ErrorModel("Lastname not found!", "lnameNotFound", 404),
+  LnameInvalid: new ErrorModel("Lastname invalid!", "lnameInvalid", 404),
+
+  PasswordNotFound: new ErrorModel(
+    "Password not found!",
+    "passwordNotFound",
+    400
+  ),
 
   PasswordInvalid: new ErrorModel("Password invalid!", "passwordInvalid", 400),
+
+  PwdNotFound: new ErrorModel(
+    "Password not found!",
+    "pwNotFound",
+    400
+  ),
+
+  PwInvalid: new ErrorModel("Password invalid!", "pwInvalid", 400),
 
   NameNotFound: new ErrorModel("Name not found!", "nameNotFound", 400),
 
@@ -87,7 +105,7 @@ export const handleErrorOfValidation = (errors: ValidationError[]) => {
   const error = errors[0];
   for (const keyError in error.constraints) {
     if (keyError === "isNotEmpty") {
-      console.log(UpCase(error.property))
+      console.log(UpCase(error.property));
       return Errors[`${UpCase(error.property)}NotFound`];
     } else {
       {
@@ -98,4 +116,4 @@ export const handleErrorOfValidation = (errors: ValidationError[]) => {
   }
 };
 
-export default erroHandler
+export default erroHandler;

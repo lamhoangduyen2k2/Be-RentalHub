@@ -1,5 +1,7 @@
+import { NextFunction } from "express";
 import mongoose, { Schema } from "mongoose";
 import validator from "validator";
+import { genSalt, hash } from "bcrypt";
 
 const usersSchema = new mongoose.Schema({
   _fname: {
@@ -37,7 +39,7 @@ const usersSchema = new mongoose.Schema({
   },
   _active: {
     type: Boolean,
-    default: false,
+    default: true,
   },
   _rating: {
     type: Schema.Types.Number,
@@ -51,6 +53,14 @@ const usersSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+});
+
+usersSchema.pre("save", async function (next: NextFunction) {
+  if (!this.isModified("_pw")) return next();
+
+  const salt = await genSalt(10);
+  this._pw = await hash(this._pw, salt);
+  next();
 });
 
 const Users = mongoose.model("users", usersSchema);

@@ -8,10 +8,10 @@ import { Service } from "typedi";
 import tokenService from "../token/token.service";
 
 @Service()
-export class AuthService { 
+export class AuthService {
   loginService = async (loginParam: LoginRequestDTO) => {
     const users = await Users.findOne({
-      _email: loginParam._email,
+      $and: [{ _email: loginParam._email }, { _active: true }],
     });
 
     if (!users) throw Errors.UserNotFound;
@@ -26,6 +26,15 @@ export class AuthService {
     );
 
     return token;
+  };
+
+  logoutService = async (userId: string, refreshToken: string) => {
+    const check = await RefreshTokens.deleteOne({
+      $and: [{ _uId: userId }, { _refreshToken: refreshToken }],
+    });
+    console.log(check);
+
+    return true;
   };
 
   resetToken = async (userId: string, refreshToken: string) => {
