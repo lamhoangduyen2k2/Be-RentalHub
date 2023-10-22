@@ -44,6 +44,8 @@ export class AuthenMiddWare {
 
       if (user._role !== 0) throw Errors.Unauthorized;
 
+      req.body.userId = payload.userId;
+
       next();
     } catch (error) {
       next(error);

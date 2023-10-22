@@ -17,6 +17,8 @@ export class ErrorModel extends Error {
 }
 
 export const Errors = {
+  SaveToDatabaseFail: new ErrorModel("Save data is failed!", "saveToDatabaseFail", 500),
+
   FileNotFound: new ErrorModel("File not found!", "fileNotFound", 404),
 
   FnameNotFound: new ErrorModel("Firstname not found!", "fnameNotFound", 404),
@@ -33,11 +35,7 @@ export const Errors = {
 
   PasswordInvalid: new ErrorModel("Password invalid!", "passwordInvalid", 400),
 
-  PwdNotFound: new ErrorModel(
-    "Password not found!",
-    "pwNotFound",
-    400
-  ),
+  PwdNotFound: new ErrorModel("Password not found!", "pwNotFound", 400),
 
   PwInvalid: new ErrorModel("Password invalid!", "pwInvalid", 400),
 
@@ -69,9 +67,11 @@ export const Errors = {
 
   Duplicate: new ErrorModel("Email is duplicated", "duplicated", 400),
 
-  UserNotFound: new ErrorModel("User not found!", "userNotFound", 400),
+  UserNotFound: new ErrorModel("User not found!", "userNotFound", 404),
 
-  PageNotFound: new ErrorModel("Page not found!", "pageNotFound", 400),
+  UserIsHosted: new ErrorModel("User is a host!", "userIsHosted", 400),
+
+  PageNotFound: new ErrorModel("Page not found!", "pageNotFound", 404),
 
   Unauthorized: new ErrorModel(
     "User does not have authorization",
@@ -79,10 +79,16 @@ export const Errors = {
     401
   ),
   ErrorToken: new ErrorModel("Token is invalid", "errorToken", 403),
+
   ExpiredToken: new ErrorModel("Token is expired", "expiredToken", 400),
+
   FailSendEmail: new ErrorModel("Fail send email", "failSendEmail", 400),
-  OtpExprired: new ErrorModel("Otp is expired", "otpExprired", 400),
+
+  OtpDuplicate: new ErrorModel("User had an otp", "otpDuplicate", 400),
+
   ResetPassFail: new ErrorModel("Reset password fail", "resetPassFail", 400),
+
+  ExpiredOtp: new ErrorModel("OTP is expired", "expiredOtp", 400),
 };
 
 //Global error handler

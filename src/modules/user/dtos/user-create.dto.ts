@@ -36,3 +36,10 @@ export class CreateUserRequestDTO {
     });
   };
 }
+
+export class SendMailDTO {
+  email: string;
+  subject: string;
+  text: string;
+  html: string;
+}

@@ -21,9 +21,6 @@ import erroHandler from "./helpers/handle-errors";
   app.use(morgan("combined"));
 
   await DBconnect();
-  //   app.get("/", (req, res) => {
-  //     res.send("Hello World!");
-  //   });
 
   app.use("/api/users", routerUser)
   app.use("/api/posts", route);

@@ -17,4 +17,9 @@ routerUser.post("/accounts/logout", authMiddleware.checkResetToken,  authControl
 routerUser.post("/accounts/reset-token", authMiddleware.checkResetToken,  authController.resetTokenController)
 routerUser.post("/accounts/registor", userMiddleWare.checkValidationCreateUser,  userController.registor)
 
+//API for User
+routerUser.post("/accounts/active-host", authMiddleware.authorizedUser, userController.activeHost)
+routerUser.post("/accounts/verify-host", authMiddleware.authorizedUser, userController.verifyHost)
+routerUser.post("/accounts/reset-otp", authMiddleware.authorizedUser, userController.resetOtp)
+
 export default routerUser
