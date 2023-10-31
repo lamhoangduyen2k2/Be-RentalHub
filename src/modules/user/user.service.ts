@@ -17,7 +17,13 @@ export class UserService {
 
     if (user) throw Errors.Duplicate;
 
-    const newUser = await Users.create(userParam);
+    //Check password and password confirm
+    if (userParam._pw !== userParam._pwconfirm) throw Errors.PwconfirmInvalid;
+
+    const newUser = await Users.create({
+      _email: userParam._email,
+      _pw: userParam._pw,
+    });
 
     return newUser;
   };
@@ -93,7 +99,7 @@ export class UserService {
       if (user._isHost) throw Errors.UserIsHosted;
 
       //Delete old OTP
-      await OTP.deleteOne({ _uId: userId })
+      await OTP.deleteOne({ _uId: userId });
 
       //Create otp
       const otp: string = generate(6, {

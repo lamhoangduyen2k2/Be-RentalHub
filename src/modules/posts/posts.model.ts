@@ -5,7 +5,7 @@ import Inspectors from "../inspectors/inspectors.model";
 const postsSchema = new mongoose.Schema({
   _active: {
     type: Boolean,
-    default: false,
+    default: true,
   },
   _content: {
     type: String,
@@ -40,10 +40,10 @@ const postsSchema = new mongoose.Schema({
     type: String,
     required: [true, "Description is required"],
   },
-  _rooms: {
-    type: [Schema.Types.ObjectId],
-    required: [true, "Rooms is required"],
-  },
+  // _rooms: {
+  //   type: [Schema.Types.ObjectId],
+  //   required: [true, "Rooms is required"],
+  // },
   _inspectId: {
     type: Schema.Types.ObjectId,
     ref: Inspectors,

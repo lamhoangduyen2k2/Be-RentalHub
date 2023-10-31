@@ -13,7 +13,7 @@ export class UserMiddleWare {
     next: NextFunction
   ) => {
     try {
-        const infoUser = CreateUserRequestDTO.fromReqest(req)
+        const infoUser = CreateUserRequestDTO.fromRequest(req)
         const errors: ValidationError[] = await validate(infoUser)
 
         if (errors[0]) throw errors

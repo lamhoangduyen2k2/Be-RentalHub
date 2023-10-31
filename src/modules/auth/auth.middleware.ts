@@ -42,9 +42,57 @@ export class AuthenMiddWare {
 
       if (!user) throw Errors.UserNotFound;
 
-      if (user._role !== 0) throw Errors.Unauthorized;
+      if (user._role !== 0 || !user._active ) throw Errors.Unauthorized;
 
-      req.body.userId = payload.userId;
+      req.body._uId = payload.userId;
+
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  authorizedAdmin = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const authHeader = req.header("Authorization");
+      const auth = authHeader?.split(" ")[1];
+
+      if (!auth) throw Errors.Unauthorized;
+
+      const payload = await this.authService.verifyAccessToken(auth);
+
+      //Check role User
+      const user = await Users.findOne({ _id: payload.userId });
+
+      if (!user) throw Errors.UserNotFound;
+
+      if (user._role !== 1) throw Errors.Unauthorized;
+
+      req.body._uId = payload.userId;
+
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  authorizedInspector = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const authHeader = req.header("Authorization");
+      const auth = authHeader?.split(" ")[1];
+
+      if (!auth) throw Errors.Unauthorized;
+
+      const payload = await this.authService.verifyAccessToken(auth);
+
+      //Check role User
+      const user = await Users.findOne({ _id: payload.userId });
+
+      if (!user) throw Errors.UserNotFound;
+
+      if (user._role !== 2) throw Errors.Unauthorized;
+
+      req.body._uId = payload.userId;
 
       next();
     } catch (error) {

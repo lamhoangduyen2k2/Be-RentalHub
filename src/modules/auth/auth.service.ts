@@ -18,7 +18,7 @@ export class AuthService {
 
     const isValid = await compare(loginParam._password, users._pw);
 
-    if (!isValid) throw Errors.PasswordInvalid;
+    if (!isValid) throw Errors.PwInvalid;
 
     const token = await tokenService.createTokenByLogin(
       users._id.toString(),

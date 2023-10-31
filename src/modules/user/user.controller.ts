@@ -15,7 +15,7 @@ export class UserController {
     next: NextFunction
   ) => {
     try {
-        const infoUser = CreateUserRequestDTO.fromReqest(req)
+        const infoUser = CreateUserRequestDTO.fromRequest(req)
         const newUser = await this.userService.createNewUser(infoUser)
 
         res.json(new ResponseData(newUser, null, null))
@@ -31,7 +31,7 @@ export class UserController {
     next: NextFunction
   ) => {
     try {
-        const newUser = await this.userService.activeHost(req.body.userId)
+        const newUser = await this.userService.activeHost(req.body._uId)
         res.json(new ResponseData(newUser, null, null))
     } catch (error) {
         console.log(error)
@@ -45,7 +45,7 @@ export class UserController {
     next: NextFunction
   ) => {
     try {
-        const updatedUser = await this.userService.verifyHost(req.body.userId, req.body.otp)
+        const updatedUser = await this.userService.verifyHost(req.body._uId, req.body.otp)
         res.json(new ResponseData(updatedUser, null, null))
     } catch (error) {
         console.log(error)
@@ -59,7 +59,7 @@ export class UserController {
     next: NextFunction
   ) => {
     try {
-        const newUser = await this.userService.resetOTP(req.body.userId)
+        const newUser = await this.userService.resetOTP(req.body._uId)
         res.json(new ResponseData(newUser, null, null))
     } catch (error) {
         console.log(error)

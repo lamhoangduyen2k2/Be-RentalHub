@@ -6,12 +6,10 @@ import { genSalt, hash } from "bcrypt";
 const usersSchema = new mongoose.Schema({
   _fname: {
     type: String,
-    required: [true, "Firstname is required"],
     trim: true,
   },
   _lname: {
     type: String,
-    required: [true, "Lastname is required"],
     trim: true,
   },
   _dob: {

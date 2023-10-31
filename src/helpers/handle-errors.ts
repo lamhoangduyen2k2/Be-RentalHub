@@ -17,7 +17,11 @@ export class ErrorModel extends Error {
 }
 
 export const Errors = {
-  SaveToDatabaseFail: new ErrorModel("Save data is failed!", "saveToDatabaseFail", 500),
+  SaveToDatabaseFail: new ErrorModel(
+    "Save data is failed!",
+    "saveToDatabaseFail",
+    500
+  ),
 
   FileNotFound: new ErrorModel("File not found!", "fileNotFound", 404),
 
@@ -27,17 +31,21 @@ export const Errors = {
   LnameNotFound: new ErrorModel("Lastname not found!", "lnameNotFound", 404),
   LnameInvalid: new ErrorModel("Lastname invalid!", "lnameInvalid", 404),
 
-  PasswordNotFound: new ErrorModel(
-    "Password not found!",
-    "passwordNotFound",
+  PwNotFound: new ErrorModel("Password not found!", "pwNotFound", 400),
+
+  PwInvalid: new ErrorModel("Password invalid!", "pwInvalid", 400),
+
+  PwconfirmNotFound: new ErrorModel(
+    "Password Confirm not found!",
+    "pwconfirmNotFound",
     400
   ),
 
-  PasswordInvalid: new ErrorModel("Password invalid!", "passwordInvalid", 400),
-
-  PwdNotFound: new ErrorModel("Password not found!", "pwNotFound", 400),
-
-  PwInvalid: new ErrorModel("Password invalid!", "pwInvalid", 400),
+  PwconfirmInvalid: new ErrorModel(
+    "Password Confirm invalid!",
+    "pwconfirmInvalid",
+    400
+  ),
 
   NameNotFound: new ErrorModel("Name not found!", "nameNotFound", 400),
 
@@ -89,6 +97,9 @@ export const Errors = {
   ResetPassFail: new ErrorModel("Reset password fail", "resetPassFail", 400),
 
   ExpiredOtp: new ErrorModel("OTP is expired", "expiredOtp", 400),
+
+  //Errors for Post
+  PostNotFound: new ErrorModel("Post not found!", "postNotFound", 404),
 };
 
 //Global error handler
@@ -115,7 +126,7 @@ export const handleErrorOfValidation = (errors: ValidationError[]) => {
       return Errors[`${UpCase(error.property)}NotFound`];
     } else {
       {
-        //console.log(error.property);
+        console.log(error.property);
         return Errors[`${UpCase(error.property)}Invalid`];
       }
     }
