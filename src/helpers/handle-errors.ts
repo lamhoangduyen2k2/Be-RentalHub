@@ -23,83 +23,92 @@ export const Errors = {
     500
   ),
 
-  FileNotFound: new ErrorModel("File not found!", "fileNotFound", 404),
+  FileNotFound: new ErrorModel("File not found!", "FILE_NOTFOUND", 404),
 
-  FnameNotFound: new ErrorModel("Firstname not found!", "fnameNotFound", 404),
-  FnameInvalid: new ErrorModel("Firstname invalid!", "fnameInvalid", 404),
+  FnameNotFound: new ErrorModel("Firstname not found!", "FNAME_NOTFOUND", 404),
+  FnameInvalid: new ErrorModel("Firstname invalid!", "FNAME_INVALID", 404),
 
-  LnameNotFound: new ErrorModel("Lastname not found!", "lnameNotFound", 404),
-  LnameInvalid: new ErrorModel("Lastname invalid!", "lnameInvalid", 404),
+  LnameNotFound: new ErrorModel("Lastname not found!", "LNAME_NOTFOUND", 404),
+  LnameInvalid: new ErrorModel("Lastname invalid!", "LNAME_INVALID", 404),
 
-  PwNotFound: new ErrorModel("Password not found!", "pwNotFound", 400),
+  PwNotFound: new ErrorModel("Password not found!", "PASSWORD_NOTFOUND", 400),
 
-  PwInvalid: new ErrorModel("Password invalid!", "pwInvalid", 400),
+  PwInvalid: new ErrorModel("Password invalid!", "PASSWORD_INVALID", 400),
 
   PwconfirmNotFound: new ErrorModel(
     "Password Confirm not found!",
-    "pwconfirmNotFound",
+    "PASSWORD_CONFIRM_NOTFOUND",
     400
   ),
 
   PwconfirmInvalid: new ErrorModel(
     "Password Confirm invalid!",
-    "pwconfirmInvalid",
+    "PASSWORD_CONFIRM_INVALID",
     400
   ),
 
-  NameNotFound: new ErrorModel("Name not found!", "nameNotFound", 400),
+  NameNotFound: new ErrorModel("Name not found!", "NAME_NOTFOUND", 400),
 
-  NameInvalid: new ErrorModel("Name invalid!", "nameInvalid", 400),
+  NameInvalid: new ErrorModel("Name invalid!", "NAME_INVALID", 400),
 
-  EmailNotFound: new ErrorModel("Email not found!", "emailNotFound", 400),
+  EmailNotFound: new ErrorModel("Email not found!", "EMAIL_NOTFOUND", 400),
 
-  EmailInvalid: new ErrorModel("Emailname invalid!", "emailInvalid", 400),
+  EmailInvalid: new ErrorModel("Emailname invalid!", "EMAIL_INVALID", 400),
 
   GenderInvalid: new ErrorModel("Gendername invalid!", "genderInvalid", 400),
 
   PhonenumberInvalid: new ErrorModel(
     "Phonenumber invalid!",
-    "phonenumberInvalid",
+    "PHONENUMBER_INVALID",
+    400
+  ),
+  PhonenumberDuplicate: new ErrorModel(
+    "Phonenumber duplicate!",
+    "PHONENUMBER_DUPLICATE",
     400
   ),
 
-  DOBInvalid: new ErrorModel("DOB invalid!", "dobInvalid", 400),
+  DOBInvalid: new ErrorModel("DOB invalid!", "DOB_INVALID", 400),
 
-  AddressInvalid: new ErrorModel("Address invalid!", "addressInvalid", 400),
+  AddressInvalid: new ErrorModel("Address invalid!", "ADDRESS_INVALID", 400),
 
   ProfileurlInvalid: new ErrorModel(
     "Profileurl invalid!",
-    "profileurlInvalid",
+    "PROFILEURL_INVALID",
     400
   ),
 
-  Duplicate: new ErrorModel("Email is duplicated", "duplicated", 400),
+  Duplicate: new ErrorModel("Email is duplicated", "DUPLICATED", 400),
 
-  UserNotFound: new ErrorModel("User not found!", "userNotFound", 404),
+  UserNotFound: new ErrorModel("User not found!", "USER_NOTFOUND", 404),
 
-  UserIsHosted: new ErrorModel("User is a host!", "userIsHosted", 400),
+  UserIsHosted: new ErrorModel("User is a host!", "USER_ISHOSTED", 400),
 
-  PageNotFound: new ErrorModel("Page not found!", "pageNotFound", 404),
+  PageNotFound: new ErrorModel("Page not found!", "PAGE_NOTFOUND", 404),
 
   Unauthorized: new ErrorModel(
     "User does not have authorization",
-    "unauthorized",
+    "UNAUTHORIZED",
     401
   ),
-  ErrorToken: new ErrorModel("Token is invalid", "errorToken", 403),
+  ErrorToken: new ErrorModel("Token is invalid", "ERROR_TOKEN", 403),
 
-  ExpiredToken: new ErrorModel("Token is expired", "expiredToken", 400),
+  ExpiredToken: new ErrorModel("Token is expired", "EXPIRED_TOKEN", 400),
 
-  FailSendEmail: new ErrorModel("Fail send email", "failSendEmail", 400),
+  FailSendEmail: new ErrorModel("Fail send email", "FAIL_SEND_EMAIL", 400),
 
-  OtpDuplicate: new ErrorModel("User had an otp", "otpDuplicate", 400),
+  OtpDuplicate: new ErrorModel("User had an otp", "OTP_DUPLICATED", 400),
 
-  ResetPassFail: new ErrorModel("Reset password fail", "resetPassFail", 400),
+  ResetPassFail: new ErrorModel(
+    "Reset password fail",
+    "RESET_PASSWORD_FAIL",
+    400
+  ),
 
-  ExpiredOtp: new ErrorModel("OTP is expired", "expiredOtp", 400),
+  ExpiredOtp: new ErrorModel("OTP is expired", "EXPIRED_OTP", 400),
 
   //Errors for Post
-  PostNotFound: new ErrorModel("Post not found!", "postNotFound", 404),
+  PostNotFound: new ErrorModel("Post not found!", "POST_NOTFOUND", 404),
 };
 
 //Global error handler

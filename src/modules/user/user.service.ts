@@ -5,6 +5,8 @@ import { Errors } from "../../helpers/handle-errors";
 import { generate } from "otp-generator";
 import { OTPService } from "../otp/otp.service";
 import OTP from "../otp/otp.model";
+import { UserHostedDTO } from "./dtos/user-active-host.dto";
+import { UserResponsesDTO } from "./dtos/user-response.dto";
 
 @Service()
 export class UserService {
@@ -23,20 +25,30 @@ export class UserService {
     const newUser = await Users.create({
       _email: userParam._email,
       _pw: userParam._pw,
+      _address: null,
+      _avatar: null,
+      _dob: null,
+      _lname: null,
+      _fname: null
     });
 
-    return newUser;
+    return UserResponsesDTO.toResponse(newUser);
   };
 
-  activeHost = async (userId: string) => {
+  activeHost = async (userParam: UserHostedDTO) => {
     try {
-      const user = await Users.findById(userId);
+      //Check phoneNumber
+      const userPhone = await Users.findOne({
+        $and: [{ _phone: userParam._phone }, { _id: { $ne: userParam._uId } }],
+      });
+      if (userPhone) throw Errors.PhonenumberDuplicate;
 
-      if (!user) throw Errors.UserNotFound;
+      //Kiểm tra user có quyền host hay chưa
+      const user = await Users.findById(userParam._uId);
       if (user._isHost) throw Errors.UserIsHosted;
 
+      //Kiểm tra OTP có bị trùng không
       const Otp = await OTP.findOne({ _uId: user._id });
-
       if (Otp) throw Errors.OtpDuplicate;
 
       //Create otp
@@ -62,9 +74,13 @@ export class UserService {
         _otp: otp,
         expiredAt: Date.now(),
       });
-
       if (!newOTP) throw Errors.SaveToDatabaseFail;
 
+      //Save phonenumber for user
+      await Users.updateOne(
+        { _id: userParam._uId },
+        { _phone: userParam._phone }
+      );
       return true;
     } catch (error) {
       return error;
@@ -73,7 +89,7 @@ export class UserService {
 
   verifyHost = async (userId: string, otp: string) => {
     try {
-      const checkOTP = OTP.findOne({ $and: [{ _uId: userId }, { _otp: otp }] });
+      const checkOTP = await OTP.findOne({ $and: [{ _uId: userId }, { _otp: otp }] });
 
       if (!checkOTP) throw Errors.ExpiredOtp;
 
