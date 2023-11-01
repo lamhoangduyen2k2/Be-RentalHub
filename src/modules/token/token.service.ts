@@ -10,22 +10,26 @@ class TokenService {
 
     //Create accessToken
     accessToken = sign({ _id: userId }, process.env.SECRET_KEY, {
-      expiresIn: "60s",
+      expiresIn: "300s",
     });
 
+    const expiredAccess : number = Date.now() + 300*1000
+    
     //Create refeshToken
     refreshToken = sign({ _id: userId }, process.env.SECRET_KEY_FRESH, {
       expiresIn: `${timeLife}s`,
     });
 
     //Save refreshToken to database
-    await RefreshTokens.create({
+    const refresh = await RefreshTokens.create({
       _uId: userId,
       _refreshToken: refreshToken,
       expireAt: Date.now(),
     });
 
-    return { accessToken, refreshToken };
+    const expiredRefresh : number = Date.parse(refresh.expireAt.toString()) + 3600*1000
+    
+    return { accessToken, refreshToken, expiredAccess, expiredRefresh};
   };
 
   public createTokenByReset = async (userId: string | number, timeLife: number) => {
@@ -34,14 +38,16 @@ class TokenService {
 
     //Create accessToken
     accessToken = sign({ _id: userId }, process.env.SECRET_KEY, {
-      expiresIn: "60s",
+      expiresIn: "300s",
     });
+
+    const expiredAccess : number = Date.now() + 300*1000
 
     //Create refeshToken
     refreshToken = sign({ _id: userId }, process.env.SECRET_KEY_FRESH, {
       expiresIn: `${timeLife}s`,
     });
-    return { accessToken, refreshToken };
+    return { accessToken, refreshToken, expiredAccess };
   };
 }
 

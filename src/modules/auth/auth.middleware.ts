@@ -103,7 +103,7 @@ export class AuthenMiddWare {
   checkResetToken = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const refreshToken = req.body.refreshToken;
-      console.log(refreshToken);
+      
       const payload = await this.authService.verifyRefreshToken(refreshToken);
       req.body.userId = payload.userId;
       req.body.expToken = payload.timeExpireRefresh;

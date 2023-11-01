@@ -10,7 +10,7 @@ const refreshTokensSchema = new mongoose.Schema(
     _refreshToken: String,
     expireAt : {
       type : Date,
-      expires: 120
+      expires: "1h"
     }
   },
   { timestamps: true }

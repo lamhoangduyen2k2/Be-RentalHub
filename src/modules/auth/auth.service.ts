@@ -22,38 +22,35 @@ export class AuthService {
 
     const token = await tokenService.createTokenByLogin(
       users._id.toString(),
-      300
+      3600
     );
 
     return token;
   };
 
   logoutService = async (userId: string, refreshToken: string) => {
-    const check = await RefreshTokens.deleteOne({
+    await RefreshTokens.deleteOne({
       $and: [{ _uId: userId }, { _refreshToken: refreshToken }],
     });
-    console.log(check);
-
+    
     return true;
   };
 
   resetToken = async (userId: string, refreshToken: string) => {
-    const newToken = await tokenService.createTokenByReset(userId, 300);
-    await RefreshTokens.findOneAndUpdate(
+    const newToken = await tokenService.createTokenByReset(userId, 3600);
+    const refresh = await RefreshTokens.findOneAndUpdate(
       {
         _refreshToken: refreshToken,
       },
       {
         _refreshToken: newToken.refreshToken,
-      }
+      }, { new: true}
     );
 
-    const token = await RefreshTokens.findOne({
-      _refreshToken: newToken.refreshToken,
-    });
-    if (!token) throw Errors.ErrorToken;
+    if (!refresh) throw Errors.ErrorToken;
+    const expiredRefresh : number = Date.parse(refresh.expireAt.toString()) + 3600*1000
 
-    return newToken;
+    return { ...newToken, expiredRefresh};
   };
 
   verifyAccessToken = async (accessToken: string) => {
