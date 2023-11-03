@@ -6,6 +6,7 @@ import { verify } from "jsonwebtoken";
 import RefreshTokens from "../token/refresh.model";
 import { Service } from "typedi";
 import tokenService from "../token/token.service";
+import { UserResponsesDTO } from "../user/dtos/user-response.dto";
 
 @Service()
 export class AuthService {
@@ -25,7 +26,7 @@ export class AuthService {
       3600
     );
 
-    return token;
+    return {...UserResponsesDTO.toResponse(users), ...token};
   };
 
   logoutService = async (userId: string, refreshToken: string) => {
@@ -33,7 +34,7 @@ export class AuthService {
       $and: [{ _uId: userId }, { _refreshToken: refreshToken }],
     });
     
-    return true;
+    return { message: "Logout Successfully"};
   };
 
   resetToken = async (userId: string, refreshToken: string) => {
