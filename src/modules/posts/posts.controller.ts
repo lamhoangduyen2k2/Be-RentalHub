@@ -2,7 +2,7 @@ import { Inject, Service } from "typedi";
 import { PostsService } from "./posts.service";
 import { NextFunction, Request, Response } from "express";
 import { PostCreateDTO } from "./dtos/post-create.dto";
-import { ResponseData } from "../../helpers/response";
+import { Pagination, ResponseData } from "../../helpers/response";
 import { BodyResquest } from "../../base/base.request";
 import { PostUpdateDTO } from "./dtos/post-update.dto";
 
@@ -11,17 +11,14 @@ import { PostUpdateDTO } from "./dtos/post-update.dto";
 export class PostsController {
   constructor(@Inject() private postsService: PostsService) {}
 
-  public getAllPostsController = async (req: Request, res: Response) => {
+  public getAllPostsController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const posts = await this.postsService.getAllPosts();
-      res.status(200).json({
-        msg: "Lấy thành công các posts",
-        data: posts,
-      });
+      const pagination : Pagination = Pagination.getPagination(req)
+      const posts = await this.postsService.getAllPosts(pagination);
+      res.json(new ResponseData(posts[0], null, posts[1]))
     } catch (error) {
-      res.status(400).json({
-        msg: "Không lấy được các posts",
-      });
+      console.log(error)
+      next(error)
     }
   };
 

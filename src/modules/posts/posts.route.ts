@@ -8,7 +8,7 @@ const route = express.Router()
 const postsController = new PostsController(new PostsService())
 const authMiddleware = new AuthenMiddWare(new AuthService())
 
-route.get('/', authMiddleware.authorizedUser, postsController.getAllPostsController)
+route.get('/', postsController.getAllPostsController)
 route.post('/create-post', authMiddleware.authorizedUser, postsController.createNewPost)
 route.patch('/sensor-post/:postId', authMiddleware.authorizedInspector, postsController.sensorPost)
 route.patch('/update-post/:postId', authMiddleware.authorizedUser, postsController.updatePost)

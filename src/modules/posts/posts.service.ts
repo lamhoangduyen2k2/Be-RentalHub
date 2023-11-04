@@ -4,6 +4,7 @@ import { PostCreateDTO } from "./dtos/post-create.dto";
 import { Errors } from "../../helpers/handle-errors";
 import { PostUpdateDTO } from "./dtos/post-update.dto";
 import Users from "../user/users.model";
+import { Pagination } from "../../helpers/response";
 
 @Service()
 export class PostsService {
@@ -23,10 +24,10 @@ export class PostsService {
 
   public updatePost = async (postParam: PostUpdateDTO, postId: string) => {
     const post = await Posts.findOne({
-      $and: [{ _id: postId }, { _uId: postParam._uId }, {_active: true}],
-    })
+      $and: [{ _id: postId }, { _uId: postParam._uId }, { _active: true }],
+    });
 
-    if (!post) throw Errors.PostNotFound
+    if (!post) throw Errors.PostNotFound;
 
     const updatedPost = await Posts.updateOne({ _id: postId }, postParam);
 
@@ -58,9 +59,17 @@ export class PostsService {
     return true;
   };
 
-  public getAllPosts = async () => {
-    const posts = await Posts.find({});
+  public getAllPosts = async (pagination: Pagination) => {
+    const count = await Posts.countDocuments({})
+    const posts = await Posts.find({})
+      .skip(pagination.offset)
+      .limit(pagination.limit);
 
-    return posts;
+    if (!posts[0]?._id) throw Errors.PageNotFound
+
+      return [
+        posts,
+        { page: pagination.page, limit: pagination.limit, total: count },
+      ];
   };
 }
