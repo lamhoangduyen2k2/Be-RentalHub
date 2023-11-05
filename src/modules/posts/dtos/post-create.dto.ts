@@ -31,6 +31,34 @@ export class PostCreateDTO {
   @IsArray()
   _tags: ObjectId[]
 
+  @Expose()
+  @IsNotEmpty()
+  @IsArray()
+  _address: string
+
+  @Expose()
+  _services: string[]
+
+  @Expose()
+  _utilities: string[]
+
+  @Expose()
+  @IsNotEmpty()
+  @IsString()
+  _area: number
+
+  @Expose()
+  @IsNotEmpty()
+  _price: number
+
+  @Expose()
+  @IsNotEmpty()
+  _electricPrice: number
+
+  @Expose()
+  @IsNotEmpty()
+  _waterPrice: number
+
   static fromRequest = (req: Request) => {
     return plainToClass(PostCreateDTO, req.body, {
       excludeExtraneousValues: true,

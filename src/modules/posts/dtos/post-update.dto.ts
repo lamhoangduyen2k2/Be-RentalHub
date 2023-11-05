@@ -1,4 +1,4 @@
-import { Expose, plainToClass } from "class-transformer";
+import { Exclude, Expose, plainToClass } from "class-transformer";
 import { IsArray, IsString } from "class-validator";
 import { Request } from "express";
 import { ObjectId } from "mongoose";
@@ -36,6 +36,33 @@ export class PostUpdateDTO {
   @Expose()
   _active: boolean
 
+  @Exclude()
+  _rooms: ObjectId
+
+  @Expose()
+  @IsArray()
+  _address: string
+
+  @Expose()
+  _services: string[]
+
+  @Expose()
+  _utilities: string[]
+
+  @Expose()
+  _area: number
+
+  @Expose()
+  _price: number
+
+  @Expose()
+  _electricPrice: number
+
+  @Expose()
+  _waterPrice: number
+
+  @Expose()
+  _isRented: boolean
   static fromRequest = (req: Request) => {
     return plainToClass(PostUpdateDTO, req.body, {
       excludeExtraneousValues: true,

@@ -30,7 +30,6 @@ export class PostsController {
     try {
       const postInfo = PostCreateDTO.fromRequest(req);
       const post = await this.postsService.createNewPost(postInfo);
-
       res.json(new ResponseData(post, null, null));
     } catch (error) {
       console.log(error)
