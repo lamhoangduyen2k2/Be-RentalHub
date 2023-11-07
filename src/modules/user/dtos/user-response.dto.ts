@@ -1,6 +1,11 @@
-import { Exclude, Expose, plainToClass } from "class-transformer";
+import { Exclude, Expose, Transform, plainToClass } from "class-transformer";
+import { ObjectId } from "mongoose";
 
 export class UserResponsesDTO {
+  @Expose()
+  @Transform((value) => value.obj._id.toString())
+  _id: ObjectId;
+  
   @Expose()
   _email: string;
 
