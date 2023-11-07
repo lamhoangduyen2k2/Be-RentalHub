@@ -121,48 +121,62 @@ export class PostsService {
 
   public getAllPosts = async (pagination: Pagination) => {
     const count = await Posts.countDocuments({ _status: 1 });
-    const posts = await Rooms.aggregate([
+
+    const posts = await Posts.aggregate([
       {
         $lookup: {
-          from: "posts",
-          let: { rooms: "$_id" },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $and: [
-                    { $eq: ["$_rooms", "$$rooms"] },
-                    { $eq: ["$_status", 1] },
-                  ],
-                },
-              },
-            },
-          ],
-          as: "posts",
+          from: "rooms",
+          localField: "_rooms",
+          foreignField: "_id",
+          as: "room",
+        },
+      },
+      { $unwind: "$room" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_uId",
+          foreignField: "_id",
+          as: "author"
+        }
+      },
+      { $unwind: "$author"},
+      {
+        $match: {
+          $and: [{ _status: 1 }],
         },
       },
       {
         $project: {
           _id: 1,
-          _address: 1,
-          _services: 1,
-          _utilities: 1,
-          _area: 1,
-          _price: 1,
-          _electricPrice: 1,
-          _waterPrice: 1,
-          posts: 1,
+          _title: 1,
+          _content: 1,
+          _desc: 1,
+          _postingDate: 1,
+          _tags: 1,
+          _videos: 1,
+          _images: 1,
+          _inspectId: 1,
+          roomId: "$room._id",
+          roomAddress: "$room._address",
+          roomServices: "$room._services",
+          roomUtilities: "$room._utilities",
+          roomArea: "$room._area",
+          roomPrice: "$room._price",
+          roomElectricPrice: "$room._electricPrice",
+          roomWaterPrice: "$room._waterPrice",
+          roomIsRented: "$room._isRented",
+          authorId: "$author._id",
+          authorFName: "$author._fname",
+          authorLName: "$author._lname",
+          phoneNumber: "$author._phone",
+          addressAuthor: "$author._address"
         },
       },
     ])
       .skip(pagination.offset)
       .limit(pagination.limit);
 
-    posts.forEach((post, index) => {
-      if (post.posts.length <= 0) {
-        posts.splice(index, 1);
-      }
-    });
     if (!posts[0]?._id) throw Errors.PageNotFound;
 
     return [
