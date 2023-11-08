@@ -121,6 +121,7 @@ export class PostsService {
 
   public getAllPosts = async (pagination: Pagination) => {
     const count = await Posts.countDocuments({ _status: 1 });
+    const totalPages = Math.ceil(count / pagination.limit);
 
     const posts = await Posts.aggregate([
       {
@@ -137,10 +138,10 @@ export class PostsService {
           from: "users",
           localField: "_uId",
           foreignField: "_id",
-          as: "author"
-        }
+          as: "author",
+        },
       },
-      { $unwind: "$author"},
+      { $unwind: "$author" },
       {
         $match: {
           $and: [{ _status: 1 }],
@@ -170,7 +171,8 @@ export class PostsService {
           authorFName: "$author._fname",
           authorLName: "$author._lname",
           phoneNumber: "$author._phone",
-          addressAuthor: "$author._address"
+          addressAuthor: "$author._address",
+          avatarAuthor: "$author._avatar",
         },
       },
     ])
@@ -181,7 +183,7 @@ export class PostsService {
 
     return [
       posts,
-      { page: pagination.page, limit: pagination.limit, total: count },
+      { page: pagination.page, limit: pagination.limit, total: totalPages },
     ];
   };
 }
