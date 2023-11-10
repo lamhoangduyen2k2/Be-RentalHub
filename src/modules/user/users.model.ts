@@ -7,29 +7,28 @@ const usersSchema = new mongoose.Schema({
   _fname: {
     type: String,
     trim: true,
-    default: null
+    default: null,
   },
   _lname: {
     type: String,
     trim: true,
-    default: null
+    default: null,
   },
   _dob: {
     type: Date,
-    //validate: [validator.isDate, "DOB is invalid"],
-    default: null
+    default: null,
   },
   _phone: {
     type: String,
-    default: null
+    default: null,
   },
   _address: {
     type: String,
-    default: null
+    default: null,
   },
   _avatar: {
     type: String,
-    default: null
+    default: null,
   },
   _email: {
     type: String,

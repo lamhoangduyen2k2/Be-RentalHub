@@ -19,7 +19,9 @@ export class PostsService {
 
     const newRoom = await Rooms.create({
       _uId: postParam._uId,
-      _address: postParam._address,
+      _street: postParam._street,
+      _district: postParam._district,
+      _city: postParam._city,
       _services: postParam._services,
       _utilities: postParam._utilities,
       _area: postParam._area,
@@ -92,7 +94,6 @@ export class PostsService {
   };
 
   public sensorPost = async (postParam: PostUpdateDTO, postId: string) => {
-    console.log(postId);
     await Posts.findById(postId)
       .then((result) => {
         console.log(result);
