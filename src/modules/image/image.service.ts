@@ -38,13 +38,13 @@ export class ImageService {
       // Grab the public url
       const downloadURL = await getDownloadURL(snapshot.ref);
 
-      //console.log("File successfully uploaded.");
+      // dataImage.push({
+      //   name: fi.originalname,
+      //   type: fi.mimetype,
+      //   downloadURL: downloadURL,
+      // });
 
-      dataImage.push({
-        name: fi.originalname,
-        type: fi.mimetype,
-        downloadURL: downloadURL,
-      });
+      dataImage.push(downloadURL)
     }
     return dataImage;
   };

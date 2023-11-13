@@ -1,13 +1,17 @@
-import express from "express"
-import multer from "multer"
-import Container from "typedi"
-import { ImageController } from "./image.controller"
+import express from "express";
+import Container from "typedi";
+import { ImageController } from "./image.controller";
+import { ImageMiddleWare } from "./image.middleware";
 
-const routerImg = express.Router()
-const imgController = Container.get(ImageController)
+const routerImg = express.Router();
+const imgController = Container.get(ImageController);
+const imageMiddleWare = Container.get(ImageMiddleWare);
 
-const upload = multer({ storage: multer.memoryStorage() })
+routerImg.post(
+  "/image",
+  imageMiddleWare.upload.array("_images"),
+  imageMiddleWare.checkUploadImages,
+  imgController.uploadImage
+);
 
-routerImg.post("/image", upload.array("filename"), imgController.uploadImage)
-
-export default routerImg
+export default routerImg;

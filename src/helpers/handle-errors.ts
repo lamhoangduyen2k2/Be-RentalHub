@@ -23,6 +23,29 @@ export const Errors = {
     500
   ),
 
+  FileSizeExceedLimit: new ErrorModel(
+    "File size exceeds 10MB",
+    "FILE_SIZE_EXCEED_LIMIT",
+    400
+  ),
+  FileCountExceedLimit: new ErrorModel(
+    "The number of files greater than 10 images",
+    "FILE_COUNT_EXCEED_LIMIT",
+    400
+  ),
+
+  FileIsNotImage: new ErrorModel(
+    "This file is not an image",
+    "FILE_IS_NOT_IMAGE",
+    400
+  ),
+
+  UploadImageFail: new ErrorModel(
+    "Upload images is fail",
+    "UPLOAD_IMAGES_FAIL",
+    400
+  ),
+
   FileNotFound: new ErrorModel("File not found!", "FILE_NOTFOUND", 404),
 
   FnameNotFound: new ErrorModel("Firstname not found!", "FNAME_NOTFOUND", 404),

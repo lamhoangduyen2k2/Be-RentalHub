@@ -6,19 +6,22 @@ import { Pagination, ResponseData } from "../../helpers/response";
 import { BodyResquest } from "../../base/base.request";
 import { PostUpdateDTO } from "./dtos/post-update.dto";
 
-
 @Service()
 export class PostsController {
   constructor(@Inject() private postsService: PostsService) {}
 
-  public getAllPostsController = async (req: Request, res: Response, next: NextFunction) => {
+  public getAllPostsController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
-      const pagination : Pagination = Pagination.getPagination(req)
+      const pagination: Pagination = Pagination.getPagination(req);
       const posts = await this.postsService.getAllPosts(pagination);
-      res.json(new ResponseData(posts[0], null, posts[1]))
+      res.json(new ResponseData(posts[0], null, posts[1]));
     } catch (error) {
-      console.log(error)
-      next(error)
+      console.log(error);
+      next(error);
     }
   };
 
@@ -28,12 +31,13 @@ export class PostsController {
     next: NextFunction
   ) => {
     try {
+      const files = req.files as Express.Multer.File[];
       const postInfo = PostCreateDTO.fromRequest(req);
-      const post = await this.postsService.createNewPost(postInfo);
+      const post = await this.postsService.createNewPost(postInfo, files);
       res.json(new ResponseData(post, null, null));
     } catch (error) {
-      console.log(error)
-      next(error)
+      console.log(error);
+      next(error);
     }
   };
 
@@ -44,12 +48,15 @@ export class PostsController {
   ) => {
     try {
       const postInfo = PostUpdateDTO.fromRequest(req);
-      const post = await this.postsService.updatePost(postInfo, req.params.postId);
+      const post = await this.postsService.updatePost(
+        postInfo,
+        req.params.postId
+      );
 
       res.json(new ResponseData(post, null, null));
     } catch (error) {
-      console.log(error)
-      next(error)
+      console.log(error);
+      next(error);
     }
   };
 
@@ -60,12 +67,15 @@ export class PostsController {
   ) => {
     try {
       const postInfo = PostUpdateDTO.fromRequest(req);
-      const post = await this.postsService.sensorPost(postInfo, req.params.postId);
+      const post = await this.postsService.sensorPost(
+        postInfo,
+        req.params.postId
+      );
 
       res.json(new ResponseData(post, null, null));
     } catch (error) {
-      console.log(error)
-      next(error)
+      console.log(error);
+      next(error);
     }
   };
 }

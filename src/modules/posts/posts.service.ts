@@ -1,4 +1,4 @@
-import { Service } from "typedi";
+import Container, { Service } from "typedi";
 import Posts from "./posts.model";
 import { PostCreateDTO } from "./dtos/post-create.dto";
 import { Errors } from "../../helpers/handle-errors";
@@ -7,16 +7,23 @@ import Users from "../user/users.model";
 import { Pagination } from "../../helpers/response";
 import Rooms from "../rooms/rooms.model";
 import { PostResponseDTO } from "./dtos/post-response.dto";
+import { ImageService } from "../image/image.service";
 
 @Service()
 export class PostsService {
-  public createNewPost = async (postParam: PostCreateDTO) => {
+  imageService = Container.get(ImageService);
+
+  public createNewPost = async (
+    postParam: PostCreateDTO,
+    files: Express.Multer.File[]
+  ) => {
+    // Check user is a host
     const user = await Users.findOne({
       $and: [{ _id: postParam._uId }, { _isHost: true }],
     });
-
     if (!user) throw Errors.UserNotFound;
 
+    //Create new room
     const newRoom = await Rooms.create({
       _uId: postParam._uId,
       _street: postParam._street,
@@ -29,9 +36,13 @@ export class PostsService {
       _electricPrice: postParam._electricPrice,
       _waterPrice: postParam._waterPrice,
     });
-
     if (!newRoom) throw Errors.SaveToDatabaseFail;
 
+    //Upload images to firebase
+    postParam._images = await this.imageService.uploadImage(files);
+    if (postParam._images.length <= 0) throw Errors.UploadImageFail;
+
+    //Create new post
     const newPosts = await Posts.create({
       _content: postParam._content,
       _tags: postParam._tags,
@@ -41,7 +52,6 @@ export class PostsService {
       _desc: postParam._desc,
       _rooms: newRoom._id,
     });
-
     if (!newPosts) throw Errors.SaveToDatabaseFail;
 
     const newInfo = { ...newRoom.toObject(), ...newPosts.toObject() };
