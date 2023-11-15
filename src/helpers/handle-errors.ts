@@ -132,6 +132,90 @@ export const Errors = {
 
   //Errors for Post
   PostNotFound: new ErrorModel("Post not found!", "POST_NOTFOUND", 404),
+
+  TitleNotFound: new ErrorModel("Title not found!", "TITLE_NOTFOUND", 404),
+
+  TitleInvalid: new ErrorModel("Title invalid!", "TITLE_INVALID", 400),
+
+  ImagesNotFound: new ErrorModel("Image not found!", "IMAGE_NOTFOUND", 404),
+
+  ImagesInvalid: new ErrorModel("Image invalid!", "IMAGE_INVALID", 400),
+
+  ContentNotFound: new ErrorModel(
+    "Content not found!",
+    "CONTENT_NOTFOUND",
+    404
+  ),
+
+  ContentInvalid: new ErrorModel("Content invalid!", "CONTENT_INVALID", 400),
+
+  DescNotFound: new ErrorModel(
+    "Description not found!",
+    "DESCRIPTION_NOTFOUND",
+    404
+  ),
+
+  DescInvalid: new ErrorModel(
+    "Description invalid!",
+    "DESCRIPTION_INVALID",
+    400
+  ),
+
+  StreetNotFound: new ErrorModel("Street not found!", "STREET_NOTFOUND", 404),
+
+  StreetInvalid: new ErrorModel("Street invalid!", "STREET_INVALID", 400),
+
+  DistrictNotFound: new ErrorModel(
+    "District not found!",
+    "DISTRICT_NOTFOUND",
+    404
+  ),
+
+  DistrictInvalid: new ErrorModel("District invalid!", "DISTRICT_INVALID", 400),
+
+  AreaNotFound: new ErrorModel("Area not found!", "AREA_NOTFOUND", 404),
+
+  AreaInvalid: new ErrorModel("Area invalid!", "AREA_INVALID", 400),
+
+  PriceNotFound: new ErrorModel("Price not found!", "PRICE_NOTFOUND", 404),
+
+  PriceInvalid: new ErrorModel("Price invalid!", "PRICE_INVALID", 400),
+
+  ElectricPriceNotFound: new ErrorModel(
+    "ElectricPrice not found!",
+    "ELECTRICPRICE_NOTFOUND",
+    404
+  ),
+
+  ElectricPriceInvalid: new ErrorModel(
+    "ElectricPrice invalid!",
+    "ELECTRICPRICE_INVALID",
+    400
+  ),
+
+  WaterPriceNotFound: new ErrorModel(
+    "WaterPrice not found!",
+    "WATERPRICE_NOTFOUND",
+    404
+  ),
+
+  WaterPriceInvalid: new ErrorModel(
+    "WaterPrice invalid!",
+    "WATERPRICE_INVALID",
+    400
+  ),
+
+  TagsInvalid: new ErrorModel("Tags invalid!", "TAGS_INVALID", 400),
+
+  CityInvalid: new ErrorModel("City invalid!", "CITY_INVALID", 400),
+
+  ServicesInvalid: new ErrorModel("Services invalid!", "SERVICES_INVALID", 400),
+
+  UtilitiesInvalid: new ErrorModel(
+    "Utilities invalid!",
+    "UTILITIES_INVALID",
+    400
+  ),
 };
 
 //Global error handler

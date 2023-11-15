@@ -5,9 +5,11 @@ import { AuthenMiddWare } from "../auth/auth.middleware";
 import { AuthService } from "../auth/auth.service";
 import { ImageMiddleWare } from "../image/image.middleware";
 import Container from "typedi";
+import { PostsMiddleWare } from "./posts.middleware";
 
 const route = express.Router();
 const postsController = new PostsController(new PostsService());
+const postMiddleWare = Container.get(PostsMiddleWare);
 const authMiddleware = new AuthenMiddWare(new AuthService());
 const imageMiddleWare = Container.get(ImageMiddleWare);
 
@@ -17,6 +19,7 @@ route.post(
   imageMiddleWare.upload.array("_images"),
   imageMiddleWare.checkUploadImages,
   authMiddleware.authorizedUser,
+  postMiddleWare.checkValidationCreatePost,
   postsController.createNewPost
 );
 route.patch(

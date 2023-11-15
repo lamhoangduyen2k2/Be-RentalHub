@@ -1,5 +1,11 @@
 import { Expose, plainToClass } from "class-transformer";
-import { IsArray, IsNotEmpty, IsString, ValidateIf } from "class-validator";
+import {
+  IsArray,
+  IsNotEmpty,
+  IsNumberString,
+  IsString,
+  ValidateIf,
+} from "class-validator";
 import { Request } from "express";
 import { ObjectId } from "mongoose";
 
@@ -13,9 +19,7 @@ export class PostCreateDTO {
   @IsString()
   _title: string;
 
-  @ValidateIf((o : PostCreateDTO) => o._images !== undefined)
   @Expose()
-  @IsArray()
   _images: string[];
 
   @Expose()
@@ -48,34 +52,34 @@ export class PostCreateDTO {
   @IsString()
   _city: string;
 
-  // @Expose()
-  // @IsNotEmpty()
-  // @IsArray()
-  // _address: string
-
   @ValidateIf((o: PostCreateDTO) => o._services !== undefined)
   @Expose()
+  @IsArray()
   _services: string[];
 
   @ValidateIf((o: PostCreateDTO) => o._utilities !== undefined)
   @Expose()
+  @IsArray()
   _utilities: string[];
 
   @Expose()
   @IsNotEmpty()
-  @IsString()
+  @IsNumberString()
   _area: number;
 
   @Expose()
   @IsNotEmpty()
+  @IsNumberString()
   _price: number;
 
   @Expose()
   @IsNotEmpty()
+  @IsNumberString()
   _electricPrice: number;
 
   @Expose()
   @IsNotEmpty()
+  @IsNumberString()
   _waterPrice: number;
 
   static fromRequest = (req: Request) => {
