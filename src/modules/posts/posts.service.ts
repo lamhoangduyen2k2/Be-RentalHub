@@ -8,6 +8,7 @@ import { Pagination } from "../../helpers/response";
 import Rooms from "../rooms/rooms.model";
 import { PostResponseDTO } from "./dtos/post-response.dto";
 import { ImageService } from "../image/image.service";
+import mongoose, { PipelineStage } from "mongoose";
 
 @Service()
 export class PostsService {
@@ -200,19 +201,175 @@ export class PostsService {
     ];
   };
 
-  // public getPostByStatus = async (
-  //   pagination: Pagination,
-  //   status: number,
-  //   uId: number
-  // ) => {
-  //   let count: number
-  //   let totalPages: number
-  //   let condition = 
-  //   if (status) {
-  //     const count = await Posts.countDocuments({
-  //       $and: [{ _status: status }, { _uId: uId }],
-  //     });
-  //     const totalPages = Math.ceil(count / pagination.limit);
-  //   }
-  // };
+  private getPost = async (
+    condition: PipelineStage,
+    offset: number,
+    limit: number
+  ) => {
+    const posts = await Posts.aggregate([
+      {
+        $lookup: {
+          from: "rooms",
+          localField: "_rooms",
+          foreignField: "_id",
+          as: "room",
+        },
+      },
+      { $unwind: "$room" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_uId",
+          foreignField: "_id",
+          as: "author",
+        },
+      },
+      { $unwind: "$author" },
+      condition,
+      {
+        $project: {
+          _id: 1,
+          _title: 1,
+          _content: 1,
+          _desc: 1,
+          _postingDate: 1,
+          _tags: 1,
+          _videos: 1,
+          _images: 1,
+          _inspectId: 1,
+          _status: 1,
+          roomId: "$room._id",
+          roomAddress: "$room._address",
+          roomServices: "$room._services",
+          roomUtilities: "$room._utilities",
+          roomArea: "$room._area",
+          roomPrice: "$room._price",
+          roomElectricPrice: "$room._electricPrice",
+          roomWaterPrice: "$room._waterPrice",
+          roomIsRented: "$room._isRented",
+          authorId: "$author._id",
+          authorFName: "$author._fname",
+          authorLName: "$author._lname",
+          phoneNumber: "$author._phone",
+          addressAuthor: "$author._address",
+          avatarAuthor: "$author._avatar",
+        },
+      },
+    ])
+      .skip(offset)
+      .limit(limit);
+
+    return posts;
+  };
+
+  public getPostByStatus = async (
+    pagination: Pagination,
+    status: number,
+    uId: string
+  ) => {
+    //console.log("🚀 ~ file: posts.service.ts:270 ~ PostsService ~ uId:", uId)
+    let count: number;
+    let totalPages: number;
+    let condition: PipelineStage;
+
+    //Check status
+    if (status > 4 || status <= -1) throw Errors.StatusInvalid;
+
+    if (status !== 4) {
+      count = await Posts.countDocuments({
+        $and: [{ _status: status }, { _uId: uId }],
+      });
+      totalPages = Math.ceil(count / pagination.limit);
+
+      condition = {
+        $match: {
+          $and: [{ _status: status }, { _uId: new mongoose.Types.ObjectId(uId) }],
+        },
+      };
+    } else {
+      count = await Posts.countDocuments({
+        $and: [{ _uId: uId }],
+      });
+      totalPages = Math.ceil(count / pagination.limit);
+
+      condition = {
+        $match: {
+          $and: [{ _uId: new mongoose.Types.ObjectId(uId) }],
+        },
+      };
+    }
+
+    console.log(
+      "🚀 ~ file: posts.service.ts:295 ~ PostsService ~ condition:",
+      condition
+    );
+
+    const posts = await Posts.aggregate([
+      {
+        $lookup: {
+          from: "rooms",
+          localField: "_rooms",
+          foreignField: "_id",
+          as: "room",
+        },
+      },
+      { $unwind: "$room" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_uId",
+          foreignField: "_id",
+          as: "author",
+        },
+      },
+      { $unwind: "$author" },
+      condition,
+      {
+        $project: {
+          _id: 1,
+          _title: 1,
+          _content: 1,
+          _desc: 1,
+          _postingDate: 1,
+          _tags: 1,
+          _videos: 1,
+          _images: 1,
+          _inspectId: 1,
+          _status: 1,
+          roomId: "$room._id",
+          roomAddress: "$room._address",
+          roomServices: "$room._services",
+          roomUtilities: "$room._utilities",
+          roomArea: "$room._area",
+          roomPrice: "$room._price",
+          roomElectricPrice: "$room._electricPrice",
+          roomWaterPrice: "$room._waterPrice",
+          roomIsRented: "$room._isRented",
+          authorId: "$author._id",
+          authorFName: "$author._fname",
+          authorLName: "$author._lname",
+          phoneNumber: "$author._phone",
+          addressAuthor: "$author._address",
+          avatarAuthor: "$author._avatar",
+        },
+      },
+    ])
+      .skip(pagination.offset)
+      .limit(pagination.limit);
+    console.log(
+      "🚀 ~ file: posts.service.ts:370 ~ PostsService ~ count:",
+      count
+    );
+    console.log(
+      "🚀 ~ file: posts.service.ts:354 ~ PostsService ~ posts:",
+      posts.length
+    );
+
+    if (!posts[0]?._id) throw Errors.PageNotFound;
+
+    return [
+      posts,
+      { page: pagination.page, limit: pagination.limit, total: totalPages },
+    ];
+  };
 }

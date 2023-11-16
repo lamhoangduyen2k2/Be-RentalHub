@@ -6,6 +6,7 @@ import { Pagination, ResponseData } from "../../helpers/response";
 import { BodyResquest } from "../../base/base.request";
 import { PostUpdateDTO } from "./dtos/post-update.dto";
 
+
 @Service()
 export class PostsController {
   constructor(@Inject() private postsService: PostsService) {}
@@ -18,6 +19,32 @@ export class PostsController {
     try {
       const pagination: Pagination = Pagination.getPagination(req);
       const posts = await this.postsService.getAllPosts(pagination);
+      res.json(new ResponseData(posts[0], null, posts[1]));
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  };
+
+  public getPostsByStatusController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const status = isNaN(Number(req.query.status))
+        ? -1
+        : Number(req.query.status);
+      console.log(
+        "🚀 ~ file: posts.controller.ts:36 ~ PostsController ~ status:",
+        status
+      );
+      const pagination: Pagination = Pagination.getPagination(req);
+      const posts = await this.postsService.getPostByStatus(
+        pagination,
+        status,
+        req.body._uId
+      );
       res.json(new ResponseData(posts[0], null, posts[1]));
     } catch (error) {
       console.log(error);

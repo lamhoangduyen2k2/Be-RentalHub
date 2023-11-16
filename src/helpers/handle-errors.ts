@@ -216,6 +216,8 @@ export const Errors = {
     "UTILITIES_INVALID",
     400
   ),
+
+  StatusInvalid: new ErrorModel("Status invalid!", "STATUS_INVALID", 400),
 };
 
 //Global error handler
