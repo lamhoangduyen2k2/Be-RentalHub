@@ -68,12 +68,18 @@ export class UserController {
     }
   };
 
-  public getUserById = async (req: Request, res: Response, next: NextFunction) => {
+  public getUserById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
-      const inforUser = await this.userService.getUserById(req.params.uId)
-      res.json(new ResponseData(inforUser, null, null))
+      const inforUser = await this.userService.getUserById(
+        req.query.uId.toString()
+      );
+      res.json(new ResponseData(inforUser, null, null));
     } catch (error) {
-      next(error)
+      next(error);
     }
-  }
+  };
 }
