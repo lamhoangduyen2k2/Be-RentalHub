@@ -67,4 +67,13 @@ export class UserController {
       next(error);
     }
   };
+
+  public getUserById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const inforUser = await this.userService.getUserById(req.params.uId)
+      res.json(new ResponseData(inforUser, null, null))
+    } catch (error) {
+      next(error)
+    }
+  }
 }

@@ -22,4 +22,7 @@ routerUser.post("/accounts/active-host", authMiddleware.authorizedUser, userCont
 routerUser.post("/accounts/verify-host", authMiddleware.authorizedUser, userController.verifyHost)
 routerUser.post("/accounts/reset-otp", authMiddleware.authorizedUser, userController.resetOtp)
 
+///////////////////////
+routerUser.get("/get-profile/:uId", authMiddleware.authorizedUser, userController.getUserById)
+
 export default routerUser

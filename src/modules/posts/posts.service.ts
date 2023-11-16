@@ -133,6 +133,11 @@ export class PostsService {
   public getAllPosts = async (pagination: Pagination) => {
     const count = await Posts.countDocuments({ _status: 1 });
     const totalPages = Math.ceil(count / pagination.limit);
+    const condition = {
+      $match: {
+        $and: [{ _status: 1 }],
+      },
+    };
 
     const posts = await Posts.aggregate([
       {
@@ -153,11 +158,7 @@ export class PostsService {
         },
       },
       { $unwind: "$author" },
-      {
-        $match: {
-          $and: [{ _status: 1 }],
-        },
-      },
+      condition,
       {
         $project: {
           _id: 1,
@@ -169,6 +170,7 @@ export class PostsService {
           _videos: 1,
           _images: 1,
           _inspectId: 1,
+          _status: 1,
           roomId: "$room._id",
           roomAddress: "$room._address",
           roomServices: "$room._services",
@@ -197,4 +199,20 @@ export class PostsService {
       { page: pagination.page, limit: pagination.limit, total: totalPages },
     ];
   };
+
+  // public getPostByStatus = async (
+  //   pagination: Pagination,
+  //   status: number,
+  //   uId: number
+  // ) => {
+  //   let count: number
+  //   let totalPages: number
+  //   let condition = 
+  //   if (status) {
+  //     const count = await Posts.countDocuments({
+  //       $and: [{ _status: status }, { _uId: uId }],
+  //     });
+  //     const totalPages = Math.ceil(count / pagination.limit);
+  //   }
+  // };
 }

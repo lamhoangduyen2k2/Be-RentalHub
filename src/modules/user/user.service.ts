@@ -29,10 +29,20 @@ export class UserService {
       _avatar: null,
       _dob: null,
       _lname: null,
-      _fname: null
+      _fname: null,
     });
 
     return UserResponsesDTO.toResponse(newUser);
+  };
+
+  getUserById = async (uId: string) => {
+    const user = await Users.findOne({
+      $and: [{ _id: uId }, { _active: true }, {_role: 0}],
+    });
+
+    if (!user) throw Errors.UserNotFound
+
+    return UserResponsesDTO.toResponse(user)
   };
 
   activeHost = async (userParam: UserHostedDTO) => {
@@ -89,7 +99,9 @@ export class UserService {
 
   verifyHost = async (userId: string, otp: string) => {
     try {
-      const checkOTP = await OTP.findOne({ $and: [{ _uId: userId }, { _otp: otp }] });
+      const checkOTP = await OTP.findOne({
+        $and: [{ _uId: userId }, { _otp: otp }],
+      });
 
       if (!checkOTP) throw Errors.ExpiredOtp;
 
