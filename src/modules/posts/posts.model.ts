@@ -22,17 +22,17 @@ const postsSchema = new mongoose.Schema({
   },
   _tags: {
     type: [Schema.Types.ObjectId],
-    required: [true, "Tags is required!"]
+    required: [true, "Tags is required!"],
   },
   _videos: {
     type: [String],
     trim: true,
-    default: null
+    default: null,
   },
   _images: {
     type: [String],
     trim: true,
-    default: null
+    default: null,
   },
   _title: {
     type: String,
@@ -56,6 +56,8 @@ const postsSchema = new mongoose.Schema({
     ref: Inspectors,
   },
 });
+
+postsSchema.index({ title: "text" });
 
 const Posts = mongoose.model("posts", postsSchema);
 export default Posts;

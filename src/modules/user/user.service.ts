@@ -101,7 +101,7 @@ export class UserService {
 
       if (!newUser) Errors.SaveToDatabaseFail;
 
-      return newUser;
+      return UserResponsesDTO.toResponse(newUser);
     } catch (error) {
       return error;
     }

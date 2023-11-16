@@ -7,6 +7,8 @@ export class UserHostedDTO {
   @Expose()
   _uId: string;
 
+  
+
   @IsPhoneNumber("VN")
   @IsNotEmpty()
   @Expose()
