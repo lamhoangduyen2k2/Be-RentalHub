@@ -44,8 +44,38 @@ export class ImageService {
       //   downloadURL: downloadURL,
       // });
 
-      dataImage.push(downloadURL)
+      dataImage.push(downloadURL);
     }
     return dataImage;
+  };
+
+  public uploadAvatar = async (file: Express.Multer.File) => {
+    // Initialize Cloud Storage and get a reference to the service
+    const storage = getStorage();
+
+    const dateTime = giveCurrentDateTime();
+
+    const storageRef = ref(
+      storage,
+      `userImg/${file.originalname + "       " + dateTime}`
+    );
+
+    // Create file metadata including the content type
+    const metadata = {
+      contentType: file.mimetype,
+    };
+
+    // Upload the file in the bucket storage
+    const snapshot = await uploadBytesResumable(
+      storageRef,
+      file.buffer,
+      metadata
+    );
+    //by using uploadBytesResumable we can control the progress of uploading like pause, resume, cancel
+
+    // Grab the public url
+    const downloadURL = await getDownloadURL(snapshot.ref);
+
+    return downloadURL;
   };
 }

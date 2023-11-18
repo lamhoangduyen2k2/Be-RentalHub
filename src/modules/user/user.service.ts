@@ -7,10 +7,14 @@ import { OTPService } from "../otp/otp.service";
 import OTP from "../otp/otp.model";
 import { UserHostedDTO } from "./dtos/user-active-host.dto";
 import { UserResponsesDTO } from "./dtos/user-response.dto";
+import { UpdateUserDTO } from "./dtos/user-update.dto";
+import { ImageService } from "../image/image.service";
+import { ObjectId } from "mongoose";
 
 @Service()
 export class UserService {
   otpService = Container.get(OTPService);
+  imageService = Container.get(ImageService);
   //Registor
   createNewUser = async (userParam: CreateUserRequestDTO) => {
     const user = await Users.findOne({
@@ -35,14 +39,43 @@ export class UserService {
     return UserResponsesDTO.toResponse(newUser);
   };
 
+  updateUser = async (userParam: UpdateUserDTO) => {
+    const userUpdated = await Users.updateOne(
+      { _id: userParam._uId },
+      userParam
+    );
+
+    if (userUpdated.modifiedCount <= 0) throw Errors.SaveToDatabaseFail;
+
+    return {
+      message: "Update user successfully",
+    };
+  };
+
+  updateAvatar = async (file: Express.Multer.File, uId: ObjectId) => {
+    const urlAvatar = await this.imageService.uploadAvatar(file);
+
+    //Update avatar user
+    const userUpdated = await Users.updateOne(
+      { _id: uId },
+      { _avatar: urlAvatar }
+    );
+
+    if (userUpdated.modifiedCount <= 0) throw Errors.SaveToDatabaseFail;
+
+    return {
+      message: "Update avatar sucessfully!",
+    };
+  };
+
   getUserById = async (uId: string) => {
     const user = await Users.findOne({
-      $and: [{ _id: uId }, { _active: true }, {_role: 0}],
+      $and: [{ _id: uId }, { _active: true }, { _role: 0 }],
     });
 
-    if (!user) throw Errors.UserNotFound
+    if (!user) throw Errors.UserNotFound;
 
-    return UserResponsesDTO.toResponse(user)
+    return UserResponsesDTO.toResponse(user);
   };
 
   activeHost = async (userParam: UserHostedDTO) => {

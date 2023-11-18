@@ -5,6 +5,7 @@ import { CreateUserRequestDTO } from "./dtos/user-create.dto";
 import { NextFunction, Request, Response } from "express";
 import { ResponseData } from "../../helpers/response";
 import { UserHostedDTO } from "./dtos/user-active-host.dto";
+import { UpdateUserDTO } from "./dtos/user-update.dto";
 
 @Service()
 export class UserController {
@@ -20,6 +21,38 @@ export class UserController {
       const newUser = await this.userService.createNewUser(infoUser);
 
       res.json(new ResponseData(newUser, null, null));
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  };
+
+  public updateUserProfile = async (
+    req: BodyResquest<UpdateUserDTO>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const inforUser = UpdateUserDTO.fromRequest(req);
+      const updatedUser = await this.userService.updateUser(inforUser);
+
+      res.json(new ResponseData(updatedUser, null, null));
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  };
+
+  public updateUserAvatar = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const file = req.file as Express.Multer.File;
+      const updatedUser = await this.userService.updateAvatar(file, req.body._uId);
+
+      res.json(new ResponseData(updatedUser, null, null));
     } catch (error) {
       console.log(error);
       next(error);

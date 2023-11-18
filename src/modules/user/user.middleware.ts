@@ -4,6 +4,7 @@ import { CreateUserRequestDTO } from "./dtos/user-create.dto";
 import { NextFunction, Response } from "express";
 import { ValidationError, validate } from "class-validator";
 import { handleErrorOfValidation } from "../../helpers/handle-errors";
+import { UpdateUserDTO } from "./dtos/user-update.dto";
 
 @Service()
 export class UserMiddleWare {
@@ -13,15 +14,33 @@ export class UserMiddleWare {
     next: NextFunction
   ) => {
     try {
-        const infoUser = CreateUserRequestDTO.fromRequest(req)
-        const errors: ValidationError[] = await validate(infoUser)
+      const infoUser = CreateUserRequestDTO.fromRequest(req);
+      const errors: ValidationError[] = await validate(infoUser);
 
-        if (errors[0]) throw errors
+      if (errors[0]) throw errors;
 
-        next()
+      next();
     } catch (error) {
-        const err = handleErrorOfValidation(error)
-        next(err)
+      const err = handleErrorOfValidation(error);
+      next(err);
+    }
+  };
+
+  public checkValidationUpdateUser = async (
+    req: BodyResquest<UpdateUserDTO>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const inforUser = UpdateUserDTO.fromRequest(req);
+      const errors: ValidationError[] = await validate(inforUser);
+
+      if (errors[0]) throw errors;
+
+      next();
+    } catch (error) {
+      const err = handleErrorOfValidation(error);
+      next(err);
     }
   };
 }

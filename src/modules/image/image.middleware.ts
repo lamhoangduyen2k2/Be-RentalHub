@@ -24,6 +24,22 @@ export class ImageMiddleWare {
     }
   };
 
+  public checkUploadAvatar = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const file = req.file as Express.Multer.File;
+
+      if (file.size > 10485760) throw Errors.FileSizeExceedLimit;
+
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+
   private multerFilter = (req: Request, file: Express.Multer.File, cb) => {
     if (file.mimetype.startsWith("image")) {
       cb(null, true);
