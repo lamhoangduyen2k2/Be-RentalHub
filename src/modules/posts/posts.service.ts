@@ -271,17 +271,17 @@ export class PostsService {
     let count: number;
     let totalPages: number;
     let condition: PipelineStage;
-    
+
     //Check status
     if (status > 4 || status <= -1) throw Errors.StatusInvalid;
-    
+
     // Check status to create condition and totalPages
     if (status !== 4) {
       count = await Posts.countDocuments({
         $and: [{ _status: status }, { _uId: uId }],
       });
       totalPages = Math.ceil(count / pagination.limit);
-      
+
       condition = {
         $match: {
           $and: [
@@ -295,7 +295,7 @@ export class PostsService {
         $and: [{ _uId: uId }],
       });
       totalPages = Math.ceil(count / pagination.limit);
-      
+
       condition = {
         $match: {
           $and: [{ _uId: new mongoose.Types.ObjectId(uId) }],
@@ -303,13 +303,44 @@ export class PostsService {
       };
     }
 
-    const posts = await this.getPosts(condition, pagination.offset, pagination.limit)
+    const posts = await this.getPosts(
+      condition,
+      pagination.offset,
+      pagination.limit
+    );
 
     if (!posts[0]?._id) throw Errors.PageNotFound;
 
     return [
       posts,
       { page: pagination.page, limit: pagination.limit, total: totalPages },
+    ];
+  };
+
+  public searchPost = async (search: string, pagination: Pagination) => {
+    const pipeline = [];
+    pipeline.push({
+      $search: {
+        index: "searchTitle",
+        text: {
+          query: search,
+          path: {
+            wildcard: "*",
+          },
+        },
+      },
+    });
+    const total = (await Posts.aggregate(pipeline)).length;
+    const totalPage = Math.ceil(total / pagination.limit);
+    const posts = await Posts.aggregate(pipeline)
+      .skip(pagination.offset)
+      .limit(pagination.limit);
+
+    if (posts.length <= 0) throw Errors.PostNotFound;
+
+    return [
+      posts,
+      { page: pagination.page, limit: pagination.limit, total: totalPage },
     ];
   };
 }

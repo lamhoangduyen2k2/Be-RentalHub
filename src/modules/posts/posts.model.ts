@@ -37,6 +37,7 @@ const postsSchema = new mongoose.Schema({
   _title: {
     type: String,
     required: [true, "Title is required"],
+    index: true,
   },
   _uId: {
     type: Schema.Types.ObjectId,
@@ -57,7 +58,7 @@ const postsSchema = new mongoose.Schema({
   },
 });
 
-postsSchema.index({ title: "text" });
+postsSchema.index({ _title: "text" });
 
 const Posts = mongoose.model("posts", postsSchema);
 export default Posts;

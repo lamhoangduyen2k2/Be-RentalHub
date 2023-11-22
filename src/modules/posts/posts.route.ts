@@ -14,7 +14,16 @@ const authMiddleware = new AuthenMiddWare(new AuthService());
 const imageMiddleWare = Container.get(ImageMiddleWare);
 
 route.get("/", postsController.getAllPostsController);
-route.get("/history-post", authMiddleware.authorizedUser, postsController.getPostsByStatusController);
+route.get(
+  "/history-post",
+  authMiddleware.authorizedUser,
+  postsController.getPostsByStatusController
+);
+route.get(
+  "/search-post",
+  authMiddleware.authorizedUser,
+  postsController.searchPost
+);
 route.post(
   "/create-post",
   imageMiddleWare.upload.array("_images"),

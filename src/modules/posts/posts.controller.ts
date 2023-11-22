@@ -6,7 +6,6 @@ import { Pagination, ResponseData } from "../../helpers/response";
 import { BodyResquest } from "../../base/base.request";
 import { PostUpdateDTO } from "./dtos/post-update.dto";
 
-
 @Service()
 export class PostsController {
   constructor(@Inject() private postsService: PostsService) {}
@@ -102,6 +101,26 @@ export class PostsController {
       res.json(new ResponseData(post, null, null));
     } catch (error) {
       console.log(error);
+      next(error);
+    }
+  };
+
+  public searchPost = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const search = req.query.search ? req.query.search.toString() : undefined;
+      const pagination = Pagination.getPagination(req);
+      const posts = await this.postsService.searchPost(search, pagination);
+
+      res.json(new ResponseData(posts, null, null));
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: posts.controller.ts:117 ~ PostsController ~ error:",
+        error
+      );
       next(error);
     }
   };
