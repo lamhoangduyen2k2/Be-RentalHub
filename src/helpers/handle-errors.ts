@@ -218,6 +218,15 @@ export const Errors = {
   ),
 
   StatusInvalid: new ErrorModel("Status invalid!", "STATUS_INVALID", 400),
+
+  //Error for Tag
+  TagNotFound: new ErrorModel("Tag not found!", "TAG_NOTFOUND", 404),
+
+  TagInvalid: new ErrorModel("Tag invalid!", "TAG_INVALID", 400),
+
+  TagDuplicated: new ErrorModel("Tag duplicated!", "TAG_DUPLICATED", 400),
+
+  TypeInvalid: new ErrorModel("Type invalid!", "TYPE_INVALID", 400),
 };
 
 //Global error handler

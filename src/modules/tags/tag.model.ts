@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const tagSchema = new mongoose.Schema({
   _type: {
     type: String,
-    default: "location",
+    default: "service",
     trim: true,
   },
   _tag: {
