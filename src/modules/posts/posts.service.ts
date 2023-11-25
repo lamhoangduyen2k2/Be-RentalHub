@@ -322,8 +322,6 @@ export class PostsService {
     tags: string[],
     pagination: Pagination
   ) => {
-    console.log("🚀 ~ file: posts.service.ts:325 ~ PostsService ~ tags:", tags)
-    console.log("🚀 ~ file: posts.service.ts:325 ~ PostsService ~ search:", search)
     const pipeline = [];
     let condition: PipelineStage;
 
