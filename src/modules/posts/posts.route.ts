@@ -23,7 +23,6 @@ route.get(
 );
 route.get(
   "/search-post",
-  authMiddleware.authorizedUser,
   postsController.searchPost
 );
 route.post(

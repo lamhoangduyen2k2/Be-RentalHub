@@ -115,7 +115,7 @@ export class PostsController {
       const pagination = Pagination.getPagination(req);
       const posts = await this.postsService.searchPost(search, pagination);
 
-      res.json(new ResponseData(posts, null, null));
+      res.json(new ResponseData(posts[0], null, posts[1]));
     } catch (error) {
       console.log(
         "🚀 ~ file: posts.controller.ts:117 ~ PostsController ~ error:",

@@ -40,16 +40,15 @@ export class UserService {
   };
 
   updateUser = async (userParam: UpdateUserDTO) => {
-    const userUpdated = await Users.updateOne(
+    const userUpdated = await Users.findOneAndUpdate(
       { _id: userParam._uId },
-      userParam
+      userParam,
+      { new: true }
     );
 
-    if (userUpdated.modifiedCount <= 0) throw Errors.SaveToDatabaseFail;
+    if (!userUpdated) throw Errors.SaveToDatabaseFail;
 
-    return {
-      message: "Update user successfully",
-    };
+    return userUpdated;
   };
 
   updateAvatar = async (file: Express.Multer.File, uId: ObjectId) => {
