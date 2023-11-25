@@ -317,20 +317,43 @@ export class PostsService {
     ];
   };
 
-  public searchPost = async (search: string, pagination: Pagination) => {
+  public searchPost = async (
+    search: string,
+    tags: string[],
+    pagination: Pagination
+  ) => {
+    console.log("🚀 ~ file: posts.service.ts:325 ~ PostsService ~ tags:", tags)
+    console.log("🚀 ~ file: posts.service.ts:325 ~ PostsService ~ search:", search)
     const pipeline = [];
-    //Push condition of search
-    pipeline.push({
-      $search: {
-        index: "searchTitle",
-        text: {
-          query: search,
-          path: {
-            wildcard: "*",
+    let condition: PipelineStage;
+
+    //Check search or tags query
+    if (search) {
+      condition = {
+        $match: {
+          $and: [{ _status: 1 }],
+        },
+      };
+
+      //Push condition of search
+      pipeline.push({
+        $search: {
+          index: "searchTitle",
+          text: {
+            query: search,
+            path: {
+              wildcard: "*",
+            },
           },
         },
-      },
-    });
+      });
+    } else {
+      condition = {
+        $match: {
+          $and: [{ _status: 1 }, { _tags: { $all: tags } }],
+        },
+      };
+    }
     //Push condition of joining tables
     pipeline.push(
       {
@@ -351,7 +374,7 @@ export class PostsService {
         },
       },
       { $unwind: "$author" },
-      
+      condition,
       {
         $project: {
           _id: 1,
