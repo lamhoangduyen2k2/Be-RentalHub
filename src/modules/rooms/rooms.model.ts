@@ -1,6 +1,5 @@
 import mongoose, { Schema } from "mongoose";
 import Users from "../user/users.model";
-import Tags from "../tags/tag.model";
 
 const roomSchema = new mongoose.Schema({
   _uId: {
@@ -13,8 +12,7 @@ const roomSchema = new mongoose.Schema({
     trim: true,
   },
   _district: {
-    type: Schema.Types.ObjectId,
-    ref: Tags,
+    type: String,
     required: [true, "District is required"],
   },
   _city: {
