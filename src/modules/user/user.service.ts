@@ -55,16 +55,17 @@ export class UserService {
     const urlAvatar = await this.imageService.uploadAvatar(file);
 
     //Update avatar user
-    const userUpdated = await Users.updateOne(
+    const userUpdated = await Users.findOneAndUpdate(
       { _id: uId },
-      { _avatar: urlAvatar }
+      { _avatar: urlAvatar },
+      {
+        new: true,
+      }
     );
 
-    if (userUpdated.modifiedCount <= 0) throw Errors.SaveToDatabaseFail;
+    if (!userUpdated) throw Errors.SaveToDatabaseFail;
 
-    return {
-      message: "Update avatar sucessfully!",
-    };
+    return userUpdated;
   };
 
   getUserById = async (uId: string) => {
