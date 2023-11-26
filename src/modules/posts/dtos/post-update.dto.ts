@@ -40,14 +40,14 @@ export class PostUpdateDTO {
   _rooms: ObjectId
 
   @Expose()
-  @IsArray()
+  @IsString()
   _address: string
 
   @Expose()
-  _services: string[]
+  _services: string
 
   @Expose()
-  _utilities: string[]
+  _utilities: string
 
   @Expose()
   _area: number

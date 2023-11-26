@@ -45,7 +45,7 @@ export class PostCreateDTO {
   @Expose()
   @IsNotEmpty()
   @IsString()
-  _district: ObjectId;
+  _district: string;
 
   @ValidateIf((o: PostCreateDTO) => o._city !== undefined)
   @Expose()
@@ -54,13 +54,13 @@ export class PostCreateDTO {
 
   @ValidateIf((o: PostCreateDTO) => o._services !== undefined)
   @Expose()
-  @IsArray()
-  _services: string[];
+  @IsString()
+  _services: string;
 
   @ValidateIf((o: PostCreateDTO) => o._utilities !== undefined)
   @Expose()
-  @IsArray()
-  _utilities: string[];
+  @IsString()
+  _utilities: string;
 
   @Expose()
   @IsNotEmpty()

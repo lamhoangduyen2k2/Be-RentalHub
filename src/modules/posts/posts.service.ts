@@ -30,8 +30,12 @@ export class PostsService {
       _street: postParam._street,
       _district: postParam._district,
       _city: postParam._city,
-      _services: postParam._services,
-      _utilities: postParam._utilities,
+      _services: postParam._services
+        ? postParam._services.split(",")
+        : undefined,
+      _utilities: postParam._utilities
+        ? postParam._utilities.split(",")
+        : undefined,
       _area: postParam._area,
       _price: postParam._price,
       _electricPrice: postParam._electricPrice,
@@ -88,8 +92,8 @@ export class PostsService {
       { _id: post._rooms },
       {
         _address: postParam._address,
-        _services: postParam._services,
-        _utilities: postParam._utilities,
+        _services: postParam._services ? postParam._services.split(',') : undefined,
+        _utilities: postParam._utilities ? postParam._utilities.split(',') : undefined,
         _area: postParam._area,
         _price: postParam._price,
         _electricPrice: postParam._electricPrice,

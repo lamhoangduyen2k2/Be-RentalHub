@@ -13,14 +13,14 @@ export class PostsMiddleWare {
     next: NextFunction
   ) => {
     try {
-        const infoPost = PostCreateDTO.fromRequest(req)
-        const errors: ValidationError[] = await validate(infoPost)
-        if(errors[0]) throw errors
+      const infoPost = PostCreateDTO.fromRequest(req);
+      const errors: ValidationError[] = await validate(infoPost);
+      if (errors[0]) throw errors;
 
-        next()
+      next();
     } catch (error) {
-        const err = handleErrorOfValidation(error)
-        next(err)
+      const err = handleErrorOfValidation(error);
+      next(err);
     }
   };
 }
