@@ -5,6 +5,7 @@ import { PostCreateDTO } from "./dtos/post-create.dto";
 import { Pagination, ResponseData } from "../../helpers/response";
 import { BodyResquest } from "../../base/base.request";
 import { PostUpdateDTO } from "./dtos/post-update.dto";
+import { PostSensorDTO } from "./dtos/post-sensor.dto";
 
 @Service()
 export class PostsController {
@@ -73,10 +74,12 @@ export class PostsController {
     next: NextFunction
   ) => {
     try {
+      const files = req.files as Express.Multer.File[];
       const postInfo = PostUpdateDTO.fromRequest(req);
       const post = await this.postsService.updatePost(
         postInfo,
-        req.params.postId
+        req.params.postId,
+        files
       );
 
       res.json(new ResponseData(post, null, null));
@@ -87,12 +90,12 @@ export class PostsController {
   };
 
   public sensorPost = async (
-    req: BodyResquest<PostUpdateDTO>,
+    req: BodyResquest<PostSensorDTO>,
     res: Response,
     next: NextFunction
   ) => {
     try {
-      const postInfo = PostUpdateDTO.fromRequest(req);
+      const postInfo = PostSensorDTO.fromRequest(req);
       const post = await this.postsService.sensorPost(
         postInfo,
         req.params.postId
@@ -112,9 +115,13 @@ export class PostsController {
   ) => {
     try {
       const search = req.query.search ? req.query.search.toString() : undefined;
-      const tags = req.body._tags ? req.body._tags : undefined
+      const tags = req.body._tags ? req.body._tags : undefined;
       const pagination = Pagination.getPagination(req);
-      const posts = await this.postsService.searchPost(search, tags, pagination);
+      const posts = await this.postsService.searchPost(
+        search,
+        tags,
+        pagination
+      );
 
       res.json(new ResponseData(posts[0], null, posts[1]));
     } catch (error) {

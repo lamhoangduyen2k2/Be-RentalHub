@@ -1,36 +1,30 @@
 import { Exclude, Expose, plainToClass } from "class-transformer";
-import { IsArray, IsString } from "class-validator";
 import { Request } from "express";
 import { ObjectId } from "mongoose";
 
-export class PostUpdateDTO {
+export class PostSensorDTO {
   @Expose()
   _uId: ObjectId;
 
-  @Expose()
-  @IsString()
+  @Exclude()
   _title: string;
 
-  @Expose()
-  @IsArray()
+  @Exclude()
   _images: string[];
 
-  @Expose()
-  @IsString()
+  @Exclude()
   _content: string;
 
-  @Expose()
-  @IsString()
+  @Exclude()
   _desc: string;
 
-  @Expose()
-  @IsArray()
+  @Exclude()
   _tags: ObjectId[];
 
   @Exclude()
   _inspectId: ObjectId;
 
-  @Exclude()
+  @Expose()
   _status: number;
 
   @Exclude()
@@ -39,32 +33,31 @@ export class PostUpdateDTO {
   @Exclude()
   _rooms: ObjectId;
 
-  @Expose()
-  @IsString()
+  @Exclude()
   _address: string;
 
-  @Expose()
+  @Exclude()
   _services: string;
 
-  @Expose()
+  @Exclude()
   _utilities: string;
 
-  @Expose()
+  @Exclude()
   _area: number;
 
-  @Expose()
+  @Exclude()
   _price: number;
 
-  @Expose()
+  @Exclude()
   _electricPrice: number;
 
-  @Expose()
+  @Exclude()
   _waterPrice: number;
 
-  @Expose()
+  @Exclude()
   _isRented: boolean;
   static fromRequest = (req: Request) => {
-    return plainToClass(PostUpdateDTO, req.body, {
+    return plainToClass(PostSensorDTO, req.body, {
       excludeExtraneousValues: true,
     });
   };

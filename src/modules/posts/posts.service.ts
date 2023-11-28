@@ -9,6 +9,7 @@ import Rooms from "../rooms/rooms.model";
 import { PostResponseDTO } from "./dtos/post-response.dto";
 import { ImageService } from "../image/image.service";
 import mongoose, { PipelineStage } from "mongoose";
+import { PostSensorDTO } from "./dtos/post-sensor.dto";
 
 @Service()
 export class PostsService {
@@ -64,18 +65,37 @@ export class PostsService {
     return PostResponseDTO.toResponse(newInfo);
   };
 
-  public updatePost = async (postParam: PostUpdateDTO, postId: string) => {
+  public updatePost = async (
+    postParam: PostUpdateDTO,
+    postId: string,
+    files: Express.Multer.File[]
+  ) => {
+    let status: number = 0;
+    let active: boolean = true;
+
+    //Find post is active
     const post = await Posts.findOne({
       $and: [{ _id: postId }, { _uId: postParam._uId }, { _active: true }],
     });
 
     if (!post) throw Errors.PostNotFound;
 
-    if (postParam._status === 2) {
-      postParam._active = false;
+    //Find author's information
+    const author = await Users.findOne({ _id: postParam._uId });
+
+    if (postParam._isRented === false) {
+      status = 2;
+      active = false;
     }
 
-    await Posts.updateOne(
+    //Check file images are exist
+    if (files.length > 0) {
+      //Upload images to firebase
+      postParam._images = await this.imageService.uploadImage(files);
+      if (postParam._images.length <= 0) throw Errors.UploadImageFail;
+    }
+
+    const postUdated = await Posts.findOneAndUpdate(
       { _id: postId },
       {
         _title: postParam._title,
@@ -83,32 +103,39 @@ export class PostsService {
         _content: postParam._content,
         _desc: postParam._desc,
         _tags: postParam._tags,
-        _status: postParam._status,
-        _active: postParam._active,
-      }
+        _status: status,
+        _active: active,
+      },
+      { new: true }
     );
 
-    await Rooms.updateOne(
+    const roomUpdated = await Rooms.findOneAndUpdate(
       { _id: post._rooms },
       {
         _address: postParam._address,
-        _services: postParam._services ? postParam._services.split(',') : undefined,
-        _utilities: postParam._utilities ? postParam._utilities.split(',') : undefined,
+        _services: postParam._services
+          ? postParam._services.split(",")
+          : undefined,
+        _utilities: postParam._utilities
+          ? postParam._utilities.split(",")
+          : undefined,
         _area: postParam._area,
         _price: postParam._price,
         _electricPrice: postParam._electricPrice,
         _waterPrice: postParam._waterPrice,
         _isRented: postParam._isRented,
-      }
+      },
+      { new: true }
     );
     //if (updatedPost.matchedCount <= 0) throw Errors.SaveToDatabaseFail;
 
-    return {
-      message: "Update post successfully",
-    };
+    return { ...postUdated, ...roomUpdated, ...author };
   };
 
-  public sensorPost = async (postParam: PostUpdateDTO, postId: string) => {
+  public sensorPost = async (postParam: PostSensorDTO, postId: string) => {
+    let isRented: boolean = false;
+    let active: boolean = true;
+
     await Posts.findById(postId)
       .then((result) => {
         console.log(result);
@@ -118,19 +145,23 @@ export class PostsService {
       });
 
     if (postParam._status === 2 || postParam._status === 3) {
-      postParam._active = false;
+      active = false;
+      isRented = true;
     }
 
-    const updatedPost = await Posts.updateOne(
+    const updatedPost = await Posts.findOneAndUpdate(
       { _id: postId },
       {
         _status: postParam._status,
-        _active: postParam._active,
+        _active: active,
         _inspectId: postParam._uId,
-      }
+      },
+      { new: true }
     );
 
-    if (updatedPost.matchedCount <= 0) throw Errors.SaveToDatabaseFail;
+    await Rooms.updateOne({ _id: updatedPost._rooms}, {
+      _isRented : isRented
+    });
 
     return true;
   };

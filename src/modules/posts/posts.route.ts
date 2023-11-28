@@ -40,6 +40,8 @@ route.patch(
 );
 route.patch(
   "/update-post/:postId",
+  imageMiddleWare.upload.array("_images"),
+  imageMiddleWare.checkUploadImages,
   authMiddleware.authorizedUser,
   postsController.updatePost
 );
