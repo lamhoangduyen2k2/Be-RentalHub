@@ -21,10 +21,7 @@ route.get(
   authMiddleware.authorizedUser,
   postsController.getPostsByStatusController
 );
-route.get(
-  "/search-post",
-  postsController.searchPost
-);
+route.get("/search-post", postsController.searchPost);
 route.post(
   "/create-post",
   imageMiddleWare.upload.array("_images"),
@@ -43,7 +40,13 @@ route.patch(
   imageMiddleWare.upload.array("_images"),
   imageMiddleWare.checkUploadImages,
   authMiddleware.authorizedUser,
+  postMiddleWare.checkValidationUpdatePost,
   postsController.updatePost
+);
+route.patch(
+  "/update-post-status/:postId",
+  authMiddleware.authorizedUser,
+  postsController.updatePostStatus
 );
 
 //Tag

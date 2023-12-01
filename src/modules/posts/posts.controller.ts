@@ -6,6 +6,7 @@ import { Pagination, ResponseData } from "../../helpers/response";
 import { BodyResquest } from "../../base/base.request";
 import { PostUpdateDTO } from "./dtos/post-update.dto";
 import { PostSensorDTO } from "./dtos/post-sensor.dto";
+import { PostUpdateStatusDTO } from "./dtos/post-update-status.dto";
 
 @Service()
 export class PostsController {
@@ -85,6 +86,28 @@ export class PostsController {
       res.json(new ResponseData(post, null, null));
     } catch (error) {
       console.log(error);
+      next(error);
+    }
+  };
+
+  public updatePostStatus = async (
+    req: BodyResquest<PostUpdateStatusDTO>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const infoStatus = PostUpdateStatusDTO.fromRequest(req);
+      const data = await this.postsService.updatePostStatus(
+        infoStatus,
+        req.params.postId
+      );
+
+      res.json(new ResponseData(data, null, null));
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: posts.controller.ts:101 ~ PostsController ~ error:",
+        error
+      );
       next(error);
     }
   };
