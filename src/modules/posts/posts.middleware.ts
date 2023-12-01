@@ -4,6 +4,7 @@ import { PostCreateDTO } from "./dtos/post-create.dto";
 import { NextFunction, Response } from "express";
 import { ValidationError, validate } from "class-validator";
 import { handleErrorOfValidation } from "../../helpers/handle-errors";
+import { PostUpdateDTO } from "./dtos/post-update.dto";
 
 @Service()
 export class PostsMiddleWare {
@@ -14,6 +15,23 @@ export class PostsMiddleWare {
   ) => {
     try {
       const infoPost = PostCreateDTO.fromRequest(req);
+      const errors: ValidationError[] = await validate(infoPost);
+      if (errors[0]) throw errors;
+
+      next();
+    } catch (error) {
+      const err = handleErrorOfValidation(error);
+      next(err);
+    }
+  };
+
+  public checkValidationUpdatePost = async (
+    req: BodyResquest<PostUpdateDTO>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const infoPost = PostUpdateDTO.fromRequest(req);
       const errors: ValidationError[] = await validate(infoPost);
       if (errors[0]) throw errors;
 

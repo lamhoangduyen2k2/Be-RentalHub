@@ -219,6 +219,12 @@ export const Errors = {
 
   StatusInvalid: new ErrorModel("Status invalid!", "STATUS_INVALID", 400),
 
+  ActiveNotFound: new ErrorModel("Active not found!", "ACTIVE_NOTFOUND", 404),
+
+  ActiveInvalid: new ErrorModel("Active invalid!", "ACTIVE_INVALID", 400),
+
+  IsRentedInvalid: new ErrorModel("IsRented invalid!", "ISRENTED_INVALID", 400),
+
   //Error for Tag
   TagNotFound: new ErrorModel("Tag not found!", "TAG_NOTFOUND", 404),
 

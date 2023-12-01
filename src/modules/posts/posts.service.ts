@@ -10,6 +10,7 @@ import { PostResponseDTO } from "./dtos/post-response.dto";
 import { ImageService } from "../image/image.service";
 import mongoose, { PipelineStage } from "mongoose";
 import { PostSensorDTO } from "./dtos/post-sensor.dto";
+import { PostUpdateStatusDTO } from "./dtos/post-update-status.dto";
 
 @Service()
 export class PostsService {
@@ -80,10 +81,8 @@ export class PostsService {
 
     if (!post) throw Errors.PostNotFound;
 
-    //Find author's information
-    const author = await Users.findOne({ _id: postParam._uId });
-
-    if (postParam._isRented === false) {
+    const isRented = /true/i.test(postParam._isRented);
+    if (isRented) {
       status = 2;
       active = false;
     }
@@ -127,9 +126,11 @@ export class PostsService {
       },
       { new: true }
     );
-    //if (updatedPost.matchedCount <= 0) throw Errors.SaveToDatabaseFail;
 
-    return { ...postUdated, ...roomUpdated, ...author };
+    return PostResponseDTO.toResponse({
+      ...postUdated.toObject(),
+      ...roomUpdated.toObject(),
+    });
   };
 
   public sensorPost = async (postParam: PostSensorDTO, postId: string) => {
@@ -159,9 +160,41 @@ export class PostsService {
       { new: true }
     );
 
-    await Rooms.updateOne({ _id: updatedPost._rooms}, {
-      _isRented : isRented
+    await Rooms.updateOne(
+      { _id: updatedPost._rooms },
+      {
+        _isRented: isRented,
+      }
+    );
+
+    return true;
+  };
+
+  public updatePostStatus = async (
+    postParam: PostUpdateStatusDTO,
+    postId: string
+  ) => {
+    let status: number = 2;
+    let isRented: boolean = true;
+    const post = await Posts.findOne({
+      $and: [{ _id: postId }, { _uId: postParam._uId }],
     });
+    if (!post) throw Errors.PostNotFound;
+
+    if (postParam._active) {
+      status = 0;
+      isRented = false;
+    }
+
+    await Posts.updateOne(
+      { _id: postId },
+      {
+        _status: status,
+        _active: postParam._active,
+      }
+    );
+
+    await Rooms.updateOne({ _id: post._rooms }, { _isRented: isRented });
 
     return true;
   };
