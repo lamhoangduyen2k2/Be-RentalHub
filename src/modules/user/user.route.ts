@@ -71,5 +71,11 @@ routerUser.patch(
   authMiddleware.authorizedUser,
   userController.updateUserAvatar
 );
+routerUser.patch(
+  "/update-login-info",
+  authMiddleware.authorizedUser,
+  userMiddleWare.checkValidationUpdateEmailOrPass,
+  userController.updateEmailOrPass
+);
 
 export default routerUser;

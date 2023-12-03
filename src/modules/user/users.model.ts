@@ -66,5 +66,14 @@ usersSchema.pre("save", async function (next: NextFunction) {
   next();
 });
 
+usersSchema.pre("updateOne", async function () {
+  const data = this.getUpdate();
+
+  if (data["_pw"]) {
+    const salt = await genSalt(10);
+    data["_pw"] = await hash(data["_pw"], salt);
+  }
+});
+
 const Users = mongoose.model("users", usersSchema);
 export default Users;

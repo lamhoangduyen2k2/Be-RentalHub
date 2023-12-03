@@ -6,6 +6,7 @@ import { NextFunction, Request, Response } from "express";
 import { ResponseData } from "../../helpers/response";
 import { UserHostedDTO } from "./dtos/user-active-host.dto";
 import { UpdateUserDTO } from "./dtos/user-update.dto";
+import { UserUpdateEmailOrPassDTO } from "./dtos/user-update-email-pass.dto";
 
 @Service()
 export class UserController {
@@ -50,11 +51,33 @@ export class UserController {
   ) => {
     try {
       const file = req.file as Express.Multer.File;
-      const updatedUser = await this.userService.updateAvatar(file, req.body._uId);
+      const updatedUser = await this.userService.updateAvatar(
+        file,
+        req.body._uId
+      );
 
       res.json(new ResponseData(updatedUser, null, null));
     } catch (error) {
       console.log(error);
+      next(error);
+    }
+  };
+
+  public updateEmailOrPass = async (
+    req: BodyResquest<UserUpdateEmailOrPassDTO>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const userInfo = UserUpdateEmailOrPassDTO.fromRequest(req);
+      const newEmail = await this.userService.updateEmail(userInfo);
+
+      res.json(new ResponseData(newEmail, null, null));
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: user.controller.ts:77 ~ UserController ~ error:",
+        error
+      );
       next(error);
     }
   };

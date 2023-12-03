@@ -5,6 +5,7 @@ import { NextFunction, Response } from "express";
 import { ValidationError, validate } from "class-validator";
 import { handleErrorOfValidation } from "../../helpers/handle-errors";
 import { UpdateUserDTO } from "./dtos/user-update.dto";
+import { UserUpdateEmailOrPassDTO } from "./dtos/user-update-email-pass.dto";
 
 @Service()
 export class UserMiddleWare {
@@ -33,6 +34,24 @@ export class UserMiddleWare {
   ) => {
     try {
       const inforUser = UpdateUserDTO.fromRequest(req);
+      const errors: ValidationError[] = await validate(inforUser);
+
+      if (errors[0]) throw errors;
+
+      next();
+    } catch (error) {
+      const err = handleErrorOfValidation(error);
+      next(err);
+    }
+  };
+
+  public checkValidationUpdateEmailOrPass = async (
+    req: BodyResquest<UserUpdateEmailOrPassDTO>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const inforUser = UserUpdateEmailOrPassDTO.fromRequest(req);
       const errors: ValidationError[] = await validate(inforUser);
 
       if (errors[0]) throw errors;

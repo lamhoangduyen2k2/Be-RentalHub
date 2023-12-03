@@ -10,6 +10,9 @@ import { UserResponsesDTO } from "./dtos/user-response.dto";
 import { UpdateUserDTO } from "./dtos/user-update.dto";
 import { ImageService } from "../image/image.service";
 import { ObjectId } from "mongoose";
+import { UserUpdateEmailOrPassDTO } from "./dtos/user-update-email-pass.dto";
+import { compare } from "bcrypt";
+import RefreshTokens from "../token/refresh.model";
 
 @Service()
 export class UserService {
@@ -66,6 +69,33 @@ export class UserService {
     if (!userUpdated) throw Errors.SaveToDatabaseFail;
 
     return userUpdated;
+  };
+
+  updateEmail = async (userParam: UserUpdateEmailOrPassDTO) => {
+    if (userParam._email) {
+      const user = await Users.findOne({ _email: userParam._email });
+
+      if (user) throw Errors.Duplicate;
+    }
+
+    const oldUser = await Users.findOne({ _id: userParam._uId });
+
+    if (!oldUser) throw Errors.UserNotFound;
+
+    const isValid = await compare(userParam._pwconfirm, oldUser._pw);
+
+    if (!isValid) throw Errors.PwconfirmInvalid;
+
+    const newUser = await Users.updateOne(
+      { _id: userParam._uId },
+      { _email: userParam._email, _pw: userParam._pw }
+    );
+
+    if (newUser.modifiedCount <= 0) throw Errors.SaveToDatabaseFail;
+
+    await RefreshTokens.deleteMany({ _uId: userParam._uId });
+
+    return { message: "Please login againt!" };
   };
 
   getUserById = async (uId: string) => {
