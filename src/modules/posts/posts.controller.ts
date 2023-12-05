@@ -156,14 +156,34 @@ export class PostsController {
     next: NextFunction
   ) => {
     try {
-      const search = req.query.search ? req.query.search as string : undefined;
-      const tags = req.body._tags ? req.body._tags : undefined;
+      const search = req.query.search
+        ? (req.query.search as string)
+        : undefined;
       const pagination = Pagination.getPagination(req);
-      const posts = await this.postsService.searchPost(
-        search,
-        tags,
-        pagination
+      const posts = await this.postsService.searchPost(search, pagination);
+
+      res.json(new ResponseData(posts[0], null, posts[1]));
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: posts.controller.ts:117 ~ PostsController ~ error:",
+        error
       );
+      next(error);
+    }
+  };
+
+  public searchPostByTags = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const tags = req.query.tags
+      ? req.query.tags.toString().split(",")
+      : undefined;
+      console.log("🚀 ~ file: posts.controller.ts:182 ~ PostsController ~ tags:", tags)
+      const pagination = Pagination.getPagination(req);
+      const posts = await this.postsService.searchPostByTags(tags, pagination);
 
       res.json(new ResponseData(posts[0], null, posts[1]));
     } catch (error) {

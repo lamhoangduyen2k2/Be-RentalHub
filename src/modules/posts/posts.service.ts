@@ -451,41 +451,99 @@ export class PostsService {
     ];
   };
 
-  public searchPost = async (
-    search: string,
-    tags: string[],
-    pagination: Pagination
-  ) => {
+  public searchPost = async (search: string, pagination: Pagination) => {
     const pipeline = [];
-    let condition: PipelineStage;
+    const condition: PipelineStage = {
+      $match: {
+        $and: [{ _status: 1 }],
+      },
+    };
 
-    //Check search or tags query
-    if (search) {
-      condition = {
-        $match: {
-          $and: [{ _status: 1 }],
-        },
-      };
-
-      //Push condition of search
-      pipeline.push({
-        $search: {
-          index: "searchTitle",
-          text: {
-            query: search,
-            path: {
-              wildcard: "*",
-            },
+    //Push condition of search
+    pipeline.push({
+      $search: {
+        index: "searchTitle",
+        text: {
+          query: search,
+          path: {
+            wildcard: "*",
           },
         },
-      });
-    } else {
-      condition = {
-        $match: {
-          $and: [{ _status: 1 }, { _tags: { $all: tags } }],
+      },
+    });
+
+    //Push condition of joining tables
+    pipeline.push(
+      {
+        $lookup: {
+          from: "rooms",
+          localField: "_rooms",
+          foreignField: "_id",
+          as: "room",
         },
-      };
-    }
+      },
+      { $unwind: "$room" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_uId",
+          foreignField: "_id",
+          as: "author",
+        },
+      },
+      { $unwind: "$author" },
+      condition,
+      {
+        $project: {
+          _id: 1,
+          _title: 1,
+          _content: 1,
+          _desc: 1,
+          _postingDate: 1,
+          _tags: 1,
+          _videos: 1,
+          _images: 1,
+          _inspectId: 1,
+          _status: 1,
+          roomId: "$room._id",
+          roomAddress: "$room._address",
+          roomServices: "$room._services",
+          roomUtilities: "$room._utilities",
+          roomArea: "$room._area",
+          roomPrice: "$room._price",
+          roomElectricPrice: "$room._electricPrice",
+          roomWaterPrice: "$room._waterPrice",
+          roomIsRented: "$room._isRented",
+          authorId: "$author._id",
+          authorFName: "$author._fname",
+          authorLName: "$author._lname",
+          phoneNumber: "$author._phone",
+          addressAuthor: "$author._address",
+          avatarAuthor: "$author._avatar",
+        },
+      }
+    );
+    const total = (await Posts.aggregate(pipeline)).length;
+    const totalPage = Math.ceil(total / pagination.limit);
+    const posts = await Posts.aggregate(pipeline)
+      .skip(pagination.offset)
+      .limit(pagination.limit);
+
+    if (posts.length <= 0) throw Errors.PostNotFound;
+
+    return [
+      posts,
+      { page: pagination.page, limit: pagination.limit, total: totalPage },
+    ];
+  };
+
+  public searchPostByTags = async (tags: string[], pagination: Pagination) => {
+    const pipeline = [];
+    const condition: PipelineStage = {
+      $match: {
+        $and: [{ _status: 1 }, { _tags: { $all: tags } }],
+      },
+    };
     //Push condition of joining tables
     pipeline.push(
       {
