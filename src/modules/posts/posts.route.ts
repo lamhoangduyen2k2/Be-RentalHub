@@ -21,7 +21,7 @@ route.get(
   authMiddleware.authorizedUser,
   postsController.getPostsByStatusController
 );
-route.get("/search-post", postsController.searchPost);
+route.post("/search-post", postsController.searchPost);
 route.get(
   "/get-post",
   authMiddleware.authorizedUser,
