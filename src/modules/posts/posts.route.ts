@@ -22,6 +22,11 @@ route.get(
   postsController.getPostsByStatusController
 );
 route.get("/search-post", postsController.searchPost);
+route.get(
+  "/get-post",
+  authMiddleware.authorizedUser,
+  postsController.getPostById
+);
 route.post(
   "/create-post",
   imageMiddleWare.upload.array("_images"),

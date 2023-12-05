@@ -330,6 +330,69 @@ export class PostsService {
     return posts;
   };
 
+  public getPostById = async (postId: string) => {
+    const condition = {
+      $match: {
+        $and: [{ _status: 1 }, { _id: new mongoose.Types.ObjectId(postId) }],
+      },
+    };
+
+    const post = await Posts.aggregate([
+      {
+        $lookup: {
+          from: "rooms",
+          localField: "_rooms",
+          foreignField: "_id",
+          as: "room",
+        },
+      },
+      { $unwind: "$room" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_uId",
+          foreignField: "_id",
+          as: "author",
+        },
+      },
+      { $unwind: "$author" },
+      condition,
+      {
+        $project: {
+          _id: 1,
+          _title: 1,
+          _content: 1,
+          _desc: 1,
+          _postingDate: 1,
+          _tags: 1,
+          _videos: 1,
+          _images: 1,
+          _inspectId: 1,
+          _status: 1,
+          roomId: "$room._id",
+          roomAddress: "$room._address",
+          roomServices: "$room._services",
+          roomUtilities: "$room._utilities",
+          roomArea: "$room._area",
+          roomPrice: "$room._price",
+          roomElectricPrice: "$room._electricPrice",
+          roomWaterPrice: "$room._waterPrice",
+          roomIsRented: "$room._isRented",
+          authorId: "$author._id",
+          authorFName: "$author._fname",
+          authorLName: "$author._lname",
+          phoneNumber: "$author._phone",
+          addressAuthor: "$author._address",
+          avatarAuthor: "$author._avatar",
+        },
+      },
+    ]);
+
+    if (post.length <= 0) throw Errors.PostNotFound;
+
+    return post[0];
+  };
+
   public getPostByStatus = async (
     pagination: Pagination,
     status: number,

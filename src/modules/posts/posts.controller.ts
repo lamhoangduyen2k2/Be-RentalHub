@@ -53,6 +53,25 @@ export class PostsController {
     }
   };
 
+  public getPostById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const postId = req.query.postId ? req.query.postId.toString() : undefined;
+      const post = await this.postsService.getPostById(postId);
+
+      res.json(new ResponseData(post, null, null));
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: posts.controller.ts:67 ~ PostsController ~ error:",
+        error
+      );
+      next(error);
+    }
+  };
+
   public createNewPost = async (
     req: BodyResquest<PostCreateDTO>,
     res: Response,
