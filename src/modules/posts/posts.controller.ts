@@ -156,7 +156,7 @@ export class PostsController {
     next: NextFunction
   ) => {
     try {
-      const search = req.query.search ? req.query.search.toString() : undefined;
+      const search = req.query.search ? req.query.search as string : undefined;
       const tags = req.body._tags ? req.body._tags : undefined;
       const pagination = Pagination.getPagination(req);
       const posts = await this.postsService.searchPost(
