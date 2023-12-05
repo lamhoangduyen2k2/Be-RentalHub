@@ -348,6 +348,8 @@ export class PostsService {
       count = await Posts.countDocuments({
         $and: [{ _status: status }, { _uId: uId }],
       });
+      if (count <= 0) throw Errors.PostNotFound;
+
       totalPages = Math.ceil(count / pagination.limit);
 
       condition = {
@@ -362,6 +364,7 @@ export class PostsService {
       count = await Posts.countDocuments({
         $and: [{ _uId: uId }],
       });
+      if (count <= 0) throw Errors.PostNotFound;
       totalPages = Math.ceil(count / pagination.limit);
 
       condition = {
@@ -484,6 +487,4 @@ export class PostsService {
       { page: pagination.page, limit: pagination.limit, total: totalPage },
     ];
   };
-
-  
 }
