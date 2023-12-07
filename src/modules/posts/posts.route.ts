@@ -56,7 +56,7 @@ route.patch(
 );
 
 //Tag
-route.get("/get-tags", authMiddleware.authorizedUser, tagController.getAllTags);
+route.get("/get-tags", tagController.getAllTags);
 route.post(
   "/create-tag",
   authMiddleware.authorizedUser,
