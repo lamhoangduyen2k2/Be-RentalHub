@@ -12,14 +12,12 @@ import erroHandler from "./helpers/handle-errors";
 import { initializeApp } from "firebase/app";
 import config from "./database/firebase.config";
 import routerImg from "./modules/image/image.route";
-import bodyParser from "body-parser";
+//import bodyParser from "body-parser";
 
 (async () => {
   const app = express();
   const port = 3000;
 
-  app.use(bodyParser.json({ limit: "50mb" }));
-  app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
   app.use(express.json());
   app.use(compression());
   app.use(helmet());

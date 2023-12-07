@@ -179,9 +179,8 @@ export class PostsController {
   ) => {
     try {
       const tags = req.query.tags
-      ? req.query.tags.toString().split(",")
-      : undefined;
-      console.log("🚀 ~ file: posts.controller.ts:182 ~ PostsController ~ tags:", tags)
+        ? req.query.tags.toString().split(",")
+        : undefined;
       const pagination = Pagination.getPagination(req);
       const posts = await this.postsService.searchPostByTags(tags, pagination);
 

@@ -117,6 +117,11 @@ export const Errors = {
   ErrorToken: new ErrorModel("Token is invalid", "ERROR_TOKEN", 403),
 
   ExpiredToken: new ErrorModel("Token is expired", "EXPIRED_TOKEN", 400),
+  ExpiredRefreshToken: new ErrorModel(
+    "Refresh Token is expired",
+    "EXPIRED_REFRESH_TOKEN",
+    400
+  ),
 
   FailSendEmail: new ErrorModel("Fail send email", "FAIL_SEND_EMAIL", 400),
 

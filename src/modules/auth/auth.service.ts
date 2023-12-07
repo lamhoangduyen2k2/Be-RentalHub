@@ -87,7 +87,7 @@ export class AuthService {
       _refreshToken: refreshToken,
     });
 
-    if (!token) throw Errors.ExpiredToken;
+    if (!token) throw Errors.ExpiredRefreshToken;
 
     return { userId, iatRefreshToken, timeExpireRefresh };
   };
