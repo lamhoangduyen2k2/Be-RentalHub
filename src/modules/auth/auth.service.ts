@@ -26,15 +26,15 @@ export class AuthService {
       3600
     );
 
-    return {...UserResponsesDTO.toResponse(users), ...token};
+    return { ...UserResponsesDTO.toResponse(users), ...token };
   };
 
   logoutService = async (userId: string, refreshToken: string) => {
     await RefreshTokens.deleteOne({
       $and: [{ _uId: userId }, { _refreshToken: refreshToken }],
     });
-    
-    return { message: "Logout Successfully"};
+
+    return { message: "Logout Successfully" };
   };
 
   resetToken = async (userId: string, refreshToken: string) => {
@@ -45,13 +45,15 @@ export class AuthService {
       },
       {
         _refreshToken: newToken.refreshToken,
-      }, { new: true}
+      },
+      { new: true }
     );
 
     if (!refresh) throw Errors.ErrorToken;
-    const expiredRefresh : number = Date.parse(refresh.expireAt.toString()) + 3600*1000
+    const expiredRefresh: number =
+      Date.parse(refresh.expireAt.toString()) + 3600 * 1000;
 
-    return { ...newToken, expiredRefresh};
+    return { ...newToken, expiredRefresh };
   };
 
   verifyAccessToken = async (accessToken: string) => {
@@ -75,7 +77,7 @@ export class AuthService {
 
     //Verify token
     verify(refreshToken, process.env.SECRET_KEY_FRESH, (err, payload) => {
-      if (err) throw Errors.ExpiredToken;
+      if (err) throw Errors.ExpiredRefreshToken;
       userId = payload["_id"];
       iatRefreshToken = payload["iat"];
       timeExpireRefresh = payload["exp"];
