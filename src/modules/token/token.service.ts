@@ -4,17 +4,20 @@ import { Service } from "typedi";
 
 @Service()
 class TokenService {
-  public createTokenByLogin = async (userId: string | number, timeLife: number) => {
+  public createTokenByLogin = async (
+    userId: string | number,
+    timeLife: number
+  ) => {
     let accessToken = "";
     let refreshToken = "";
 
     //Create accessToken
     accessToken = sign({ _id: userId }, process.env.SECRET_KEY, {
-      expiresIn: "300s",
+      expiresIn: "60s",
     });
 
-    const expiredAccess : number = Date.now() + 300*1000
-    
+    const expiredAccess: number = Date.now() + 60 * 1000;
+
     //Create refeshToken
     refreshToken = sign({ _id: userId }, process.env.SECRET_KEY_FRESH, {
       expiresIn: `${timeLife}s`,
@@ -27,21 +30,25 @@ class TokenService {
       expireAt: Date.now(),
     });
 
-    const expiredRefresh : number = Date.parse(refresh.expireAt.toString()) + 3600*1000
-    
-    return { accessToken, refreshToken, expiredAccess, expiredRefresh};
+    const expiredRefresh: number =
+      Date.parse(refresh.expireAt.toString()) + 3600 * 1000;
+
+    return { accessToken, refreshToken, expiredAccess, expiredRefresh };
   };
 
-  public createTokenByReset = async (userId: string | number, timeLife: number) => {
+  public createTokenByReset = async (
+    userId: string | number,
+    timeLife: number
+  ) => {
     let accessToken = "";
     let refreshToken = "";
 
     //Create accessToken
     accessToken = sign({ _id: userId }, process.env.SECRET_KEY, {
-      expiresIn: "300s",
+      expiresIn: "60s",
     });
 
-    const expiredAccess : number = Date.now() + 300*1000
+    const expiredAccess: number = Date.now() + 60 * 1000;
 
     //Create refeshToken
     refreshToken = sign({ _id: userId }, process.env.SECRET_KEY_FRESH, {
@@ -51,4 +58,4 @@ class TokenService {
   };
 }
 
-export default new TokenService()
+export default new TokenService();
