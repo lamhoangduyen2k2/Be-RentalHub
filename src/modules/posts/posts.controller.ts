@@ -36,10 +36,6 @@ export class PostsController {
       const status = isNaN(Number(req.query.status))
         ? -1
         : Number(req.query.status);
-      console.log(
-        "🚀 ~ file: posts.controller.ts:36 ~ PostsController ~ status:",
-        status
-      );
       const pagination: Pagination = Pagination.getPagination(req);
       const posts = await this.postsService.getPostByStatus(
         pagination,
@@ -66,6 +62,26 @@ export class PostsController {
     } catch (error) {
       console.log(
         "🚀 ~ file: posts.controller.ts:67 ~ PostsController ~ error:",
+        error
+      );
+      next(error);
+    }
+  };
+
+  public getPostOfUser = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const uId = req.query.uId ? req.query.uId.toString() : undefined;
+      const pagination: Pagination = Pagination.getPagination(req);
+      const posts = await this.postsService.getPostOfUser(uId, pagination);
+
+      res.json(new ResponseData(posts, null, null));
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: posts.controller.ts:79 ~ PostsController ~ error:",
         error
       );
       next(error);

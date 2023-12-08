@@ -28,6 +28,12 @@ route.get(
   authMiddleware.authorizedUser,
   postsController.getPostById
 );
+route.get(
+  "/view-post-user",
+  authMiddleware.authorizedUser,
+  postsController.getPostOfUser
+);
+
 route.post(
   "/create-post",
   imageMiddleWare.upload.array("_images"),

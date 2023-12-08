@@ -393,7 +393,15 @@ export class PostsService {
     return post[0];
   };
 
-  public getPostOfUser = async (uId: string) => {
+  public getPostOfUser = async (uId: string, pagination: Pagination) => {
+    const count = await Posts.countDocuments({
+      $and: [{ _status: 1 }, { _uId: uId }],
+    });
+
+    if (count <= 0) throw Errors.PostNotFound;
+
+    const totalPages = Math.ceil(count / pagination.limit);
+
     const condition = {
       $match: {
         $and: [{ _status: 1 }, { _uId: new mongoose.Types.ObjectId(uId) }],
@@ -449,11 +457,16 @@ export class PostsService {
           avatarAuthor: "$author._avatar",
         },
       },
-    ]);
+    ])
+      .skip(pagination.offset)
+      .limit(pagination.limit);
 
-    if (post.length <= 0) throw Errors.PostNotFound;
+    if (post.length <= 0) throw Errors.PageNotFound;
 
-    return post[0];
+    return [
+      post,
+      { page: pagination.page, limit: pagination.limit, total: totalPages },
+    ];
   };
 
   public getPostByStatus = async (
