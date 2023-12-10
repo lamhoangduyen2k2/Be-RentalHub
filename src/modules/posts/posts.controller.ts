@@ -78,10 +78,30 @@ export class PostsController {
       const pagination: Pagination = Pagination.getPagination(req);
       const posts = await this.postsService.getPostOfUser(uId, pagination);
 
-      res.json(new ResponseData(posts, null, null));
+      res.json(new ResponseData(posts[0], null, posts[1]));
     } catch (error) {
       console.log(
         "🚀 ~ file: posts.controller.ts:79 ~ PostsController ~ error:",
+        error
+      );
+      next(error);
+    }
+  };
+
+  public getPostSimilar = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const postId = req.query.postId ? req.query.postId.toString() : undefined;
+      const pagination: Pagination = Pagination.getPagination(req);
+      const posts = await this.postsService.getPostSimilar(postId, pagination);
+
+      res.json(new ResponseData(posts[0], null, posts[1]));
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: posts.controller.ts:95 ~ PostsController ~ getPostSimilar= ~ error:",
         error
       );
       next(error);

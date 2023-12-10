@@ -33,6 +33,11 @@ route.get(
   authMiddleware.authorizedUser,
   postsController.getPostOfUser
 );
+route.get(
+  "/posts-similar",
+  authMiddleware.authorizedUser,
+  postsController.getPostSimilar
+);
 
 route.post(
   "/create-post",

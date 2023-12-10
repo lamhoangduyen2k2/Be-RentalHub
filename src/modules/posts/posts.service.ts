@@ -408,7 +408,7 @@ export class PostsService {
       },
     };
 
-    const post = await Posts.aggregate([
+    const post  = await Posts.aggregate([
       {
         $lookup: {
           from: "rooms",
@@ -466,6 +466,91 @@ export class PostsService {
     return [
       post,
       { page: pagination.page, limit: pagination.limit, total: totalPages },
+    ];
+  };
+
+  public getPostSimilar = async (postId: string, pagination: Pagination) => {
+    const post = await Posts.findOne({ _id: postId });
+  
+    const count = await Posts.countDocuments({
+      $and: [
+        { _id: { $ne: postId } },
+        { _status: 1 },
+        { _tags: { $in: post._tags } },
+      ],
+    });
+    console.log("🚀 ~ file: posts.service.ts:482 ~ PostsService ~ getPostSimilar= ~ count:", count)
+    if (count <= 0) throw Errors.PostNotFound;
+    const totalPage = Math.ceil(count / pagination.limit);
+
+    const condition = {
+      $match: {
+        $and: [
+          { _id: { $ne: new mongoose.Types.ObjectId(postId) } },
+          { _status: 1 },
+          { _tags: { $in: post._tags } },
+        ],
+      },
+    };
+
+    const posts = await Posts.aggregate([
+      {
+        $lookup: {
+          from: "rooms",
+          localField: "_rooms",
+          foreignField: "_id",
+          as: "room",
+        },
+      },
+      { $unwind: "$room" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_uId",
+          foreignField: "_id",
+          as: "author",
+        },
+      },
+      { $unwind: "$author" },
+      condition,
+      {
+        $project: {
+          _id: 1,
+          _title: 1,
+          _content: 1,
+          _desc: 1,
+          _postingDate: 1,
+          _tags: 1,
+          _videos: 1,
+          _images: 1,
+          _inspectId: 1,
+          _status: 1,
+          roomId: "$room._id",
+          roomAddress: "$room._address",
+          roomServices: "$room._services",
+          roomUtilities: "$room._utilities",
+          roomArea: "$room._area",
+          roomPrice: "$room._price",
+          roomElectricPrice: "$room._electricPrice",
+          roomWaterPrice: "$room._waterPrice",
+          roomIsRented: "$room._isRented",
+          authorId: "$author._id",
+          authorFName: "$author._fname",
+          authorLName: "$author._lname",
+          phoneNumber: "$author._phone",
+          addressAuthor: "$author._address",
+          avatarAuthor: "$author._avatar",
+        },
+      },
+    ])
+      .skip(pagination.offset)
+      .limit(pagination.limit);
+
+    if (posts.length <= 0) throw Errors.PageNotFound;
+
+    return [
+      posts,
+      { page: pagination.page, limit: pagination.limit, total: totalPage },
     ];
   };
 
