@@ -19,7 +19,7 @@ export class ErrorModel extends Error {
 export const Errors = {
   SaveToDatabaseFail: new ErrorModel(
     "Save data is failed!",
-    "saveToDatabaseFail",
+    "SAVE_TO_DATABASE_FAIL",
     500
   ),
 
@@ -78,7 +78,7 @@ export const Errors = {
 
   EmailInvalid: new ErrorModel("Emailname invalid!", "EMAIL_INVALID", 400),
 
-  GenderInvalid: new ErrorModel("Gendername invalid!", "genderInvalid", 400),
+  GenderInvalid: new ErrorModel("Gendername invalid!", "GENDER_INVALID", 400),
 
   PhonenumberInvalid: new ErrorModel(
     "Phonenumber invalid!",
