@@ -28,7 +28,8 @@ const usersSchema = new mongoose.Schema({
   },
   _avatar: {
     type: String,
-    default: null,
+    default:
+      "https://firebasestorage.googleapis.com/v0/b/rentalhub-a8ebf.appspot.com/o/userImg%2Fistockphoto-1300845620-612x612.jpg%20%20%20%20%20%20%202023-12-7%2011%3A27%3A36?alt=media&token=089d15fd-f21a-42c0-a397-288933e9c658".toString(),
   },
   _email: {
     type: String,

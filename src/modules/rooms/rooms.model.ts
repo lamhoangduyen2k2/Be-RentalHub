@@ -49,7 +49,7 @@ const roomSchema = new mongoose.Schema({
     type: Number,
     required: [true, "Water price is required!"],
   },
-  _isRented: {
+_isRented: {
     type: Boolean,
     required: [true, "isRented is required!"],
     default: false,

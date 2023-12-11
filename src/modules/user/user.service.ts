@@ -32,11 +32,6 @@ export class UserService {
     const newUser = await Users.create({
       _email: userParam._email,
       _pw: userParam._pw,
-      _address: null,
-      _avatar: null,
-      _dob: null,
-      _lname: null,
-      _fname: null,
     });
 
     return UserResponsesDTO.toResponse(newUser);

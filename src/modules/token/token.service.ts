@@ -13,10 +13,10 @@ class TokenService {
 
     //Create accessToken
     accessToken = sign({ _id: userId }, process.env.SECRET_KEY, {
-      expiresIn: "60s",
+      expiresIn: "300s",
     });
 
-    const expiredAccess: number = Date.now() + 60 * 1000;
+    const expiredAccess: number = Date.now() + 300 * 1000;
 
     //Create refeshToken
     refreshToken = sign({ _id: userId }, process.env.SECRET_KEY_FRESH, {
@@ -45,10 +45,10 @@ class TokenService {
 
     //Create accessToken
     accessToken = sign({ _id: userId }, process.env.SECRET_KEY, {
-      expiresIn: "60s",
+      expiresIn: "300s",
     });
 
-    const expiredAccess: number = Date.now() + 60 * 1000;
+    const expiredAccess: number = Date.now() + 300 * 1000;
 
     //Create refeshToken
     refreshToken = sign({ _id: userId }, process.env.SECRET_KEY_FRESH, {
