@@ -408,7 +408,7 @@ export class PostsService {
       },
     };
 
-    const post  = await Posts.aggregate([
+    const post = await Posts.aggregate([
       {
         $lookup: {
           from: "rooms",
@@ -450,6 +450,7 @@ export class PostsService {
           roomWaterPrice: "$room._waterPrice",
           roomIsRented: "$room._isRented",
           authorId: "$author._id",
+          authorEmail: "$author._email",
           authorFName: "$author._fname",
           authorLName: "$author._lname",
           phoneNumber: "$author._phone",
@@ -471,7 +472,7 @@ export class PostsService {
 
   public getPostSimilar = async (postId: string, pagination: Pagination) => {
     const post = await Posts.findOne({ _id: postId });
-  
+
     const count = await Posts.countDocuments({
       $and: [
         { _id: { $ne: postId } },
@@ -479,7 +480,10 @@ export class PostsService {
         { _tags: { $in: post._tags } },
       ],
     });
-    console.log("🚀 ~ file: posts.service.ts:482 ~ PostsService ~ getPostSimilar= ~ count:", count)
+    console.log(
+      "🚀 ~ file: posts.service.ts:482 ~ PostsService ~ getPostSimilar= ~ count:",
+      count
+    );
     if (count <= 0) throw Errors.PostNotFound;
     const totalPage = Math.ceil(count / pagination.limit);
 
