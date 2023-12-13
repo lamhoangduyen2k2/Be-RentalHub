@@ -15,6 +15,7 @@ export class PostsMiddleWare {
   ) => {
     try {
       const infoPost = PostCreateDTO.fromRequest(req);
+      console.log("🚀 ~ file: posts.middleware.ts:18 ~ PostsMiddleWare ~ infoPost:", infoPost)
       const errors: ValidationError[] = await validate(infoPost);
       if (errors[0]) throw errors;
 

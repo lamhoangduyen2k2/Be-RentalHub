@@ -259,6 +259,7 @@ function erroHandler(
 export const handleErrorOfValidation = (errors: ValidationError[]) => {
   const error = errors[0];
   for (const keyError in error.constraints) {
+    console.log("🚀 ~ file: handle-errors.ts:262 ~ handleErrorOfValidation ~ keyError:", keyError)
     if (keyError === "isNotEmpty") {
       console.log(UpCase(error.property));
       return Errors[`${UpCase(error.property)}NotFound`];

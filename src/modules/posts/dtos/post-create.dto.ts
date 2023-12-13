@@ -15,21 +15,21 @@ export class PostCreateDTO {
   _uId: ObjectId;
 
   @Expose()
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty()
   _title: string;
 
   @Expose()
   _images: string[];
 
   @Expose()
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty()
   _content: string;
 
   @Expose()
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty()
   _desc: string;
 
   @ValidateIf((o: PostCreateDTO) => o._tags !== undefined)
@@ -38,13 +38,13 @@ export class PostCreateDTO {
   _tags: ObjectId[];
 
   @Expose()
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty()
   _street: string;
 
   @Expose()
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty()
   _district: string;
 
   @ValidateIf((o: PostCreateDTO) => o._city !== undefined)
@@ -63,23 +63,23 @@ export class PostCreateDTO {
   _utilities: string;
 
   @Expose()
-  @IsNotEmpty()
   @IsNumberString()
+  @IsNotEmpty()
   _area: number;
 
   @Expose()
-  @IsNotEmpty()
   @IsNumberString()
+  @IsNotEmpty()
   _price: number;
 
   @Expose()
-  @IsNotEmpty()
   @IsNumberString()
+  @IsNotEmpty()
   _electricPrice: number;
 
   @Expose()
-  @IsNotEmpty()
   @IsNumberString()
+  @IsNotEmpty()
   _waterPrice: number;
 
   static fromRequest = (req: Request) => {
