@@ -2,7 +2,7 @@ import { Exclude, Expose, plainToClass } from "class-transformer";
 import {
   IsArray,
   IsBooleanString,
-  IsNumber,
+  IsNumberString,
   IsString,
   ValidateIf,
 } from "class-validator";
@@ -65,22 +65,22 @@ export class PostUpdateDTO {
 
   @ValidateIf((o: PostUpdateDTO) => o._area !== undefined)
   @Expose()
-  @IsNumber()
+  @IsNumberString()
   _area: number;
 
   @ValidateIf((o: PostUpdateDTO) => o._desc !== undefined)
   @Expose()
-  @IsNumber()
+  @IsNumberString()
   _price: number;
 
   @ValidateIf((o: PostUpdateDTO) => o._electricPrice !== undefined)
   @Expose()
-  @IsNumber()
+  @IsNumberString()
   _electricPrice: number;
 
   @ValidateIf((o: PostUpdateDTO) => o._waterPrice !== undefined)
   @Expose()
-  @IsNumber()
+  @IsNumberString()
   _waterPrice: number;
 
   @ValidateIf((o: PostUpdateDTO) => o._isRented !== undefined)
