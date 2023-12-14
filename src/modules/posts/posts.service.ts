@@ -73,6 +73,7 @@ export class PostsService {
   ) => {
     let status: number = 0;
     let active: boolean = true;
+    let images: string[] = [];
 
     //Find post is active
     const post = await Posts.findOne({
@@ -81,18 +82,39 @@ export class PostsService {
 
     if (!post) throw Errors.PostNotFound;
 
+    // images = [...post._images] as string[];
+    // console.log("🚀 ~ file: posts.service.ts:86 ~ PostsService ~ images:", images)
+
     const isRented = /true/i.test(postParam._isRented);
     if (isRented) {
       status = 2;
       active = false;
     }
 
+    if (postParam._deleteImages && postParam._deleteImages.length > 0) {
+      const deleteArr = postParam._deleteImages.split(",");
+
+      post._images.forEach((image, index) => {
+        if (!deleteArr.includes(index.toString())) {
+          images.push(image as string);
+        }
+      });
+    } else {
+      images = [...post._images] as string[]
+    }
+    
     //Check file images are exist
     if (files.length > 0) {
       //Upload images to firebase
-      postParam._images = await this.imageService.uploadImage(files);
+      postParam._images = [
+        ...images,
+        ...(await this.imageService.uploadImage(files)),
+      ];
       if (postParam._images.length <= 0) throw Errors.UploadImageFail;
+    } else {
+      postParam._images = [...images];
     }
+    
 
     const postUdated = await Posts.findOneAndUpdate(
       { _id: postId },

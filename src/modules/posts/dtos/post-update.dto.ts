@@ -19,6 +19,10 @@ export class PostUpdateDTO {
   _title: string;
 
   @Expose()
+  @IsString()
+  _deleteImages: string;
+
+  @Expose()
   _images: string[];
 
   @ValidateIf((o: PostUpdateDTO) => o._content !== undefined)
