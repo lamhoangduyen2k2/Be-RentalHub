@@ -100,11 +100,12 @@ export class PostsService {
         }
       });
     } else {
-      images = [...post._images] as string[]
+      images = [...post._images] as string[];
     }
-    
+
     //Check file images are exist
     if (files.length > 0) {
+      if (images.length + files.length > 10) throw Errors.FileCountExceedLimit;
       //Upload images to firebase
       postParam._images = [
         ...images,
@@ -114,7 +115,6 @@ export class PostsService {
     } else {
       postParam._images = [...images];
     }
-    
 
     const postUdated = await Posts.findOneAndUpdate(
       { _id: postId },
