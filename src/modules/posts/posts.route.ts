@@ -48,11 +48,6 @@ route.post(
   postsController.createNewPost
 );
 route.patch(
-  "/sensor-post/:postId",
-  authMiddleware.authorizedInspector,
-  postsController.sensorPost
-);
-route.patch(
   "/update-post/:postId",
   imageMiddleWare.upload.array("_images"),
   imageMiddleWare.checkUploadImages,
@@ -72,6 +67,23 @@ route.post(
   "/create-tag",
   authMiddleware.authorizedUser,
   tagController.createTag
+);
+
+// Inspector
+route.get(
+  "/inspector-get-post",
+  authMiddleware.authorizedInspector,
+  postsController.getPostsByInspectorController
+);
+route.get(
+  "/inspector-get-post-id",
+  authMiddleware.authorizedInspector,
+  postsController.getPostByIdInspector
+);
+route.patch(
+  "/sensor-post/:postId",
+  authMiddleware.authorizedInspector,
+  postsController.sensorPost
 );
 
 export default route;

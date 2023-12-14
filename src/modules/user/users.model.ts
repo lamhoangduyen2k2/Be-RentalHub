@@ -52,7 +52,7 @@ const usersSchema = new mongoose.Schema({
   _role: {
     type: Schema.Types.Number,
     default: 0,
-  }, // 0: người dùng (có thể mua và thuê), 1: hãng vận chuyển
+  }, // 0: người dùng (có thể mua và thuê), 1: admin, 2: inspector
   _isHost: {
     type: Boolean,
     default: false,

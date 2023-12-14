@@ -415,6 +415,69 @@ export class PostsService {
     return post[0];
   };
 
+  public getPostByIdInspector = async (postId: string) => {
+    const condition = {
+      $match: {
+        _id: new mongoose.Types.ObjectId(postId),
+      },
+    };
+
+    const post = await Posts.aggregate([
+      {
+        $lookup: {
+          from: "rooms",
+          localField: "_rooms",
+          foreignField: "_id",
+          as: "room",
+        },
+      },
+      { $unwind: "$room" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_uId",
+          foreignField: "_id",
+          as: "author",
+        },
+      },
+      { $unwind: "$author" },
+      condition,
+      {
+        $project: {
+          _id: 1,
+          _title: 1,
+          _content: 1,
+          _desc: 1,
+          _postingDate: 1,
+          _tags: 1,
+          _videos: 1,
+          _images: 1,
+          _inspectId: 1,
+          _status: 1,
+          roomId: "$room._id",
+          roomAddress: "$room._address",
+          roomServices: "$room._services",
+          roomUtilities: "$room._utilities",
+          roomArea: "$room._area",
+          roomPrice: "$room._price",
+          roomElectricPrice: "$room._electricPrice",
+          roomWaterPrice: "$room._waterPrice",
+          roomIsRented: "$room._isRented",
+          authorId: "$author._id",
+          authorFName: "$author._fname",
+          authorLName: "$author._lname",
+          phoneNumber: "$author._phone",
+          addressAuthor: "$author._address",
+          avatarAuthor: "$author._avatar",
+        },
+      },
+    ]);
+
+    if (post.length <= 0) throw Errors.PostNotFound;
+
+    return post[0];
+  };
+
   public getPostOfUser = async (uId: string, pagination: Pagination) => {
     const count = await Posts.countDocuments({
       $and: [{ _status: 1 }, { _uId: uId }],
@@ -622,6 +685,44 @@ export class PostsService {
         },
       };
     }
+
+    const posts = await this.getPosts(
+      condition,
+      pagination.offset,
+      pagination.limit
+    );
+
+    if (!posts[0]?._id) throw Errors.PageNotFound;
+
+    return [
+      posts,
+      { page: pagination.page, limit: pagination.limit, total: totalPages },
+    ];
+  };
+
+  public getPostByInspector = async (
+    pagination: Pagination,
+    status: number
+  ) => {
+    //Check status
+    if (status > 4 || status <= -1) throw Errors.StatusInvalid;
+
+    // Check status to create condition and totalPages
+
+    const count = await Posts.countDocuments({ _status: status });
+    console.log(
+      "🚀 ~ file: posts.service.ts:650 ~ PostsService ~ count:",
+      count
+    );
+    if (count <= 0) throw Errors.PostNotFound;
+
+    const totalPages = Math.ceil(count / pagination.limit);
+
+    const condition: PipelineStage = {
+      $match: {
+        _status: status,
+      },
+    };
 
     const posts = await this.getPosts(
       condition,

@@ -49,6 +49,27 @@ export class PostsController {
     }
   };
 
+  public getPostsByInspectorController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const status = isNaN(Number(req.query.status))
+        ? -1
+        : Number(req.query.status);
+      const pagination: Pagination = Pagination.getPagination(req);
+      const posts = await this.postsService.getPostByInspector(
+        pagination,
+        status
+      );
+      res.json(new ResponseData(posts[0], null, posts[1]));
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  };
+
   public getPostById = async (
     req: Request,
     res: Response,
@@ -57,6 +78,25 @@ export class PostsController {
     try {
       const postId = req.query.postId ? req.query.postId.toString() : undefined;
       const post = await this.postsService.getPostById(postId);
+
+      res.json(new ResponseData(post, null, null));
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: posts.controller.ts:67 ~ PostsController ~ error:",
+        error
+      );
+      next(error);
+    }
+  };
+
+  public getPostByIdInspector = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const postId = req.query.postId ? req.query.postId.toString() : undefined;
+      const post = await this.postsService.getPostByIdInspector(postId);
 
       res.json(new ResponseData(post, null, null));
     } catch (error) {

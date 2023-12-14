@@ -7,8 +7,7 @@ import { Inject, Service } from "typedi";
 
 @Service()
 export class AuthController {
-  constructor(@Inject() private authSerivce: AuthService) {
-  }
+  constructor(@Inject() private authSerivce: AuthService) {}
 
   public loginController = async (
     req: BodyResquest<LoginRequestDTO>,
@@ -24,13 +23,30 @@ export class AuthController {
     }
   };
 
+  public loginInspectorController = async (
+    req: BodyResquest<LoginRequestDTO>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const user = await this.authSerivce.loginInspectorService(req.body);
+
+      res.json(new ResponseData(user, null, null));
+    } catch (error) {
+      next(error);
+    }
+  };
+
   public logoutController = async (
     req: Request,
     res: Response,
     next: NextFunction
   ) => {
     try {
-      const message = await this.authSerivce.logoutService(req.body.userId, req.body.refreshToken);
+      const message = await this.authSerivce.logoutService(
+        req.body.userId,
+        req.body.refreshToken
+      );
 
       res.json(new ResponseData(message, null, null));
     } catch (error) {
