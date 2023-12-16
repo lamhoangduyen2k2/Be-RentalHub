@@ -315,6 +315,22 @@ export class PostsService {
         },
       },
       { $unwind: "$author" },
+      {
+        $lookup: {
+          from: "tags",
+          localField: "_tags",
+          foreignField: "_id",
+          let: { id_tags: "$_tags" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $in: ["$_id", "$$id_tags"] },
+              },
+            },
+          ],
+          as: "tags",
+        },
+      },
       condition,
       {
         $project: {
@@ -323,13 +339,16 @@ export class PostsService {
           _content: 1,
           _desc: 1,
           _postingDate: 1,
-          _tags: 1,
+          _tags: "$tags",
           _videos: 1,
           _images: 1,
           _inspectId: 1,
           _status: 1,
           roomId: "$room._id",
           roomAddress: "$room._address",
+          roomStreet: "$room._street",
+          roomDistrict: "$room._district",
+          roomCity: "$room._city",
           roomServices: "$room._services",
           roomUtilities: "$room._utilities",
           roomArea: "$room._area",
@@ -434,7 +453,7 @@ export class PostsService {
 
     // post[0].roomAddress =
     // post[0].roomStreet + " " + post[0].roomDistrict + " " + post[0].roomCity;
-    
+
     // console.log("🚀 ~ file: posts.service.ts:436 ~ PostsService ~ getPostById= ~ post[0].roomAddress:", post[0].roomAddress)
     return post[0];
   };
