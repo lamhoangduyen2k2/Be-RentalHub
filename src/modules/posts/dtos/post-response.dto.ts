@@ -39,7 +39,13 @@ export class PostResponseDTO {
   _rooms: ObjectId;
 
   @Expose()
-  _address: string;
+  _street: string;
+
+  @Expose()
+  _district: string;
+
+  @Expose()
+  _city: string;
 
   @Expose()
   _services: string[];

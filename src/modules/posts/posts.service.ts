@@ -82,9 +82,6 @@ export class PostsService {
 
     if (!post) throw Errors.PostNotFound;
 
-    // images = [...post._images] as string[];
-    // console.log("🚀 ~ file: posts.service.ts:86 ~ PostsService ~ images:", images)
-
     const isRented = /true/i.test(postParam._isRented);
     if (isRented) {
       status = 2;
@@ -133,7 +130,9 @@ export class PostsService {
     const roomUpdated = await Rooms.findOneAndUpdate(
       { _id: post._rooms },
       {
-        _address: postParam._address,
+        _street: postParam._street,
+        _district: postParam._district,
+        _city: postParam._city,
         _services: postParam._services
           ? postParam._services.split(",")
           : undefined,

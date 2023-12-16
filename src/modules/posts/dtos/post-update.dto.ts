@@ -52,10 +52,20 @@ export class PostUpdateDTO {
   @Exclude()
   _rooms: ObjectId;
 
-  @ValidateIf((o: PostUpdateDTO) => o._address !== undefined)
+  @ValidateIf((o: PostUpdateDTO) => o._street !== undefined)
   @Expose()
   @IsString()
-  _address: string;
+  _street: string;
+
+  @ValidateIf((o: PostUpdateDTO) => o._district !== undefined)
+  @Expose()
+  @IsString()
+  _district: string;
+
+  @ValidateIf((o: PostUpdateDTO) => o._city !== undefined)
+  @Expose()
+  @IsString()
+  _city: string;
 
   @ValidateIf((o: PostUpdateDTO) => o._services !== undefined)
   @Expose()
