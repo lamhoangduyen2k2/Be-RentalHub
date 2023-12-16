@@ -11,6 +11,7 @@ import { ImageService } from "../image/image.service";
 import mongoose, { PipelineStage } from "mongoose";
 import { PostSensorDTO } from "./dtos/post-sensor.dto";
 import { PostUpdateStatusDTO } from "./dtos/post-update-status.dto";
+import Tags from "../tags/tag.model";
 
 @Service()
 export class PostsService {
@@ -411,6 +412,10 @@ export class PostsService {
     ]);
 
     if (post.length <= 0) throw Errors.PostNotFound;
+
+    const tags = await Tags.find({ _id: { $in: post[0]._tags } });
+
+    post[0]._tags = tags
 
     return post[0];
   };
