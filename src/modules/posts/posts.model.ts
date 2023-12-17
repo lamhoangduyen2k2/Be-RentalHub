@@ -1,6 +1,5 @@
 import mongoose, { Schema } from "mongoose";
 import Users from "../user/users.model";
-import Inspectors from "../inspectors/inspectors.model";
 import Rooms from "../rooms/rooms.model";
 
 const postsSchema = new mongoose.Schema({
@@ -54,7 +53,7 @@ const postsSchema = new mongoose.Schema({
   },
   _inspectId: {
     type: Schema.Types.ObjectId,
-    ref: Inspectors,
+    ref: Users,
   },
 });
 

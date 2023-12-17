@@ -70,6 +70,28 @@ export class PostsController {
     }
   };
 
+  public getPostsByStatusInspectorController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const status = isNaN(Number(req.query.status))
+        ? -1
+        : Number(req.query.status);
+      const pagination: Pagination = Pagination.getPagination(req);
+      const posts = await this.postsService.getPostByStatusInspecttor(
+        pagination,
+        status,
+        req.body._uId
+      );
+      res.json(new ResponseData(posts[0], null, posts[1]));
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  };
+
   public getPostById = async (
     req: Request,
     res: Response,

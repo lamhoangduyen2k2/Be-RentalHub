@@ -80,6 +80,11 @@ route.get(
   authMiddleware.authorizedInspector,
   postsController.getPostByIdInspector
 );
+route.get(
+  "/inspector-get-post-status",
+  authMiddleware.authorizedInspector,
+  postsController.getPostsByStatusInspectorController
+);
 route.patch(
   "/sensor-post/:postId",
   authMiddleware.authorizedInspector,

@@ -166,7 +166,7 @@ export class PostsService {
         throw Errors.PostNotFound;
       });
 
-    if (postParam._status === 2 ) {
+    if (postParam._status === 2) {
       active = false;
       isRented = true;
     }
@@ -763,6 +763,45 @@ export class PostsService {
     const condition: PipelineStage = {
       $match: {
         _status: status,
+      },
+    };
+
+    const posts = await this.getPosts(
+      condition,
+      pagination.offset,
+      pagination.limit
+    );
+
+    if (!posts[0]?._id) throw Errors.PageNotFound;
+
+    return [
+      posts,
+      { page: pagination.page, limit: pagination.limit, total: totalPages },
+    ];
+  };
+
+  public getPostByStatusInspecttor = async (
+    pagination: Pagination,
+    status: number,
+    uId: string
+  ) => {
+    //Check status
+    if (status > 3 || status <= -1) throw Errors.StatusInvalid;
+
+    // Check status to create condition and totalPages
+    const count = await Posts.countDocuments({
+      $and: [{ _status: status }, { _inspectId: uId }],
+    });
+    if (count <= 0) throw Errors.PostNotFound;
+
+    const totalPages = Math.ceil(count / pagination.limit);
+
+    const condition: PipelineStage = {
+      $match: {
+        $and: [
+          { _status: status },
+          { _inspectId: new mongoose.Types.ObjectId(uId) },
+        ],
       },
     };
 
