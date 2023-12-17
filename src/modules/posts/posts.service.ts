@@ -166,7 +166,7 @@ export class PostsService {
         throw Errors.PostNotFound;
       });
 
-    if (postParam._status === 2 || postParam._status === 3) {
+    if (postParam._status === 2 ) {
       active = false;
       isRented = true;
     }
