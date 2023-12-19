@@ -46,7 +46,7 @@ export class UserService {
 
     if (!userUpdated) throw Errors.SaveToDatabaseFail;
 
-    return userUpdated;
+    return UserResponsesDTO.toResponse(userUpdated);
   };
 
   updateAvatar = async (file: Express.Multer.File, uId: ObjectId) => {
@@ -63,7 +63,7 @@ export class UserService {
 
     if (!userUpdated) throw Errors.SaveToDatabaseFail;
 
-    return userUpdated;
+    return UserResponsesDTO.toResponse(userUpdated);
   };
 
   updateEmail = async (userParam: UserUpdateEmailOrPassDTO) => {

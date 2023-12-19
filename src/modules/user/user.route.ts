@@ -60,7 +60,7 @@ routerUser.get(
 );
 routerUser.patch(
   "/update-profile",
-  authMiddleware.authorizedUser,
+  authMiddleware.authorized,
   userMiddleWare.checkValidationUpdateUser,
   userController.updateUserProfile
 );
@@ -68,12 +68,12 @@ routerUser.patch(
   "/update-avatar",
   imageMiddleWare.upload.single("_avatar"),
   imageMiddleWare.checkUploadAvatar,
-  authMiddleware.authorizedUser,
+  authMiddleware.authorized,
   userController.updateUserAvatar
 );
 routerUser.patch(
   "/update-login-info",
-  authMiddleware.authorizedUser,
+  authMiddleware.authorized,
   userMiddleWare.checkValidationUpdateEmailOrPass,
   userController.updateEmailOrPass
 );

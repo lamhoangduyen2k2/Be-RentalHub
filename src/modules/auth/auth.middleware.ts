@@ -28,6 +28,28 @@ export class AuthenMiddWare {
     }
   };
 
+  authorized = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const authHeader = req.header("Authorization");
+      const auth = authHeader?.split(" ")[1];
+
+      if (!auth) throw Errors.Unauthorized;
+
+      const payload = await this.authService.verifyAccessToken(auth);
+
+      //Check role User
+      const user = await Users.findOne({ _id: payload.userId });
+
+      if (!user) throw Errors.UserNotFound;
+
+      req.body._uId = payload.userId;
+
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+
   authorizedUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const authHeader = req.header("Authorization");

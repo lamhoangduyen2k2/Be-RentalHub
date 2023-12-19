@@ -80,7 +80,7 @@ export const Errors = {
 
   GenderInvalid: new ErrorModel("Gendername invalid!", "GENDER_INVALID", 400),
 
-  PhonenumberInvalid: new ErrorModel(
+  PhoneInvalid: new ErrorModel(
     "Phonenumber invalid!",
     "PHONENUMBER_INVALID",
     400
