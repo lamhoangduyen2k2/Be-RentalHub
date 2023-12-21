@@ -12,7 +12,7 @@ import { UserResponsesDTO } from "../user/dtos/user-response.dto";
 export class AuthService {
   loginService = async (loginParam: LoginRequestDTO) => {
     const users = await Users.findOne({
-      $and: [{ _email: loginParam._email }, { _active: true }],
+      $and: [{ _email: loginParam._email }, { _active: true }, { _role: 0 }],
     });
 
     if (!users) throw Errors.UserNotFound;
