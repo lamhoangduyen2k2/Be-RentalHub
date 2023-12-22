@@ -49,12 +49,20 @@ const roomSchema = new mongoose.Schema({
     type: Number,
     required: [true, "Water price is required!"],
   },
-_isRented: {
+  _isRented: {
     type: Boolean,
     required: [true, "isRented is required!"],
     default: false,
   },
 });
+
+// roomSchema.pre("save", async function (next: NextFunction) {
+//   if (!this.isModified("_street") && !this.isModified("_district"))
+//     return next();
+
+//   this._address = this._street + ", " + this._district + ", " + this._city;
+//   next();
+// });
 
 const Rooms = mongoose.model("rooms", roomSchema);
 export default Rooms;

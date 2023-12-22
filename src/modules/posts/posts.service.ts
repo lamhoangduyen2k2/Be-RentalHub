@@ -262,7 +262,7 @@ export class PostsService {
           _inspectId: 1,
           _status: 1,
           roomId: "$room._id",
-          roomAddress: "$room._address",
+          roomAddress: { $concat: ["$room._street", ", Quận ", "$room._district", ", ", "$room._city"]},
           roomServices: "$room._services",
           roomUtilities: "$room._utilities",
           roomArea: "$room._area",
@@ -344,7 +344,7 @@ export class PostsService {
           _inspectId: 1,
           _status: 1,
           roomId: "$room._id",
-          roomAddress: "$room._address",
+          roomAddress: { $concat: ["$room._street", ", Quận ", "$room._district", ", ", "$room._city"]},
           roomStreet: "$room._street",
           roomDistrict: "$room._district",
           roomCity: "$room._city",
@@ -426,7 +426,7 @@ export class PostsService {
           _inspectId: 1,
           _status: 1,
           roomId: "$room._id",
-          roomAddress: "$room._address",
+          roomAddress: { $concat: ["$room._street", ", Quận ", "$room._district", ", ", "$room._city"]},
           roomStreet: "$room._street",
           roomDistrict: "$room._district",
           roomCity: "$room._city",
@@ -449,11 +449,6 @@ export class PostsService {
     ]);
 
     if (post.length <= 0) throw Errors.PostNotFound;
-
-    // post[0].roomAddress =
-    // post[0].roomStreet + " " + post[0].roomDistrict + " " + post[0].roomCity;
-
-    // console.log("🚀 ~ file: posts.service.ts:436 ~ PostsService ~ getPostById= ~ post[0].roomAddress:", post[0].roomAddress)
     return post[0];
   };
 
@@ -497,7 +492,7 @@ export class PostsService {
           _inspectId: 1,
           _status: 1,
           roomId: "$room._id",
-          roomAddress: "$room._address",
+          roomAddress: { $concat: ["$room._street", ", Quận ", "$room._district", ", ", "$room._city"]},
           roomServices: "$room._services",
           roomUtilities: "$room._utilities",
           roomArea: "$room._area",
@@ -568,7 +563,7 @@ export class PostsService {
           _inspectId: 1,
           _status: 1,
           roomId: "$room._id",
-          roomAddress: "$room._address",
+          roomAddress: { $concat: ["$room._street", ", Quận ", "$room._district", ", ", "$room._city"]},
           roomServices: "$room._services",
           roomUtilities: "$room._utilities",
           roomArea: "$room._area",
@@ -657,7 +652,7 @@ export class PostsService {
           _inspectId: 1,
           _status: 1,
           roomId: "$room._id",
-          roomAddress: "$room._address",
+          roomAddress: { $concat: ["$room._street", ", Quận ", "$room._district", ", ", "$room._city"]},
           roomServices: "$room._services",
           roomUtilities: "$room._utilities",
           roomArea: "$room._area",
@@ -874,7 +869,7 @@ export class PostsService {
           _inspectId: 1,
           _status: 1,
           roomId: "$room._id",
-          roomAddress: "$room._address",
+          roomAddress: { $concat: ["$room._street", ", Quận ", "$room._district", ", ", "$room._city"]},
           roomServices: "$room._services",
           roomUtilities: "$room._utilities",
           roomArea: "$room._area",
@@ -946,7 +941,7 @@ export class PostsService {
           _inspectId: 1,
           _status: 1,
           roomId: "$room._id",
-          roomAddress: "$room._address",
+          roomAddress: { $concat: ["$room._street", ", Quận ", "$room._district", ", ", "$room._city"]},
           roomServices: "$room._services",
           roomUtilities: "$room._utilities",
           roomArea: "$room._area",
