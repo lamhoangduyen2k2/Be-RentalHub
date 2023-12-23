@@ -833,25 +833,40 @@ export class PostsService {
     status: number,
     uId: string
   ) => {
+    let count = 0;
+    let condition: PipelineStage;
     //Check status
     if (status > 3 || status <= -1) throw Errors.StatusInvalid;
 
     // Check status to create condition and totalPages
-    const count = await Posts.countDocuments({
-      $and: [{ _status: status }, { _inspectId: uId }],
-    });
+    if (status === 0) {
+      count = await Posts.countDocuments({
+        $and: [{ _status: status }],
+      });
+      condition = {
+        $match: {
+          _status: status,
+        },
+      };
+    } else {
+      count = await Posts.countDocuments({
+        $and: [{ _status: status }, { _inspectId: uId }],
+      });
+
+      condition = {
+        $match: {
+          $and: [
+            { _status: status },
+            { _inspectId: new mongoose.Types.ObjectId(uId) },
+          ],
+        },
+      };
+    }
+
     if (count <= 0) throw Errors.PostNotFound;
+    console.log("🚀 ~ file: posts.service.ts:867 ~ PostsService ~ count:", count)
 
     const totalPages = Math.ceil(count / pagination.limit);
-
-    const condition: PipelineStage = {
-      $match: {
-        $and: [
-          { _status: status },
-          { _inspectId: new mongoose.Types.ObjectId(uId) },
-        ],
-      },
-    };
 
     const posts = await this.getPosts(
       condition,
