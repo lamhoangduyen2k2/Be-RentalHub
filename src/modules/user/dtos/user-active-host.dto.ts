@@ -1,13 +1,12 @@
 import { Expose, plainToClass } from "class-transformer";
 import { IsNotEmpty, IsPhoneNumber } from "class-validator";
 import { Request } from "express";
+import { ObjectId } from "mongoose";
 
 export class UserHostedDTO {
   @IsNotEmpty()
   @Expose()
-  _uId: string;
-
-  
+  _uId: ObjectId;
 
   @IsPhoneNumber("VN")
   @IsNotEmpty()

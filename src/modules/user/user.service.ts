@@ -68,7 +68,9 @@ export class UserService {
 
   updateEmail = async (userParam: UserUpdateEmailOrPassDTO) => {
     if (userParam._email) {
-      const user = await Users.findOne({ _email: userParam._email });
+      const user = await Users.findOne({
+        $and: [{ _email: userParam._email }, { _id: { $ne: userParam._uId } }],
+      });
 
       if (user) throw Errors.Duplicate;
     }
