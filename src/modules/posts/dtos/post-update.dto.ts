@@ -38,7 +38,7 @@ export class PostUpdateDTO {
   @ValidateIf((o: PostUpdateDTO) => o._tags !== undefined)
   @Expose()
   @IsArray()
-  _tags: ObjectId[];
+  _tags: string[];
 
   @Exclude()
   _inspectId: ObjectId;

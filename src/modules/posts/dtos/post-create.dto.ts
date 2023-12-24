@@ -35,7 +35,7 @@ export class PostCreateDTO {
   @ValidateIf((o: PostCreateDTO) => o._tags !== undefined)
   @Expose()
   @IsArray()
-  _tags: ObjectId[];
+  _tags: string[];
 
   @Expose()
   @IsString()

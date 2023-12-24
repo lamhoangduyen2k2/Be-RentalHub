@@ -6,6 +6,7 @@ import { ValidationError, validate } from "class-validator";
 import { handleErrorOfValidation } from "../../helpers/handle-errors";
 import { PostUpdateDTO } from "./dtos/post-update.dto";
 
+
 @Service()
 export class PostsMiddleWare {
   public checkValidationCreatePost = async (
@@ -15,7 +16,11 @@ export class PostsMiddleWare {
   ) => {
     try {
       const infoPost = PostCreateDTO.fromRequest(req);
-      console.log("🚀 ~ file: posts.middleware.ts:18 ~ PostsMiddleWare ~ infoPost:", infoPost)
+      if (infoPost._tags && !Array.isArray(infoPost._tags)) {
+        const tags = infoPost._tags as string
+        infoPost._tags = tags.split(',')
+      }
+      console.log("🚀 ~ file: posts.middleware.ts:19 ~ PostsMiddleWare ~ infoPost:", infoPost)
       const errors: ValidationError[] = await validate(infoPost);
       if (errors[0]) throw errors;
 
@@ -33,6 +38,10 @@ export class PostsMiddleWare {
   ) => {
     try {
       const infoPost = PostUpdateDTO.fromRequest(req);
+      if (infoPost._tags && !Array.isArray(infoPost._tags)) {
+        const tags = infoPost._tags as string
+        infoPost._tags = tags.split(',')
+      }
       const errors: ValidationError[] = await validate(infoPost);
       if (errors[0]) throw errors;
 
