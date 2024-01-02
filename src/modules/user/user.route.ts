@@ -34,6 +34,15 @@ routerUser.post(
   userMiddleWare.checkValidationCreateUser,
   userController.registor
 );
+routerUser.post(
+  "/accounts/registor-user",
+  userMiddleWare.checkValidationCreateUser,
+  userController.registorUser
+);
+routerUser.post(
+  "/accounts/verify-user",
+  userController.verifyUser
+);
 
 //API for User
 routerUser.post(
@@ -51,6 +60,11 @@ routerUser.post(
   authMiddleware.authorizedUser,
   userController.resetOtp
 );
+// routerUser.post(
+//   "/accounts/forgot-pass",
+//   userMiddleWare.checkValidationForgotPass,
+//   userController.resetPassword
+// );
 
 ///////////////////////
 routerUser.get(

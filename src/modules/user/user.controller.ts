@@ -7,6 +7,7 @@ import { ResponseData } from "../../helpers/response";
 import { UserHostedDTO } from "./dtos/user-active-host.dto";
 import { UpdateUserDTO } from "./dtos/user-update.dto";
 import { UserUpdateEmailOrPassDTO } from "./dtos/user-update-email-pass.dto";
+//import { UserForgotPassDTO } from "./dtos/user-forgot-pass.dto";
 
 @Service()
 export class UserController {
@@ -20,6 +21,37 @@ export class UserController {
     try {
       const infoUser = CreateUserRequestDTO.fromRequest(req);
       const newUser = await this.userService.createNewUser(infoUser);
+
+      res.json(new ResponseData(newUser, null, null));
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  };
+
+  public registorUser = async (
+    req: BodyResquest<CreateUserRequestDTO>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const infoUser = CreateUserRequestDTO.fromRequest(req);
+      const newUser = await this.userService.registorUser(infoUser);
+
+      res.json(new ResponseData(newUser, null, null));
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  };
+
+  public verifyUser = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const newUser = await this.userService.verifyRegistor(req.body._email, req.body.otp);
 
       res.json(new ResponseData(newUser, null, null));
     } catch (error) {
@@ -138,4 +170,20 @@ export class UserController {
       next(error);
     }
   };
+
+  // public resetPassword = async (
+  //   req: BodyResquest<UserForgotPassDTO>,
+  //   res: Response,
+  //   next: NextFunction
+  // ) => {
+  //   try {
+  //     const userParam = UserForgotPassDTO.fromRequest(req)
+  //     const newOtp = await this.userService.forgotPass(userParam)
+
+  //     res.json(new ResponseData(newOtp, null, null))
+  //   } catch (error) {
+  //     console.log("🚀 ~ file: user.controller.ts:151 ~ UserController ~ error:", error)
+  //     next(error)
+  //   }
+  // };
 }

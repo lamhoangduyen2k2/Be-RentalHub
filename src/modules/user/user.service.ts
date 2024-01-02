@@ -13,6 +13,8 @@ import { ObjectId } from "mongoose";
 import { UserUpdateEmailOrPassDTO } from "./dtos/user-update-email-pass.dto";
 import { compare } from "bcrypt";
 import RefreshTokens from "../token/refresh.model";
+// import { UserForgotPassDTO } from "./dtos/user-forgot-pass.dto";
+// import otpForgot from "./otp-forgot/otp-forgot.model";
 
 @Service()
 export class UserService {
@@ -33,6 +35,75 @@ export class UserService {
       _email: userParam._email,
       _pw: userParam._pw,
     });
+
+    return UserResponsesDTO.toResponse(newUser);
+  };
+
+  //Registor user need to confirm otp
+  registorUser = async (userParam: CreateUserRequestDTO) => {
+    const user = await Users.findOne({
+      _email: userParam._email,
+    });
+
+    if (user) throw Errors.Duplicate;
+
+    //Check password and password confirm
+    if (userParam._pw !== userParam._pwconfirm) throw Errors.PwconfirmInvalid;
+
+    const newUser = await Users.create({
+      _email: userParam._email,
+      _pw: userParam._pw,
+      _active: false,
+    });
+
+    if (!newUser) throw Errors.SaveToDatabaseFail;
+
+    //Kiểm tra OTP có bị trùng không
+    const Otp = await OTP.findOne({ _email: newUser._email });
+    if (Otp) throw Errors.OtpDuplicate;
+
+    //Create otp
+    const otp: string = generate(6, {
+      digits: true,
+      lowerCaseAlphabets: false,
+      upperCaseAlphabets: false,
+      specialChars: false,
+    }).toString();
+
+    //Create payload for sendEmail
+    const payload: SendMailDTO = {
+      email: newUser._email,
+      subject: "Confirmation mail ✔",
+      text: "You have successfully registered",
+      html: `<b>Congratulations, you have successfully registered. Your code is ${otp}</b>`,
+    };
+    await this.otpService.sendEmail(payload);
+
+    //Save this otp to database
+    const newOTP = await OTP.create({
+      _email: newUser._email,
+      _otp: otp,
+      expiredAt: Date.now(),
+    });
+    if (!newOTP) throw Errors.SaveToDatabaseFail;
+
+    return UserResponsesDTO.toResponse(newUser);
+  };
+
+  verifyRegistor = async (email: string, otp: string) => {
+    const checkOTP = await OTP.findOne({
+      $and: [{ _email: email }, { _otp: otp }],
+    });
+
+    if (!checkOTP) throw Errors.ExpiredOtp;
+
+    const newUser = await Users.findOneAndUpdate(
+      { _email: email },
+      { _active: true },
+      { new: true }
+    );
+
+    if (!newUser) Errors.SaveToDatabaseFail;
 
     return UserResponsesDTO.toResponse(newUser);
   };
@@ -208,4 +279,44 @@ export class UserService {
 
     return true;
   };
+
+  // forgotPass = async (userParam: UserForgotPassDTO) => {
+  //   //Check phoneNumber
+  //   const user = await Users.findOne({
+  //     $and: [{ _email: userParam._email }, { _active: true }],
+  //   });
+  //   if (!user) throw Errors.UserNotFound;
+
+  //   //Kiểm tra OTP có bị trùng không
+  //   const Otp = await otpForgot.findOne({
+  //     $and: [{ _email: userParam._email }, { _isVerify: false }],
+  //   });
+  //   if (Otp) throw Errors.OtpDuplicate;
+
+  //   //Create otp
+  //   const otp: string = generate(6, {
+  //     digits: true,
+  //     lowerCaseAlphabets: false,
+  //     upperCaseAlphabets: false,
+  //     specialChars: false,
+  //   }).toString();
+
+  //   //Create payload for sendEmail
+  //   const payload: SendMailDTO = {
+  //     email: userParam._email,
+  //     subject: "Reset password from RentalHub ✔",
+  //     text: "Reset your password",
+  //     html: `<b>This is your otp to reset password: ${otp}</b>`,
+  //   };
+  //   await this.otpService.sendEmail(payload);
+
+  //   //Save this otp to database
+  //   const newOTP = await otpForgot.create({
+  //     _email: userParam._email,
+  //     _otp: otp,
+  //     expiredAt: Date.now(),
+  //   });
+  //   if (!newOTP) throw Errors.SaveToDatabaseFail;
+  //   return true;
+  // };
 }
