@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import Users from "../user/users.model";
+import Users from "../user/model/users.model";
 
 const roomSchema = new mongoose.Schema({
   _uId: {

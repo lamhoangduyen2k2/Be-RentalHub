@@ -1,6 +1,6 @@
 import { compare } from "bcrypt";
 import { Errors } from "../../helpers/handle-errors";
-import Users from "../user/users.model";
+import Users from "../user/model/users.model";
 import { LoginRequestDTO } from "./dtos/auth-login.dto";
 import { verify } from "jsonwebtoken";
 import RefreshTokens from "../token/refresh.model";

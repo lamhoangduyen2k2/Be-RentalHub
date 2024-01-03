@@ -1,4 +1,4 @@
-import { NextFunction } from "express";
+//import { NextFunction } from "express";
 import mongoose, { Schema } from "mongoose";
 import validator from "validator";
 import { genSalt, hash } from "bcrypt";
@@ -59,13 +59,13 @@ const usersSchema = new mongoose.Schema({
   },
 });
 
-usersSchema.pre("save", async function (next: NextFunction) {
-  if (!this.isModified("_pw")) return next();
+// usersSchema.pre("save", async function (next: NextFunction) {
+//   if (!this.isModified("_pw")) return next();
 
-  const salt = await genSalt(10);
-  this._pw = await hash(this._pw, salt);
-  next();
-});
+//   const salt = await genSalt(10);
+//   this._pw = await hash(this._pw, salt);
+//   next();
+// });
 
 usersSchema.pre("updateOne", async function () {
   const data = this.getUpdate();

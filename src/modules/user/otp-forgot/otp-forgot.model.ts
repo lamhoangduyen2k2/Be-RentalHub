@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import Users from "../users.model";
+import Users from "../model/users.model";
 
 const otpForgotSchema = new mongoose.Schema({
   _email: {
@@ -12,7 +12,7 @@ const otpForgotSchema = new mongoose.Schema({
   },
   _isVerify: {
     type: Boolean,
-    default: false
+    default: false,
   },
   expiredAt: {
     type: Date,

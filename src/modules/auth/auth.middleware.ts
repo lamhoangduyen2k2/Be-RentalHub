@@ -4,7 +4,7 @@ import { LoginRequestDTO } from "./dtos/auth-login.dto";
 import { ValidationError, validate } from "class-validator";
 import { Errors, handleErrorOfValidation } from "../../helpers/handle-errors";
 import { AuthService } from "./auth.service";
-import Users from "../user/users.model";
+import Users from "../user/model/users.model";
 import { Inject, Service } from "typedi";
 
 @Service()
@@ -64,7 +64,7 @@ export class AuthenMiddWare {
 
       if (!user) throw Errors.UserNotFound;
 
-      if (user._role !== 0 || !user._active ) throw Errors.Unauthorized;
+      if (user._role !== 0 || !user._active) throw Errors.Unauthorized;
 
       req.body._uId = payload.userId;
 
@@ -98,7 +98,11 @@ export class AuthenMiddWare {
     }
   };
 
-  authorizedInspector = async (req: Request, res: Response, next: NextFunction) => {
+  authorizedInspector = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const authHeader = req.header("Authorization");
       const auth = authHeader?.split(" ")[1];
@@ -125,7 +129,7 @@ export class AuthenMiddWare {
   checkResetToken = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const refreshToken = req.body.refreshToken;
-      
+
       const payload = await this.authService.verifyRefreshToken(refreshToken);
       req.body.userId = payload.userId;
       req.body.expToken = payload.timeExpireRefresh;

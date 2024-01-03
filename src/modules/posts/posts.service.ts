@@ -3,7 +3,7 @@ import Posts from "./posts.model";
 import { PostCreateDTO } from "./dtos/post-create.dto";
 import { Errors } from "../../helpers/handle-errors";
 import { PostUpdateDTO } from "./dtos/post-update.dto";
-import Users from "../user/users.model";
+import Users from "../user/model/users.model";
 import { Pagination } from "../../helpers/response";
 import Rooms from "../rooms/rooms.model";
 import { PostResponseDTO } from "./dtos/post-response.dto";
@@ -864,7 +864,10 @@ export class PostsService {
     }
 
     if (count <= 0) throw Errors.PostNotFound;
-    console.log("🚀 ~ file: posts.service.ts:867 ~ PostsService ~ count:", count)
+    console.log(
+      "🚀 ~ file: posts.service.ts:867 ~ PostsService ~ count:",
+      count
+    );
 
     const totalPages = Math.ceil(count / pagination.limit);
 

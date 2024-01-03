@@ -1,6 +1,6 @@
 import Container, { Service } from "typedi";
 import { CreateUserRequestDTO, SendMailDTO } from "./dtos/user-create.dto";
-import Users from "./users.model";
+import Users from "./model/users.model";
 import { Errors } from "../../helpers/handle-errors";
 import { generate } from "otp-generator";
 import { OTPService } from "../otp/otp.service";
@@ -13,6 +13,7 @@ import { ObjectId } from "mongoose";
 import { UserUpdateEmailOrPassDTO } from "./dtos/user-update-email-pass.dto";
 import { compare } from "bcrypt";
 import RefreshTokens from "../token/refresh.model";
+import UsersTermp from "./model/users-termp.model";
 // import { UserForgotPassDTO } from "./dtos/user-forgot-pass.dto";
 // import otpForgot from "./otp-forgot/otp-forgot.model";
 
@@ -50,10 +51,18 @@ export class UserService {
     //Check password and password confirm
     if (userParam._pw !== userParam._pwconfirm) throw Errors.PwconfirmInvalid;
 
-    const newUser = await Users.create({
+    const termpUser = await UsersTermp.findOne({
+      _email: userParam._email,
+    });
+
+    if (termpUser) {
+      await UsersTermp.deleteOne({ _email: userParam._email });
+    }
+
+    const newUser = await UsersTermp.create({
       _email: userParam._email,
       _pw: userParam._pw,
-      _active: false,
+      expiredAt: Date.now(),
     });
 
     if (!newUser) throw Errors.SaveToDatabaseFail;
@@ -97,15 +106,20 @@ export class UserService {
 
     if (!checkOTP) throw Errors.ExpiredOtp;
 
-    const newUser = await Users.findOneAndUpdate(
-      { _email: email },
-      { _active: true },
-      { new: true }
-    );
+    const newUser = await UsersTermp.findOne({ _email: email });
 
-    if (!newUser) Errors.SaveToDatabaseFail;
+    if (!newUser) throw Errors.UserNotFound;
 
-    return UserResponsesDTO.toResponse(newUser);
+    const user = await Users.create({
+      _email: newUser._email,
+      _pw: newUser._pw,
+    });
+
+    if (!user) throw Errors.SaveToDatabaseFail;
+
+    await UsersTermp.deleteOne({ _email: email });
+
+    return UserResponsesDTO.toResponse(user);
   };
 
   updateUser = async (userParam: UpdateUserDTO) => {
