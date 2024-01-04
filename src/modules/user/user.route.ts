@@ -1,4 +1,5 @@
-import express from "express";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import express, { NextFunction, Request, Response } from "express";
 import { AuthenMiddWare } from "../auth/auth.middleware";
 import { AuthController } from "../auth/auth.controller";
 import Container from "typedi";
@@ -39,10 +40,7 @@ routerUser.post(
   userMiddleWare.checkValidationCreateUser,
   userController.registorUser
 );
-routerUser.post(
-  "/accounts/verify-user",
-  userController.verifyUser
-);
+routerUser.post("/accounts/verify-user", userController.verifyUser);
 
 //API for User
 routerUser.post(
@@ -65,7 +63,30 @@ routerUser.post(
 //   userMiddleWare.checkValidationForgotPass,
 //   userController.resetPassword
 // );
+routerUser.get(
+  "/accounts/forgot-password",
+  (req: Request, res: Response, next: NextFunction) => {
+    res.render("forgot-password");
+  }
+);
 
+routerUser.post(
+  "/accounts/forgot-password",
+  userMiddleWare.checkValidationForgotPass,
+  userController.forgotPassword
+);
+
+routerUser.get(
+  "/accounts/reset-password/:id/:token",
+  (req: Request, res: Response, next: NextFunction) => {
+    res.render("reset-password");
+  }
+);
+
+routerUser.post(
+  "/accounts/reset-password/:id/:token",
+  userController.resetPassword
+);
 ///////////////////////
 routerUser.get(
   "/get-profile",

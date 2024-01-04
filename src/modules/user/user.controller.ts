@@ -7,7 +7,6 @@ import { ResponseData } from "../../helpers/response";
 import { UserHostedDTO } from "./dtos/user-active-host.dto";
 import { UpdateUserDTO } from "./dtos/user-update.dto";
 import { UserUpdateEmailOrPassDTO } from "./dtos/user-update-email-pass.dto";
-//import { UserForgotPassDTO } from "./dtos/user-forgot-pass.dto";
 
 @Service()
 export class UserController {
@@ -59,6 +58,28 @@ export class UserController {
       next(error);
     }
   };
+
+  forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const email = await this.userService.forgotPass(req.body._email, req.body.url);
+
+      res.json(new ResponseData(email, null, null));
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  }
+
+  resetPassword = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const email = await this.userService.resetPassword(req.params.id, req.params.token, req.body._pw, req.body._pwconfirm);
+
+      res.json(new ResponseData(email, null, null));
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  }
 
   public updateUserProfile = async (
     req: BodyResquest<UpdateUserDTO>,

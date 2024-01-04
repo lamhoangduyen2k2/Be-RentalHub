@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import Container, { Service } from "typedi";
 import { CreateUserRequestDTO, SendMailDTO } from "./dtos/user-create.dto";
 import Users from "./model/users.model";
@@ -14,8 +15,8 @@ import { UserUpdateEmailOrPassDTO } from "./dtos/user-update-email-pass.dto";
 import { compare } from "bcrypt";
 import RefreshTokens from "../token/refresh.model";
 import UsersTermp from "./model/users-termp.model";
-// import { UserForgotPassDTO } from "./dtos/user-forgot-pass.dto";
-// import otpForgot from "./otp-forgot/otp-forgot.model";
+import { sign, verify } from "jsonwebtoken";
+
 
 @Service()
 export class UserService {
@@ -120,6 +121,58 @@ export class UserService {
     await UsersTermp.deleteOne({ _email: email });
 
     return UserResponsesDTO.toResponse(user);
+  };
+
+  forgotPass = async (email: string, url: string) => {
+    const user = await Users.findOne({
+      $and: [{ _email: email }, { _active: true }],
+    });
+    if (!user) throw Errors.UserNotFound;
+
+    const secret = process.env.SECRET_KEY_FORGOT_PASSWORD + user._pw;
+
+    const payload = {
+      email: user._email,
+      id: user._id,
+    };
+
+    const token = sign(payload, secret, { expiresIn: "15m" });
+    const link = `${url}/${user._id}/${token}`;
+
+    //Create payload for sendEmail
+    const dataMail: SendMailDTO = {
+      email: email,
+      subject: "Reset passowrd from RentalHub ✔",
+      text: "Rest your password",
+      html: `<b>Click this link to reset your password: ${link}</b>`,
+    };
+    await this.otpService.sendEmail(dataMail);
+
+    return true;
+  };
+
+  resetPassword = async (
+    userId: string,
+    token: string,
+    _pw: string,
+    _pwconfirm: string
+  ) => {
+    const user = await Users.findOne({
+      _id: userId,
+    });
+    if (!user) throw Errors.UserNotFound;
+
+    const secret = process.env.SECRET_KEY_FORGOT_PASSWORD + user._pw;
+
+    verify(token, secret, (err, payload) => {
+      if (err) throw Errors.ExpiredToken;
+    });
+
+    if (_pw !== _pwconfirm) throw Errors.PwconfirmInvalid;
+
+    await Users.updateOne({ _id: userId }, { _pw: _pw });
+
+    return { message: "Reset password successfully" };
   };
 
   updateUser = async (userParam: UpdateUserDTO) => {

@@ -20,10 +20,12 @@ import inspectorRoute from "./modules/inspectors/inspectors.route";
   const port = 3000;
 
   app.use(express.json());
+  app.use(express.urlencoded({ extended: false }));
   app.use(compression());
   app.use(helmet());
   app.use(cors());
   app.use(morgan("combined"));
+  app.set("view engine", "ejs")
 
   await DBconnect();
 
