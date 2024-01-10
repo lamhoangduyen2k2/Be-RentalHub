@@ -176,6 +176,14 @@ export class UserService {
   };
 
   updateUser = async (userParam: UpdateUserDTO) => {
+    console.log("🚀 ~ UserService ~ updateUser= ~ userParam:", userParam._uId)
+    //Check phoneNumber
+    const userPhone = await Users.findOne({
+      $and: [{ _phone: userParam._phone }, { _id: { $ne: userParam._uId } }],
+    });
+    console.log("🚀 ~ UserService ~ updateUser= ~ userPhone:", userPhone)
+    if (userPhone) throw Errors.PhonenumberDuplicate;
+    
     const userUpdated = await Users.findOneAndUpdate(
       { _id: userParam._uId },
       userParam,
