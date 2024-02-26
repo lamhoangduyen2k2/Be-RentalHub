@@ -60,6 +60,11 @@ route.patch(
   authMiddleware.authorizedUser,
   postsController.updatePostStatus
 );
+route.post(
+  "/favorite-post",
+  authMiddleware.authorizedUser,
+  postsController.createFavoritePost
+);
 
 //Tag
 route.get("/get-tags", tagController.getAllTags);

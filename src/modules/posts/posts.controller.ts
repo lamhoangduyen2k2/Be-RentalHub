@@ -291,4 +291,26 @@ export class PostsController {
       next(error);
     }
   };
+
+  public createFavoritePost = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const postId = req.body.postId ? req.body.postId.toString() : undefined;
+      const data = await this.postsService.createFavoritePost(
+        req.body._uId,
+        postId
+      );
+
+      res.json(new ResponseData(data, null, null));
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: posts.controller.ts:117 ~ PostsController ~ error:",
+        error
+      );
+      next(error);
+    }
+  };
 }

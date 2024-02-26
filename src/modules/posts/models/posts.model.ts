@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
-import Users from "../user/model/users.model";
-import Rooms from "../rooms/rooms.model";
+import Users from "../../user/model/users.model";
+import Rooms from "../../rooms/rooms.model";
 
 const postsSchema = new mongoose.Schema({
   _active: {

@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 //UpCase funtion
 export const UpCase = (paramStr: string): string => {
   if (paramStr === "_dob") {
@@ -9,6 +11,11 @@ export const UpCase = (paramStr: string): string => {
 //LowerCase
 export const LowerCase = (paramStr: string): string => {
   return paramStr.toLowerCase();
+};
+
+//Convert String[] to ObjectId[]
+export const convertToObjectIdArray = (arr: string[]) => {
+  return arr.map((str) => new mongoose.Types.ObjectId(str));
 };
 
 //get Current Day

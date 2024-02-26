@@ -1,5 +1,5 @@
 import Container, { Service } from "typedi";
-import Posts from "./posts.model";
+import Posts from "./models/posts.model";
 import { PostCreateDTO } from "./dtos/post-create.dto";
 import { Errors } from "../../helpers/handle-errors";
 import { PostUpdateDTO } from "./dtos/post-update.dto";
@@ -11,6 +11,8 @@ import { ImageService } from "../image/image.service";
 import mongoose, { PipelineStage } from "mongoose";
 import { PostSensorDTO } from "./dtos/post-sensor.dto";
 import { PostUpdateStatusDTO } from "./dtos/post-update-status.dto";
+import FavoritePosts from "./models/favorite-posts.model";
+import { convertToObjectIdArray } from "../../helpers/ultil";
 
 @Service()
 export class PostsService {
@@ -980,12 +982,18 @@ export class PostsService {
   };
 
   public searchPostByTags = async (tags: string[], pagination: Pagination) => {
+    //Convert string to ObjectId of tags
+    const tagsObjectId = convertToObjectIdArray(tags);
     const pipeline = [];
     const condition: PipelineStage = {
       $match: {
-        $and: [{ _status: 1 }, { _tags: { $all: tags } }],
+        $and: [{ _status: 1 }, { _tags: { $all: tagsObjectId } }],
       },
     };
+
+    // const posts = await Posts.aggregate([condition]);
+    // console.log("🚀 ~ PostsService ~ searchPostByTags= ~ posts:", posts);
+
     //Push condition of joining tables
     pipeline.push(
       {
@@ -1046,6 +1054,7 @@ export class PostsService {
       }
     );
     const total = (await Posts.aggregate(pipeline)).length;
+    console.log("🚀 ~ PostsService ~ searchPostByTags= ~ total:", total)
     const totalPage = Math.ceil(total / pagination.limit);
     const posts = await Posts.aggregate(pipeline)
       .skip(pagination.offset)
@@ -1058,4 +1067,57 @@ export class PostsService {
       { page: pagination.page, limit: pagination.limit, total: totalPage },
     ];
   };
+
+  public createFavoritePost = async (uId: string, postId: string) => {
+    const post = await Posts.findOne({
+      $and: [{ _id: postId }, { _status: 1 }],
+    });
+    if (!post) throw Errors.PostNotFound;
+
+    const favoritePost = await FavoritePosts.findOneAndUpdate(
+      { _uId: uId },
+      { $addToSet: { _postIds: postId } },
+      { upsert: true, new: true }
+    );
+    if (!favoritePost) throw Errors.SaveToDatabaseFail;
+
+    return favoritePost;
+  };
+
+  // [
+  //   {
+  //     $match: {
+  //       _uId: ObjectId('65846298ebaa0a6672f2d28c')
+  //     }
+  //   },
+  //   {
+  //     $unwind: "$_postIds"
+  //   },
+  //   {
+  //     $lookup: {
+  //       from: "posts",
+  //       localField: "_postIds",
+  //       foreignField: "_id",
+  //       as: "post_info"
+  //     }
+  //   },
+  //   { $unwind: "$post_info" },
+  //   {
+  //     $lookup: {
+  //       from: "rooms",
+  //       localField: "post_info._rooms",
+  //       foreignField: "_id",
+  //       as: "room_info"
+  //     }
+  //   },
+  //   { $unwind: "$room_info" },
+  //   {
+  //     $project: {
+  //       _id: "$post_info._id",
+  //       title: "$post_info._title",
+  //       content: "$post_info._content",
+  //       room: "$room_info"
+  //     }
+  //   }
+  // ]
 }

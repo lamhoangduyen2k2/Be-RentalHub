@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import Posts from "../posts/posts.model";
+import Posts from "../posts/models/posts.model";
 
 const reportedShema = new mongoose.Schema({
   _content: {
