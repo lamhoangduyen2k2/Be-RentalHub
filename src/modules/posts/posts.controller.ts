@@ -313,4 +313,44 @@ export class PostsController {
       next(error);
     }
   };
+
+  public getFavoritePost = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const pagination = Pagination.getPagination(req);
+      const data = await this.postsService.getFavoritePost(
+        req.body._uId,
+        pagination
+      );
+
+      res.json(new ResponseData(data[0], null, data[1]));
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: posts.controller.ts:117 ~ PostsController ~ error:",
+        error
+      );
+      next(error);
+    }
+  };
+
+  public getArrayFavoritePosts = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const data = await this.postsService.getArrayFavoritePosts(req.body._uId);
+
+      res.json(new ResponseData(data, null, null));
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: posts.controller.ts:117 ~ PostsController ~ error:",
+        error
+      );
+      next(error);
+    }
+  }
 }

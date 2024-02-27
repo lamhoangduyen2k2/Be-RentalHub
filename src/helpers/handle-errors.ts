@@ -138,6 +138,12 @@ export const Errors = {
   //Errors for Post
   PostNotFound: new ErrorModel("Post not found!", "POST_NOTFOUND", 404),
 
+  PostFavoriteNotFound: new ErrorModel(
+    "User doesn't have any favorite posts!",
+    "POST_FAVORITE_NOTFOUND",
+    404
+  ),
+
   TitleNotFound: new ErrorModel("Title not found!", "TITLE_NOTFOUND", 404),
 
   TitleInvalid: new ErrorModel("Title invalid!", "TITLE_INVALID", 400),
@@ -259,7 +265,10 @@ function erroHandler(
 export const handleErrorOfValidation = (errors: ValidationError[]) => {
   const error = errors[0];
   for (const keyError in error.constraints) {
-    console.log("🚀 ~ file: handle-errors.ts:262 ~ handleErrorOfValidation ~ keyError:", keyError)
+    console.log(
+      "🚀 ~ file: handle-errors.ts:262 ~ handleErrorOfValidation ~ keyError:",
+      keyError
+    );
     if (keyError === "isNotEmpty") {
       console.log(UpCase(error.property));
       return Errors[`${UpCase(error.property)}NotFound`];

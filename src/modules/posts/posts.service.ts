@@ -1097,96 +1097,148 @@ export class PostsService {
     return favoritePosts;
   };
 
-  // [
-  //   {
-  //     $match: {
-  //       _uId: ObjectId('65846298ebaa0a6672f2d28c')
-  //     }
-  //   },
-  //   {
-  //     $unwind: "$_postIds"
-  //   },
-  //   {
-  //     $lookup: {
-  //       from: "posts",
-  //       localField: "_postIds",
-  //       foreignField: "_id",
-  //       as: "post_info"
-  //     }
-  //   },
-  //   { $unwind: "$post_info" },
-  //   {
-  //     $lookup: {
-  //       from: "tags",
-  //       localField: "post_info._tags",
-  //       foreignField: "_id",
-  //       let: { id_tags: "$post_info._tags"},
-  //       pipeline: [
-  //         {
-  //           $match: {
-  //             $expr: { $in: ["$_id", "$$id_tags"]}
-  //           }
-  //         }
-  //       ],
-  //       as: "tags_info"
-  //     }
-  //   },
-  //   {
-  //     $lookup: {
-  //       from: "rooms",
-  //       localField: "post_info._rooms",
-  //       foreignField: "_id",
-  //       as: "room_info"
-  //     }
-  //   },
-  //   { $unwind: "$room_info" },
-  // 	{
-  //     $lookup: {
-  //       from: "users",
-  //       localField: "post_info._uId",
-  //       foreignField: "_id",
-  //       as: "author",
-  //     }
-  //   },
-  // 	{ $unwind: "$author" },
-  //   {
-  //     $project: {
-  //       _postId: "$post_info._id",
-  //       _title: "$post_info._title",
-  //       _content: "$post_info._content",
-  //       _desc: "$post_info._desc",
-  //       _tags: "$tags_info",
-  //       _videos: "$post_info._videos",
-  //       _images: "$post_info._images",
-  //       _inspectId: "$post_info._inspectId",
-  //       _status: "$post_info._status",
-  //       roomId: "$room_info._id",
-  //       roomAddress: {
-  //         $concat: [
-  //           "$room_info._street", ", ",
-  //           "$room_info._district", ", ",
-  //           "$room_info._city",
-  //         ]
-  //       },
-  //       roomServices: "$room_info._services",
-  //       roomUtilities: "$room_info._utilities",
-  //       roomArea: "$room_info._area",
-  //       roomPrice: "$room_info._price",
-  //       roomElectricPrice: "$room_info._electricPrice",
-  //       roomWaterPrice: "$room_info._waterPrice",
-  //       roomIsRented: "$room_info._isRented",
-  //       authorId: "$author._id",
-  //       authorEmail: "$author._email",
-  //       authorFullName: {
-  //         $concat: [
-  //           "$author._lname", " ",
-  //           "$author._fname"
-  //         ]
-  //       },
-  //       phoneNumber: "$author._phone",
-  //       addressAuthor: "$author._address",
-  //       avatarAuthor: "$author._avatar",
-  //     }
-  //   }
-  // ]
+  public getFavoritePost = async (uId: string, pagination: Pagination) => {
+    const count = await FavoritePosts.countDocuments({ _uId: uId });
+    if (count <= 0) throw Errors.PostFavoriteNotFound;
+
+    const totalPages = Math.ceil(count / pagination.limit);
+
+    const favoritePosts = await FavoritePosts.aggregate([
+      {
+        $match: {
+          _uId: new mongoose.Types.ObjectId(uId),
+        },
+      },
+      {
+        $unwind: "$_postIds",
+      },
+      {
+        $lookup: {
+          from: "posts",
+          localField: "_postIds",
+          foreignField: "_id",
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$_status", 1],
+                },
+              },
+            },
+          ],
+          as: "post_info",
+        },
+      },
+      { $unwind: "$post_info" },
+      {
+        $lookup: {
+          from: "tags",
+          localField: "post_info._tags",
+          foreignField: "_id",
+          let: { id_tags: "$post_info._tags" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $in: ["$_id", "$$id_tags"] },
+              },
+            },
+          ],
+          as: "tags_info",
+        },
+      },
+      {
+        $lookup: {
+          from: "rooms",
+          localField: "post_info._rooms",
+          foreignField: "_id",
+          as: "room_info",
+        },
+      },
+      { $unwind: "$room_info" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "post_info._uId",
+          foreignField: "_id",
+          as: "author",
+        },
+      },
+      { $unwind: "$author" },
+      {
+        $project: {
+          _postId: "$post_info._id",
+          _title: "$post_info._title",
+          _content: "$post_info._content",
+          _desc: "$post_info._desc",
+          _tags: "$tags_info",
+          _videos: "$post_info._videos",
+          _images: "$post_info._images",
+          _inspectId: "$post_info._inspectId",
+          _status: "$post_info._status",
+          roomId: "$room_info._id",
+          roomAddress: {
+            $concat: [
+              "$room_info._street",
+              ", ",
+              "$room_info._district",
+              ", ",
+              "$room_info._city",
+            ],
+          },
+          roomServices: "$room_info._services",
+          roomUtilities: "$room_info._utilities",
+          roomArea: "$room_info._area",
+          roomPrice: "$room_info._price",
+          roomElectricPrice: "$room_info._electricPrice",
+          roomWaterPrice: "$room_info._waterPrice",
+          roomIsRented: "$room_info._isRented",
+          authorId: "$author._id",
+          authorEmail: "$author._email",
+          authorFullName: {
+            $concat: ["$author._lname", " ", "$author._fname"],
+          },
+          phoneNumber: "$author._phone",
+          addressAuthor: "$author._address",
+          avatarAuthor: "$author._avatar",
+        },
+      },
+    ])
+      .skip(pagination.offset)
+      .limit(pagination.limit);
+
+    if (favoritePosts.length <= 0) throw Errors.PageNotFound;
+    return [
+      favoritePosts,
+      { page: pagination.page, limit: pagination.limit, total: totalPages },
+    ];
+  };
+
+  public getArrayFavoritePosts = async (uId: string) => {
+    const favoritePosts = await FavoritePosts.findOne({ _uId: uId });
+    if (!favoritePosts) throw Errors.PostFavoriteNotFound;
+
+    const updatedFavoritePosts = await Promise.all(
+      favoritePosts._postIds.map(async (postId) => {
+        const post = await Posts.findOne({
+          $and: [{ _id: postId }, { _status: 1 }],
+        });
+
+        if (!post) {
+          await FavoritePosts.findOneAndUpdate(
+            { _uId: uId },
+            { $pull: { _postIds: postId } }
+          );
+          return null;
+        }
+
+        return postId;
+      })
+    );
+
+    const filteredPostIds = updatedFavoritePosts.filter(
+      (postId) => postId !== null
+    );
+
+    return filteredPostIds;
+  };
 }

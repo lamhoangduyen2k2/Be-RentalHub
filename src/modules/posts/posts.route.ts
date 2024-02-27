@@ -38,6 +38,16 @@ route.get(
   authMiddleware.authorizedUser,
   postsController.getPostSimilar
 );
+route.get(
+  "/get-favorite-post",
+  authMiddleware.authorizedUser,
+  postsController.getFavoritePost
+);
+route.get(
+  "/get-array-favorite-post",
+  authMiddleware.authorizedUser,
+  postsController.getArrayFavoritePosts
+);
 
 route.post(
   "/create-post",
