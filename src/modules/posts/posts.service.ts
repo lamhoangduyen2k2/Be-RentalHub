@@ -1054,7 +1054,6 @@ export class PostsService {
       }
     );
     const total = (await Posts.aggregate(pipeline)).length;
-    console.log("🚀 ~ PostsService ~ searchPostByTags= ~ total:", total)
     const totalPage = Math.ceil(total / pagination.limit);
     const posts = await Posts.aggregate(pipeline)
       .skip(pagination.offset)
@@ -1069,19 +1068,33 @@ export class PostsService {
   };
 
   public createFavoritePost = async (uId: string, postId: string) => {
+    let favoritePosts: typeof FavoritePosts | null = null;
     const post = await Posts.findOne({
       $and: [{ _id: postId }, { _status: 1 }],
     });
     if (!post) throw Errors.PostNotFound;
 
-    const favoritePost = await FavoritePosts.findOneAndUpdate(
-      { _uId: uId },
-      { $addToSet: { _postIds: postId } },
-      { upsert: true, new: true }
-    );
-    if (!favoritePost) throw Errors.SaveToDatabaseFail;
+    const favoritePost = await FavoritePosts.exists({
+      $and: [{ _uId: uId }, { _postIds: { $in: [postId] } }],
+    });
 
-    return favoritePost;
+    if (favoritePost) {
+      favoritePosts = await FavoritePosts.findOneAndUpdate(
+        { _uId: uId },
+        { $pull: { _postIds: postId } },
+        { upsert: true, new: true }
+      );
+    } else {
+      favoritePosts = await FavoritePosts.findOneAndUpdate(
+        { _uId: uId },
+        { $push: { _postIds: postId } },
+        { upsert: true, new: true }
+      );
+    }
+
+    if (!favoritePosts) throw Errors.SaveToDatabaseFail;
+
+    return favoritePosts;
   };
 
   // [
@@ -1104,6 +1117,22 @@ export class PostsService {
   //   { $unwind: "$post_info" },
   //   {
   //     $lookup: {
+  //       from: "tags",
+  //       localField: "post_info._tags",
+  //       foreignField: "_id",
+  //       let: { id_tags: "$post_info._tags"},
+  //       pipeline: [
+  //         {
+  //           $match: {
+  //             $expr: { $in: ["$_id", "$$id_tags"]}
+  //           }
+  //         }
+  //       ],
+  //       as: "tags_info"
+  //     }
+  //   },
+  //   {
+  //     $lookup: {
   //       from: "rooms",
   //       localField: "post_info._rooms",
   //       foreignField: "_id",
@@ -1111,12 +1140,52 @@ export class PostsService {
   //     }
   //   },
   //   { $unwind: "$room_info" },
+  // 	{
+  //     $lookup: {
+  //       from: "users",
+  //       localField: "post_info._uId",
+  //       foreignField: "_id",
+  //       as: "author",
+  //     }
+  //   },
+  // 	{ $unwind: "$author" },
   //   {
   //     $project: {
-  //       _id: "$post_info._id",
-  //       title: "$post_info._title",
-  //       content: "$post_info._content",
-  //       room: "$room_info"
+  //       _postId: "$post_info._id",
+  //       _title: "$post_info._title",
+  //       _content: "$post_info._content",
+  //       _desc: "$post_info._desc",
+  //       _tags: "$tags_info",
+  //       _videos: "$post_info._videos",
+  //       _images: "$post_info._images",
+  //       _inspectId: "$post_info._inspectId",
+  //       _status: "$post_info._status",
+  //       roomId: "$room_info._id",
+  //       roomAddress: {
+  //         $concat: [
+  //           "$room_info._street", ", ",
+  //           "$room_info._district", ", ",
+  //           "$room_info._city",
+  //         ]
+  //       },
+  //       roomServices: "$room_info._services",
+  //       roomUtilities: "$room_info._utilities",
+  //       roomArea: "$room_info._area",
+  //       roomPrice: "$room_info._price",
+  //       roomElectricPrice: "$room_info._electricPrice",
+  //       roomWaterPrice: "$room_info._waterPrice",
+  //       roomIsRented: "$room_info._isRented",
+  //       authorId: "$author._id",
+  //       authorEmail: "$author._email",
+  //       authorFullName: {
+  //         $concat: [
+  //           "$author._lname", " ",
+  //           "$author._fname"
+  //         ]
+  //       },
+  //       phoneNumber: "$author._phone",
+  //       addressAuthor: "$author._address",
+  //       avatarAuthor: "$author._avatar",
   //     }
   //   }
   // ]
