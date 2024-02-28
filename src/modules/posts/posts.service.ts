@@ -1098,10 +1098,21 @@ export class PostsService {
   };
 
   public getFavoritePost = async (uId: string, pagination: Pagination) => {
-    const count = await FavoritePosts.countDocuments({ _uId: uId });
-    if (count <= 0) throw Errors.PostFavoriteNotFound;
+    const favoritePost = await FavoritePosts.findOne({ _uId: uId });
+    if (!favoritePost) throw Errors.PostFavoriteNotFound;
+    
+    let totalFavoritePosts = 0;
+    for (const postId of favoritePost._postIds) {
+      const post = await Posts.findOne({
+        $and: [{ _id: postId }, { _status: 1 }],
+      });
+    
+      if (post) {
+        totalFavoritePosts++;
+      }
+    }
 
-    const totalPages = Math.ceil(count / pagination.limit);
+    const totalPages = Math.ceil(totalFavoritePosts / pagination.limit);
 
     const favoritePosts = await FavoritePosts.aggregate([
       {
@@ -1202,11 +1213,11 @@ export class PostsService {
           avatarAuthor: "$author._avatar",
         },
       },
-    ])
-      .skip(pagination.offset)
+    ]).skip(pagination.offset)
       .limit(pagination.limit);
 
     if (favoritePosts.length <= 0) throw Errors.PageNotFound;
+
     return [
       favoritePosts,
       { page: pagination.page, limit: pagination.limit, total: totalPages },
