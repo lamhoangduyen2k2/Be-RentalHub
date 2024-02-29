@@ -13,6 +13,8 @@ import { PostSensorDTO } from "./dtos/post-sensor.dto";
 import { PostUpdateStatusDTO } from "./dtos/post-update-status.dto";
 import FavoritePosts from "./models/favorite-posts.model";
 import { convertToObjectIdArray } from "../../helpers/ultil";
+import { ReportCreateDTO } from "./dtos/post-reported.dto";
+import ReportedPosts from "./models/reported-posts.model";
 
 @Service()
 export class PostsService {
@@ -866,10 +868,6 @@ export class PostsService {
     }
 
     if (count <= 0) throw Errors.PostNotFound;
-    console.log(
-      "🚀 ~ file: posts.service.ts:867 ~ PostsService ~ count:",
-      count
-    );
 
     const totalPages = Math.ceil(count / pagination.limit);
 
@@ -1100,13 +1098,13 @@ export class PostsService {
   public getFavoritePost = async (uId: string, pagination: Pagination) => {
     const favoritePost = await FavoritePosts.findOne({ _uId: uId });
     if (!favoritePost) throw Errors.PostFavoriteNotFound;
-    
+
     let totalFavoritePosts = 0;
     for (const postId of favoritePost._postIds) {
       const post = await Posts.findOne({
         $and: [{ _id: postId }, { _status: 1 }],
       });
-    
+
       if (post) {
         totalFavoritePosts++;
       }
@@ -1213,7 +1211,8 @@ export class PostsService {
           avatarAuthor: "$author._avatar",
         },
       },
-    ]).skip(pagination.offset)
+    ])
+      .skip(pagination.offset)
       .limit(pagination.limit);
 
     if (favoritePosts.length <= 0) throw Errors.PageNotFound;
@@ -1251,5 +1250,17 @@ export class PostsService {
     );
 
     return filteredPostIds;
+  };
+
+  public createReportPost = async (report: ReportCreateDTO) => {
+    const post = await Posts.findOne({ _id: report._postId });
+    if (!post) throw Errors.PostNotFound;
+
+    report._uIdReported = post._uId;
+
+    const newReport = await ReportedPosts.create(report);
+    if (!newReport) throw Errors.SaveToDatabaseFail;
+
+    return newReport;
   };
 }

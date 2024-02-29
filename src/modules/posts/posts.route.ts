@@ -75,6 +75,11 @@ route.post(
   authMiddleware.authorizedUser,
   postsController.createFavoritePost
 );
+route.post(
+  "/report-post",
+  authMiddleware.authorizedUser,
+  postsController.createReportPost
+);
 
 //Tag
 route.get("/get-tags", tagController.getAllTags);

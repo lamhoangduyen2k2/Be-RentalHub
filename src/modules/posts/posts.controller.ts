@@ -7,6 +7,7 @@ import { BodyResquest } from "../../base/base.request";
 import { PostUpdateDTO } from "./dtos/post-update.dto";
 import { PostSensorDTO } from "./dtos/post-sensor.dto";
 import { PostUpdateStatusDTO } from "./dtos/post-update-status.dto";
+import { ReportCreateDTO } from "./dtos/post-reported.dto";
 
 @Service()
 export class PostsController {
@@ -352,5 +353,24 @@ export class PostsController {
       );
       next(error);
     }
-  }
+  };
+
+  public createReportPost = async (
+    req: BodyResquest<ReportCreateDTO>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const postInfo = ReportCreateDTO.fromRequest(req);
+      const data = await this.postsService.createReportPost(postInfo);
+
+      res.json(new ResponseData(data, null, null));
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: posts.controller.ts:117 ~ PostsController ~ error:",
+        error
+      );
+      next(error);
+    }
+  };
 }
