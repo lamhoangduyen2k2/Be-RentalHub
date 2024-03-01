@@ -144,6 +144,9 @@ export const Errors = {
     404
   ),
 
+  ReportedPostNotFound: new ErrorModel("Reported Post not found!", "REPORTED_POST_NOTFOUND", 404),
+
+
   TitleNotFound: new ErrorModel("Title not found!", "TITLE_NOTFOUND", 404),
 
   TitleInvalid: new ErrorModel("Title invalid!", "TITLE_INVALID", 400),
@@ -235,6 +238,8 @@ export const Errors = {
   ActiveInvalid: new ErrorModel("Active invalid!", "ACTIVE_INVALID", 400),
 
   IsRentedInvalid: new ErrorModel("IsRented invalid!", "ISRENTED_INVALID", 400),
+
+  ReportedPostExist: new ErrorModel("Reported Post existed!", "REPORTED_POST_EXIST", 400),
 
   //Error for Tag
   TagNotFound: new ErrorModel("Tag not found!", "TAG_NOTFOUND", 404),

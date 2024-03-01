@@ -48,6 +48,16 @@ route.get(
   authMiddleware.authorizedUser,
   postsController.getArrayFavoritePosts
 );
+route.get(
+  "/get-report-post",
+  authMiddleware.authorizedInspector,
+  postsController.getReportPost
+);
+route.get(
+  "/get-report-post-id",
+  authMiddleware.authorizedInspector,
+  postsController.getReportPostByPostId
+);
 
 route.post(
   "/create-post",

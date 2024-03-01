@@ -373,4 +373,42 @@ export class PostsController {
       next(error);
     }
   };
+
+  public getReportPost = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const pagination = Pagination.getPagination(req);
+      const data = await this.postsService.getReportPostsList(pagination);
+
+      res.json(new ResponseData(data[0], null, data[1]));
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: posts.controller.ts:117 ~ PostsController ~ error:",
+        error
+      );
+      next(error);
+    }
+  }
+
+  public getReportPostByPostId = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const postId = req.query.postId ? req.query.postId.toString() : undefined;
+      const data = await this.postsService.getReportPostById(postId);
+
+      res.json(new ResponseData(data, null, null));
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: posts.controller.ts:117 ~ PostsController ~ error:",
+        error
+      );
+      next(error);
+    }
+  }
 }

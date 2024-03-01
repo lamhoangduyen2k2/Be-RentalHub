@@ -1256,11 +1256,220 @@ export class PostsService {
     const post = await Posts.findOne({ _id: report._postId });
     if (!post) throw Errors.PostNotFound;
 
+    const reportPost = await ReportedPosts.findOne({
+      $and: [{ _uId: report._uId }, { _postId: report._postId }],
+    });
+    if (reportPost) throw Errors.ReportedPostExist;
+
     report._uIdReported = post._uId;
 
     const newReport = await ReportedPosts.create(report);
     if (!newReport) throw Errors.SaveToDatabaseFail;
 
     return newReport;
+  };
+
+  public getReportPostsList = async (pagination: Pagination) => {
+    const count = await ReportedPosts.countDocuments();
+    if (count <= 0) throw Errors.ReportedPostNotFound;
+
+    const totalPages = Math.ceil(count / pagination.limit);
+
+    const reportPosts = await ReportedPosts.aggregate([
+      {
+        $lookup: {
+          from: "posts",
+          localField: "_postId",
+          foreignField: "_id",
+          as: "post_info",
+        },
+      },
+      { $unwind: "$post_info" },
+      {
+        $lookup: {
+          from: "tags",
+          localField: "post_info._tags",
+          foreignField: "_id",
+          let: { id_tags: "$post_info._tags" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $in: ["$_id", "$$id_tags"] },
+              },
+            },
+          ],
+          as: "tags_info",
+        },
+      },
+      {
+        $lookup: {
+          from: "rooms",
+          localField: "post_info._rooms",
+          foreignField: "_id",
+          as: "room_info",
+        },
+      },
+      { $unwind: "$room_info" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "post_info._uId",
+          foreignField: "_id",
+          as: "author",
+        },
+      },
+      { $unwind: "$author" },
+      {
+        $project: {
+          _id: 1,
+          _uId: 1,
+          _postId: "$post_info._id",
+          _title: "$post_info._title",
+          _content: "$post_info._content",
+          _desc: "$post_info._desc",
+          _tags: "$tags_info",
+          _videos: "$post_info._videos",
+          _images: "$post_info._images",
+          _inspectId: "$post_info._inspectId",
+          _status: "$post_info._status",
+          roomId: "$room_info._id",
+          roomAddress: {
+            $concat: [
+              "$room_info._street",
+              ", ",
+              "$room_info._district",
+              ", ",
+              "$room_info._city",
+            ],
+          },
+          roomServices: "$room_info._services",
+          roomUtilities: "$room_info._utilities",
+          roomArea: "$room_info._area",
+          roomPrice: "$room_info._price",
+          roomElectricPrice: "$room_info._electricPrice",
+          roomWaterPrice: "$room_info._waterPrice",
+          roomIsRented: "$room_info._isRented",
+          authorId: "$author._id",
+          authorEmail: "$author._email",
+          authorFullName: {
+            $concat: ["$author._lname", " ", "$author._fname"],
+          },
+          phoneNumber: "$author._phone",
+          addressAuthor: "$author._address",
+          avatarAuthor: "$author._avatar",
+        },
+      },
+    ])
+      .skip(pagination.offset)
+      .limit(pagination.limit);
+
+    if (reportPosts.length <= 0) throw Errors.PageNotFound;
+
+    return [
+      reportPosts,
+      { page: pagination.page, limit: pagination.limit, total: totalPages },
+    ];
+  };
+
+  public getReportPostById = async (reportId: string) => {
+    const reportPost = await ReportedPosts.findOne({ _id: reportId });
+    if (!reportPost) throw Errors.ReportedPostNotFound;
+
+    const post = await Posts.findOne({ _id: reportPost._postId });
+    if (!post) throw Errors.PostNotFound;
+
+    const reportPostInfo = await ReportedPosts.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(reportId),
+        },
+      },
+      {
+        $lookup: {
+          from: "posts",
+          localField: "_postId",
+          foreignField: "_id",
+          as: "post_info",
+        },
+      },
+      { $unwind: "$post_info" },
+      {
+        $lookup: {
+          from: "tags",
+          localField: "post_info._tags",
+          foreignField: "_id",
+          let: { id_tags: "$post_info._tags" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $in: ["$_id", "$$id_tags"] },
+              },
+            },
+          ],
+          as: "tags_info",
+        },
+      },
+      {
+        $lookup: {
+          from: "rooms",
+          localField: "post_info._rooms",
+          foreignField: "_id",
+          as: "room_info",
+        },
+      },
+      { $unwind: "$room_info" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "post_info._uId",
+          foreignField: "_id",
+          as: "author",
+        },
+      },
+      { $unwind: "$author" },
+      {
+        $project: {
+          _id: 1,
+          _uId: 1,
+          _content: 1,
+          _postId: "$post_info._id",
+          _title: "$post_info._title",
+          _contentPost: "$post_info._content",
+          _desc: "$post_info._desc",
+          _tags: "$tags_info",
+          _videos: "$post_info._videos",
+          _images: "$post_info._images",
+          _inspectId: "$post_info._inspectId",
+          _status: "$post_info._status",
+          roomId: "$room_info._id",
+          roomAddress: {
+            $concat: [
+              "$room_info._street",
+              ", ",
+              "$room_info._district",
+              ", ",
+              "$room_info._city",
+            ],
+          },
+          roomServices: "$room_info._services",
+          roomUtilities: "$room_info._utilities",
+          roomArea: "$room_info._area",
+          roomPrice: "$room_info._price",
+          roomElectricPrice: "$room_info._electricPrice",
+          roomWaterPrice: "$room_info._waterPrice",
+          roomIsRented: "$room_info._isRented",
+          authorId: "$author._id",
+          authorEmail: "$author._email",
+          authorFullName: {
+            $concat: ["$author._lname", " ", "$author._fname"],
+          },
+          phoneNumber: "$author._phone",
+          addressAuthor: "$author._address",
+          avatarAuthor: "$author._avatar",
+        },
+      },
+    ]);
+
+    return reportPostInfo;
   };
 }
