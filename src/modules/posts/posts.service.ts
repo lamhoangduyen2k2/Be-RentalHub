@@ -16,7 +16,7 @@ import { convertToObjectIdArray } from "../../helpers/ultil";
 import { ReportCreateDTO } from "./dtos/post-reported.dto";
 import ReportedPosts from "./models/reported-posts.model";
 import { NotificationService } from "../notification/notification.service";
-import { CreateNotificationDTO } from "../notification/create-notification.dto";
+import { CreateNotificationDTO } from "../notification/dtos/create-notification.dto";
 
 @Service()
 export class PostsService {

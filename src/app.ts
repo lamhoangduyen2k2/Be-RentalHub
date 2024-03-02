@@ -13,6 +13,7 @@ import { initializeApp } from "firebase/app";
 import config from "./database/firebase.config";
 import routerImg from "./modules/image/image.route";
 import inspectorRoute from "./modules/inspectors/inspectors.route";
+import notifiRoute from "./modules/notification/notification.route";
 //import bodyParser from "body-parser";
 
 (async () => {
@@ -34,6 +35,7 @@ import inspectorRoute from "./modules/inspectors/inspectors.route";
 
   app.use("/api/users", routerUser);
   app.use("/api/posts", route);
+  app.use("/api/notification", notifiRoute);
   app.use("/api/upload", routerImg);
   app.use("/api/inspector", inspectorRoute)
 
