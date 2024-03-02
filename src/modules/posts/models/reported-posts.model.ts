@@ -17,6 +17,10 @@ const reportedPostsSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "users",
     },
+    _sensored: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

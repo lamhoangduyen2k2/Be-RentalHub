@@ -80,6 +80,11 @@ route.patch(
   authMiddleware.authorizedUser,
   postsController.updatePostStatus
 );
+route.patch(
+  "/sensor-post-reported/:reportedId",
+  authMiddleware.authorizedInspector,
+  postsController.sensorReportPost
+);
 route.post(
   "/favorite-post",
   authMiddleware.authorizedUser,

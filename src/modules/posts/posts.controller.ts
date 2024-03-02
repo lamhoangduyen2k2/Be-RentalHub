@@ -391,7 +391,7 @@ export class PostsController {
       );
       next(error);
     }
-  }
+  };
 
   public getReportPostByPostId = async (
     req: Request,
@@ -410,5 +410,26 @@ export class PostsController {
       );
       next(error);
     }
-  }
+  };
+
+  public sensorReportPost = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const data = await this.postsService.sensorReportPost(
+        req.params.reportedId,
+        req.body._uId
+      );
+
+      res.json(new ResponseData(data, null, null));
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: posts.controller.ts:117 ~ PostsController ~ error:",
+        error
+      );
+      next(error);
+    }
+  };
 }

@@ -15,10 +15,13 @@ import FavoritePosts from "./models/favorite-posts.model";
 import { convertToObjectIdArray } from "../../helpers/ultil";
 import { ReportCreateDTO } from "./dtos/post-reported.dto";
 import ReportedPosts from "./models/reported-posts.model";
+import { NotificationService } from "../notification/notification.service";
+import { CreateNotificationDTO } from "../notification/create-notification.dto";
 
 @Service()
 export class PostsService {
   imageService = Container.get(ImageService);
+  notificationService = Container.get(NotificationService);
 
   public createNewPost = async (
     postParam: PostCreateDTO,
@@ -1432,6 +1435,7 @@ export class PostsService {
           _id: 1,
           _uId: 1,
           _content: 1,
+          _sensored: 1,
           _postId: "$post_info._id",
           _title: "$post_info._title",
           _contentPost: "$post_info._content",
@@ -1471,5 +1475,39 @@ export class PostsService {
     ]);
 
     return reportPostInfo;
+  };
+
+  public sensorReportPost = async (reportId: string, inspectorId: string) => {
+    const reportPost = await ReportedPosts.findOneAndUpdate(
+      { $and: [{ _id: reportId }, { _sensored: false }] },
+      { _sensored: true }
+    );
+    if (!reportPost) throw Errors.ReportedPostNotFound;
+
+    const post = await Posts.findOne({ _id: reportPost._postId });
+    if (!post) throw Errors.PostNotFound;
+
+    const sensorReport = await Posts.findOneAndUpdate(
+      { _id: reportPost._postId },
+      { _status: 4, _active: false, _inspectId: inspectorId },
+      { new: true }
+    );
+    if (!sensorReport) throw Errors.SaveToDatabaseFail;
+
+    //Create notification
+    const notification = CreateNotificationDTO.fromService({
+      _uId: reportPost._uIdReported,
+      _postId: reportPost._postId,
+      _type: "REPORTED_POST",
+      _title: "Bài viết của bạn đã bị xóa",
+      _message: `Bài viết mang ID ${reportPost._postId} của bạn đã bị xóa do vi phạm quy định của chúng tôi. Vui lòng kiểm tra lại bài viết của bạn.`,
+    });
+
+    const newNotification = await this.notificationService.createNotification(
+      notification
+    );
+    if (!newNotification) throw Errors.SaveToDatabaseFail;
+
+    return sensorReport;
   };
 }
