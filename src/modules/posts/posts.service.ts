@@ -807,10 +807,6 @@ export class PostsService {
     // Check status to create condition and totalPages
 
     const count = await Posts.countDocuments({ _status: status });
-    console.log(
-      "🚀 ~ file: posts.service.ts:650 ~ PostsService ~ count:",
-      count
-    );
     if (count <= 0) throw Errors.PostNotFound;
 
     const totalPages = Math.ceil(count / pagination.limit);
