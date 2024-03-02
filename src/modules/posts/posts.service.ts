@@ -1257,9 +1257,8 @@ export class PostsService {
     });
     if (!post) throw Errors.PostNotFound;
 
-    //const newReport = await ReportedPosts.create(report);
     const newReport = await ReportedPosts.findOneAndUpdate(
-      { _postId: report._postId },
+      { $and: [{ _postId: report._postId }, { _sensored: false }] },
       {
         $addToSet: {
           _uId: report._uId,
@@ -1518,5 +1517,104 @@ export class PostsService {
     if (!newNotification) throw Errors.SaveToDatabaseFail;
 
     return sensorReport;
+  };
+
+  public getReportedPostByUser = async (notiId: string) => {
+    const postId = await this.notificationService.getNotificationById(notiId);
+
+    const reportedPost = await ReportedPosts.aggregate([
+      {
+        $match: {
+          $and: [{ _postId: postId }, { _sensored: true }],
+        },
+      },
+      {
+        $lookup: {
+          from: "posts",
+          localField: "_postId",
+          foreignField: "_id",
+          as: "post_info",
+        },
+      },
+      { $unwind: "$post_info" },
+      {
+        $lookup: {
+          from: "tags",
+          localField: "post_info._tags",
+          foreignField: "_id",
+          let: { id_tags: "$post_info._tags" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $in: ["$_id", "$$id_tags"] },
+              },
+            },
+          ],
+          as: "tags_info",
+        },
+      },
+      {
+        $lookup: {
+          from: "rooms",
+          localField: "post_info._rooms",
+          foreignField: "_id",
+          as: "room_info",
+        },
+      },
+      { $unwind: "$room_info" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "post_info._uId",
+          foreignField: "_id",
+          as: "author",
+        },
+      },
+      { $unwind: "$author" },
+      {
+        $project: {
+          _id: 1,
+          _uId: 1,
+          _content: 1,
+          _sensored: 1,
+          _postId: "$post_info._id",
+          _title: "$post_info._title",
+          _contentPost: "$post_info._content",
+          _desc: "$post_info._desc",
+          _tags: "$tags_info",
+          _videos: "$post_info._videos",
+          _images: "$post_info._images",
+          _inspectId: "$post_info._inspectId",
+          _status: "$post_info._status",
+          roomId: "$room_info._id",
+          roomAddress: {
+            $concat: [
+              "$room_info._street",
+              ", ",
+              "$room_info._district",
+              ", ",
+              "$room_info._city",
+            ],
+          },
+          roomServices: "$room_info._services",
+          roomUtilities: "$room_info._utilities",
+          roomArea: "$room_info._area",
+          roomPrice: "$room_info._price",
+          roomElectricPrice: "$room_info._electricPrice",
+          roomWaterPrice: "$room_info._waterPrice",
+          roomIsRented: "$room_info._isRented",
+          authorId: "$author._id",
+          authorEmail: "$author._email",
+          authorFullName: {
+            $concat: ["$author._lname", " ", "$author._fname"],
+          },
+          phoneNumber: "$author._phone",
+          addressAuthor: "$author._address",
+          avatarAuthor: "$author._avatar",
+        },
+      },
+    ]);
+
+    return reportedPost[0];
   };
 }

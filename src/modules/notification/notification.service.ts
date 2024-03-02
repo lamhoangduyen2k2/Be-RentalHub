@@ -4,6 +4,7 @@ import Notification from "./notification.model";
 import { Errors } from "../../helpers/handle-errors";
 import { CreateNotificationDTO } from "./dtos/create-notification.dto";
 import { GetNotificationsListDTO } from "./dtos/get-notification.dto";
+import mongoose from "mongoose";
 
 @Service()
 export class NotificationService {
@@ -28,5 +29,19 @@ export class NotificationService {
     };
 
     return result;
+  };
+
+  public getNotificationById = async (notificationId: string) => {
+    const notification = await Notification.findOneAndUpdate(
+      {
+        _id: new mongoose.Types.ObjectId(notificationId),
+      },
+      {
+        _read: true,
+      }
+    );
+    if (!notification) throw Errors.NotificationNotFound;
+
+    return notification._postId;
   };
 }

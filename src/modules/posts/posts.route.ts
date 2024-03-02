@@ -58,6 +58,11 @@ route.get(
   authMiddleware.authorizedInspector,
   postsController.getReportPostByPostId
 );
+route.get(
+  "/get-report-post-user/:notiId",
+  authMiddleware.authorizedUser,
+  postsController.getReportedPostByUser
+);
 
 route.post(
   "/create-post",

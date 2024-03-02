@@ -9,6 +9,7 @@ const notificationSchema = new mongoose.Schema(
     },
     _postId: {
       type: Schema.Types.ObjectId,
+      default: null,
       ref: "posts",
     },
     _title: {

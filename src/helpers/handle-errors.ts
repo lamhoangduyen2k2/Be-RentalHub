@@ -144,8 +144,11 @@ export const Errors = {
     404
   ),
 
-  ReportedPostNotFound: new ErrorModel("Reported Post not found!", "REPORTED_POST_NOTFOUND", 404),
-
+  ReportedPostNotFound: new ErrorModel(
+    "Reported Post not found!",
+    "REPORTED_POST_NOTFOUND",
+    404
+  ),
 
   TitleNotFound: new ErrorModel("Title not found!", "TITLE_NOTFOUND", 404),
 
@@ -239,7 +242,11 @@ export const Errors = {
 
   IsRentedInvalid: new ErrorModel("IsRented invalid!", "ISRENTED_INVALID", 400),
 
-  ReportedPostExist: new ErrorModel("Reported Post existed!", "REPORTED_POST_EXIST", 400),
+  ReportedPostExist: new ErrorModel(
+    "Reported Post existed!",
+    "REPORTED_POST_EXIST",
+    400
+  ),
 
   //Error for Tag
   TagNotFound: new ErrorModel("Tag not found!", "TAG_NOTFOUND", 404),
@@ -249,6 +256,12 @@ export const Errors = {
   TagDuplicated: new ErrorModel("Tag duplicated!", "TAG_DUPLICATED", 400),
 
   TypeInvalid: new ErrorModel("Type invalid!", "TYPE_INVALID", 400),
+
+  NotificationNotFound: new ErrorModel(
+    "Notification not found!",
+    "NOTIFICATION_NOTFOUND",
+    404
+  ),
 };
 
 //Global error handler

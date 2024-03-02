@@ -432,4 +432,24 @@ export class PostsController {
       next(error);
     }
   };
+
+  public getReportedPostByUser = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const data = await this.postsService.getReportedPostByUser(
+        req.params.notiId
+      );
+
+      res.json(new ResponseData(data, null, null));
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: posts.controller.ts:117 ~ PostsController ~ error:",
+        error
+      );
+      next(error);
+    }
+  };
 }
