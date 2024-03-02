@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const reportedPostsSchema = new mongoose.Schema(
   {
     _uId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: [mongoose.Schema.Types.ObjectId],
       ref: "users",
     },
     _postId: {
@@ -11,7 +11,7 @@ const reportedPostsSchema = new mongoose.Schema(
       ref: "posts",
     },
     _content: {
-      type: String,
+      type: [String],
     },
     _uIdReported: {
       type: mongoose.Schema.Types.ObjectId,

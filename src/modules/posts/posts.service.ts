@@ -1252,29 +1252,42 @@ export class PostsService {
   };
 
   public createReportPost = async (report: ReportCreateDTO) => {
-    const post = await Posts.findOne({ _id: report._postId });
+    const post = await Posts.findOne({
+      $and: [{ _id: report._postId }, { _status: 1 }],
+    });
     if (!post) throw Errors.PostNotFound;
 
-    const reportPost = await ReportedPosts.findOne({
-      $and: [{ _uId: report._uId }, { _postId: report._postId }],
-    });
-    if (reportPost) throw Errors.ReportedPostExist;
-
-    report._uIdReported = post._uId;
-
-    const newReport = await ReportedPosts.create(report);
+    //const newReport = await ReportedPosts.create(report);
+    const newReport = await ReportedPosts.findOneAndUpdate(
+      { _postId: report._postId },
+      {
+        $addToSet: {
+          _uId: report._uId,
+          _uIdReported: report._uIdReported,
+          _content: report._content,
+        },
+        _uIdReported: post._uId,
+        _sensored: false,
+      },
+      { upsert: true, new: true }
+    );
     if (!newReport) throw Errors.SaveToDatabaseFail;
 
     return newReport;
   };
 
   public getReportPostsList = async (pagination: Pagination) => {
-    const count = await ReportedPosts.countDocuments();
+    const count = await ReportedPosts.countDocuments({ _sensored: false });
     if (count <= 0) throw Errors.ReportedPostNotFound;
 
     const totalPages = Math.ceil(count / pagination.limit);
 
     const reportPosts = await ReportedPosts.aggregate([
+      {
+        $match: {
+          _sensored: false,
+        },
+      },
       {
         $lookup: {
           from: "posts",
