@@ -843,7 +843,7 @@ export class PostsService {
     let count = 0;
     let condition: PipelineStage;
     //Check status
-    if (status > 3 || status <= -1) throw Errors.StatusInvalid;
+    if (status > 4 || status <= -1) throw Errors.StatusInvalid;
 
     // Check status to create condition and totalPages
     if (status === 0) {
