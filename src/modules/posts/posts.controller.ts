@@ -439,8 +439,9 @@ export class PostsController {
     next: NextFunction
   ) => {
     try {
+      const notiId = req.query.notiId ? req.query.notiId.toString() : undefined;
       const data = await this.postsService.getReportedPostByUser(
-        req.params.notiId
+        notiId
       );
 
       res.json(new ResponseData(data, null, null));

@@ -59,7 +59,7 @@ route.get(
   postsController.getReportPostByPostId
 );
 route.get(
-  "/get-report-post-user/:notiId",
+  "/get-report-post-user",
   authMiddleware.authorizedUser,
   postsController.getReportedPostByUser
 );
