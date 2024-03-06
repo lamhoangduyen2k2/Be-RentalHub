@@ -3,6 +3,10 @@ import mongoose from "mongoose";
 
 export class GetNotificationsListDTO {
   @Expose()
+  @Transform((value) => value.obj._id.toString())
+  _id: mongoose.Types.ObjectId;
+
+  @Expose()
   @Transform((value) => value.obj._uId.toString())
   _uId: mongoose.Types.ObjectId;
 
