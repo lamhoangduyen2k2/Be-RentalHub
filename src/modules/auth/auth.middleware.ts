@@ -78,9 +78,9 @@ export class AuthenMiddWare {
     try {
       const authHeader = req.header("Authorization");
       const auth = authHeader?.split(" ")[1];
-
+      
       if (!auth) throw Errors.Unauthorized;
-
+      
       const payload = await this.authService.verifyAccessToken(auth);
 
       //Check role User

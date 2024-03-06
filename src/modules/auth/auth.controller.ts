@@ -37,6 +37,20 @@ export class AuthController {
     }
   };
 
+  public loginAdminController = async (
+    req: BodyResquest<LoginRequestDTO>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const user = await this.authSerivce.loginAdminService(req.body);
+
+      res.json(new ResponseData(user, null, null));
+    } catch (error) {
+      next(error);
+    }
+  };
+
   public logoutController = async (
     req: Request,
     res: Response,

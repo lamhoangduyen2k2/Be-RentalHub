@@ -3,7 +3,7 @@ import { UserService } from "./user.service";
 import { BodyResquest } from "../../base/base.request";
 import { CreateUserRequestDTO } from "./dtos/user-create.dto";
 import { NextFunction, Request, Response } from "express";
-import { ResponseData } from "../../helpers/response";
+import { Pagination, ResponseData } from "../../helpers/response";
 import { UserHostedDTO } from "./dtos/user-active-host.dto";
 import { UpdateUserDTO } from "./dtos/user-update.dto";
 import { UserUpdateEmailOrPassDTO } from "./dtos/user-update-email-pass.dto";
@@ -59,7 +59,7 @@ export class UserController {
     }
   };
 
-  forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
+  public forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const email = await this.userService.forgotPass(req.body._email, req.body.url);
 
@@ -70,7 +70,7 @@ export class UserController {
     }
   }
 
-  resetPassword = async (req: Request, res: Response, next: NextFunction) => {
+  public resetPassword = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const email = await this.userService.resetPassword(req.params.id, req.params.token, req.body._pw, req.body._pwconfirm);
 
@@ -192,19 +192,31 @@ export class UserController {
     }
   };
 
-  // public resetPassword = async (
-  //   req: BodyResquest<UserForgotPassDTO>,
-  //   res: Response,
-  //   next: NextFunction
-  // ) => {
-  //   try {
-  //     const userParam = UserForgotPassDTO.fromRequest(req)
-  //     const newOtp = await this.userService.forgotPass(userParam)
+  public getUserList = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const pagnantion = Pagination.getPagination(req);
+      const inforUsers = await this.userService.getUserList(pagnantion);
+      res.json(new ResponseData(inforUsers[0], null, inforUsers[1]));
+    } catch (error) {
+      next(error);
+    }
+  }
 
-  //     res.json(new ResponseData(newOtp, null, null))
-  //   } catch (error) {
-  //     console.log("🚀 ~ file: user.controller.ts:151 ~ UserController ~ error:", error)
-  //     next(error)
-  //   }
-  // };
+  public getInspectorList = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const pagination = Pagination.getPagination(req);
+      const inforInspectors = await this.userService.getInspectorList(pagination);
+      res.json(new ResponseData(inforInspectors[0], null, inforInspectors[1]));
+    } catch (error) {
+      next(error);
+    }
+  }
 }

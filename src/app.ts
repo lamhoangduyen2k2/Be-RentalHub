@@ -7,13 +7,14 @@ import cors from "cors";
 import morgan from "morgan";
 import DBconnect from "./database/database";
 import route from "./modules/posts/posts.route";
-import routerUser from "./modules/user/user.route";
+import routerUser from "./modules/user/routes/user.route";
 import erroHandler from "./helpers/handle-errors";
 import { initializeApp } from "firebase/app";
 import config from "./database/firebase.config";
 import routerImg from "./modules/image/image.route";
-import inspectorRoute from "./modules/inspectors/inspectors.route";
+import inspectorRoute from "./modules/user/routes/inspectors.route";
 import notifiRoute from "./modules/notification/notification.route";
+import adminRoute from "./modules/user/routes/admin.route";
 //import bodyParser from "body-parser";
 
 (async () => {
@@ -26,7 +27,7 @@ import notifiRoute from "./modules/notification/notification.route";
   app.use(helmet());
   app.use(cors());
   app.use(morgan("combined"));
-  app.set("view engine", "ejs")
+  app.set("view engine", "ejs");
 
   await DBconnect();
 
@@ -37,7 +38,8 @@ import notifiRoute from "./modules/notification/notification.route";
   app.use("/api/posts", route);
   app.use("/api/notification", notifiRoute);
   app.use("/api/upload", routerImg);
-  app.use("/api/inspector", inspectorRoute)
+  app.use("/api/inspector", inspectorRoute);
+  app.use("/api/admin", adminRoute);
 
   app.use(erroHandler);
 

@@ -1,7 +1,7 @@
 import express from "express";
 import Container from "typedi";
-import { AuthenMiddWare } from "../auth/auth.middleware";
-import { AuthController } from "../auth/auth.controller";
+import { AuthenMiddWare } from "../../auth/auth.middleware";
+import { AuthController } from "../../auth/auth.controller";
 
 const inspectorRoute = express.Router();
 const authMiddleware = Container.get(AuthenMiddWare);

@@ -48,6 +48,25 @@ export class AuthService {
     return { ...UserResponsesDTO.toResponse(users), ...token };
   };
 
+  loginAdminService = async (loginParam: LoginRequestDTO) => {
+    const users = await Users.findOne({
+      $and: [{ _email: loginParam._email }, { _active: true }, { _role: 1 }],
+    });
+
+    if (!users) throw Errors.UserNotFound;
+
+    const isValid = await compare(loginParam._password, users._pw);
+
+    if (!isValid) throw Errors.PwInvalid;
+
+    const token = await tokenService.createTokenByLogin(
+      users._id.toString(),
+      3600
+    );
+
+    return { ...UserResponsesDTO.toResponse(users), ...token };
+  };
+
   logoutService = async (userId: string, refreshToken: string) => {
     await RefreshTokens.deleteOne({
       $and: [{ _uId: userId }, { _refreshToken: refreshToken }],

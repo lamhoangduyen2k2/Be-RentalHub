@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import express, { NextFunction, Request, Response } from "express";
-import { AuthenMiddWare } from "../auth/auth.middleware";
-import { AuthController } from "../auth/auth.controller";
+import { AuthenMiddWare } from "../../auth/auth.middleware";
+import { AuthController } from "../../auth/auth.controller";
 import Container from "typedi";
-import { UserMiddleWare } from "./user.middleware";
-import { UserController } from "./user.controller";
-import { ImageMiddleWare } from "../image/image.middleware";
+import { UserMiddleWare } from "../user.middleware";
+import { UserController } from "../user.controller";
+import { ImageMiddleWare } from "../../image/image.middleware";
 
 const routerUser = express.Router();
 const authMiddleware = Container.get(AuthenMiddWare);
@@ -63,12 +63,12 @@ routerUser.post(
 //   userMiddleWare.checkValidationForgotPass,
 //   userController.resetPassword
 // );
-routerUser.get(
-  "/accounts/forgot-password",
-  (req: Request, res: Response, next: NextFunction) => {
-    res.render("forgot-password");
-  }
-);
+// routerUser.get(
+//   "/accounts/forgot-password",
+//   (req: Request, res: Response, next: NextFunction) => {
+//     res.render("forgot-password");
+//   }
+// );
 
 routerUser.post(
   "/accounts/forgot-password",
@@ -76,12 +76,12 @@ routerUser.post(
   userController.forgotPassword
 );
 
-routerUser.get(
-  "/accounts/reset-password/:id/:token",
-  (req: Request, res: Response, next: NextFunction) => {
-    res.render("reset-password");
-  }
-);
+// routerUser.get(
+//   "/accounts/reset-password/:id/:token",
+//   (req: Request, res: Response, next: NextFunction) => {
+//     res.render("reset-password");
+//   }
+// );
 
 routerUser.post(
   "/accounts/reset-password/:id/:token",
@@ -111,6 +111,16 @@ routerUser.patch(
   authMiddleware.authorized,
   userMiddleWare.checkValidationUpdateEmailOrPass,
   userController.updateEmailOrPass
+);
+routerUser.get(
+  "/get-users-list",
+  authMiddleware.authorizedAdmin,
+  userController.getUserList
+);
+routerUser.get(
+  "/get-inspectors-list",
+  authMiddleware.authorizedAdmin,
+  userController.getInspectorList
 );
 
 export default routerUser;

@@ -16,7 +16,7 @@ import { compare } from "bcrypt";
 import RefreshTokens from "../token/refresh.model";
 import UsersTermp from "./model/users-termp.model";
 import { sign, verify } from "jsonwebtoken";
-
+import { Pagination } from "../../helpers/response";
 
 @Service()
 export class UserService {
@@ -176,14 +176,14 @@ export class UserService {
   };
 
   updateUser = async (userParam: UpdateUserDTO) => {
-    console.log("🚀 ~ UserService ~ updateUser= ~ userParam:", userParam._uId)
+    console.log("🚀 ~ UserService ~ updateUser= ~ userParam:", userParam._uId);
     //Check phoneNumber
     const userPhone = await Users.findOne({
       $and: [{ _phone: userParam._phone }, { _id: { $ne: userParam._uId } }],
     });
-    console.log("🚀 ~ UserService ~ updateUser= ~ userPhone:", userPhone)
+    console.log("🚀 ~ UserService ~ updateUser= ~ userPhone:", userPhone);
     if (userPhone) throw Errors.PhonenumberDuplicate;
-    
+
     const userUpdated = await Users.findOneAndUpdate(
       { _id: userParam._uId },
       userParam,
@@ -355,43 +355,39 @@ export class UserService {
     return true;
   };
 
-  // forgotPass = async (userParam: UserForgotPassDTO) => {
-  //   //Check phoneNumber
-  //   const user = await Users.findOne({
-  //     $and: [{ _email: userParam._email }, { _active: true }],
-  //   });
-  //   if (!user) throw Errors.UserNotFound;
+  public getUserList = async (pagination: Pagination) => {
+    const count = await Users.countDocuments({ _role: 0 });
+    if (count <= 0) throw Errors.UserNotFound;
 
-  //   //Kiểm tra OTP có bị trùng không
-  //   const Otp = await otpForgot.findOne({
-  //     $and: [{ _email: userParam._email }, { _isVerify: false }],
-  //   });
-  //   if (Otp) throw Errors.OtpDuplicate;
+    const totalPages = Math.ceil(count / pagination.limit);
+    const users = await Users.find({ _role: 0 })
+      .sort({ _active: -1 })
+      .skip(pagination.offset)
+      .limit(pagination.limit);
 
-  //   //Create otp
-  //   const otp: string = generate(6, {
-  //     digits: true,
-  //     lowerCaseAlphabets: false,
-  //     upperCaseAlphabets: false,
-  //     specialChars: false,
-  //   }).toString();
+    if (users.length <= 0) throw Errors.PageNotFound;
 
-  //   //Create payload for sendEmail
-  //   const payload: SendMailDTO = {
-  //     email: userParam._email,
-  //     subject: "Reset password from RentalHub ✔",
-  //     text: "Reset your password",
-  //     html: `<b>This is your otp to reset password: ${otp}</b>`,
-  //   };
-  //   await this.otpService.sendEmail(payload);
+    return [
+      UserResponsesDTO.toResponse(users),
+      { page: pagination.page, limit: pagination.limit, total: totalPages },
+    ];
+  };
 
-  //   //Save this otp to database
-  //   const newOTP = await otpForgot.create({
-  //     _email: userParam._email,
-  //     _otp: otp,
-  //     expiredAt: Date.now(),
-  //   });
-  //   if (!newOTP) throw Errors.SaveToDatabaseFail;
-  //   return true;
-  // };
+  public getInspectorList = async (pagination: Pagination) => {
+    const count = await Users.countDocuments({ _role: 2 });
+    if (count <= 0) throw Errors.UserNotFound;
+
+    const totalPages = Math.ceil(count / pagination.limit);
+    const inspectors = await Users.find({ _role: 2 })
+      .sort({ _active: -1 })
+      .skip(pagination.offset)
+      .limit(pagination.limit);
+
+    if (inspectors.length <= 0) throw Errors.PageNotFound;
+
+    return [
+      UserResponsesDTO.toResponse(inspectors),
+      { page: pagination.page, limit: pagination.limit, total: totalPages },
+    ];
+  };
 }
