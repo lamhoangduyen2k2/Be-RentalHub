@@ -440,9 +440,7 @@ export class PostsController {
   ) => {
     try {
       const notiId = req.query.notiId ? req.query.notiId.toString() : undefined;
-      const data = await this.postsService.getReportedPostByUser(
-        notiId
-      );
+      const data = await this.postsService.getReportedPostByUser(notiId);
 
       res.json(new ResponseData(data, null, null));
     } catch (error) {
