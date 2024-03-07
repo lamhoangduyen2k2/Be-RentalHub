@@ -25,7 +25,7 @@ export class UserService {
   //Registor
   createNewUser = async (userParam: CreateUserRequestDTO) => {
     const user = await Users.findOne({
-      _email: userParam._email,
+      $and: [{ _email: userParam._email }, { _active: true }, { _role: 0 }],
     });
 
     if (user) throw Errors.Duplicate;
@@ -389,5 +389,40 @@ export class UserService {
       UserResponsesDTO.toResponse(inspectors),
       { page: pagination.page, limit: pagination.limit, total: totalPages },
     ];
+  };
+
+  public createInspector = async (userParam: CreateUserRequestDTO) => {
+    const inspector = await Users.findOne({
+      $and: [{ _email: userParam._email }, { _role: 2 }, { _active: true }],
+    });
+
+    if (inspector) throw Errors.Duplicate;
+
+    //Check password and password confirm
+    if (userParam._pw !== userParam._pwconfirm) throw Errors.PwconfirmInvalid;
+
+    const newInspector = await Users.create({
+      _email: userParam._email,
+      _pw: userParam._pw,
+      _role: 2,
+    });
+
+    return UserResponsesDTO.toResponse(newInspector);
+  };
+
+  public blockInspector = async (inspectID: string) => {
+    const inspector = await Users.findOne({
+      $and: [{ _id: inspectID }, { _role: 2 }, { _active: true }],
+    });
+    if (!inspector) throw Errors.UserNotFound;
+
+    const blockInspector = await Users.findOneAndUpdate(
+      { _id: inspectID },
+      { _active: false },
+      { new: true }
+    );
+    if (blockInspector) throw Errors.SaveToDatabaseFail;
+
+    return { message: "Block inspector successfully" };
   };
 }

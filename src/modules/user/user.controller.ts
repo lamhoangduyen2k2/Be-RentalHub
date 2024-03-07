@@ -50,7 +50,10 @@ export class UserController {
     next: NextFunction
   ) => {
     try {
-      const newUser = await this.userService.verifyRegistor(req.body._email, req.body.otp);
+      const newUser = await this.userService.verifyRegistor(
+        req.body._email,
+        req.body.otp
+      );
 
       res.json(new ResponseData(newUser, null, null));
     } catch (error) {
@@ -59,27 +62,43 @@ export class UserController {
     }
   };
 
-  public forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
+  public forgotPassword = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
-      const email = await this.userService.forgotPass(req.body._email, req.body.url);
+      const email = await this.userService.forgotPass(
+        req.body._email,
+        req.body.url
+      );
 
       res.json(new ResponseData(email, null, null));
     } catch (error) {
       console.log(error);
       next(error);
     }
-  }
+  };
 
-  public resetPassword = async (req: Request, res: Response, next: NextFunction) => {
+  public resetPassword = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
-      const email = await this.userService.resetPassword(req.params.id, req.params.token, req.body._pw, req.body._pwconfirm);
+      const email = await this.userService.resetPassword(
+        req.params.id,
+        req.params.token,
+        req.body._pw,
+        req.body._pwconfirm
+      );
 
       res.json(new ResponseData(email, null, null));
     } catch (error) {
       console.log(error);
       next(error);
     }
-  }
+  };
 
   public updateUserProfile = async (
     req: BodyResquest<UpdateUserDTO>,
@@ -204,7 +223,7 @@ export class UserController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   public getInspectorList = async (
     req: Request,
@@ -213,10 +232,43 @@ export class UserController {
   ) => {
     try {
       const pagination = Pagination.getPagination(req);
-      const inforInspectors = await this.userService.getInspectorList(pagination);
+      const inforInspectors = await this.userService.getInspectorList(
+        pagination
+      );
       res.json(new ResponseData(inforInspectors[0], null, inforInspectors[1]));
     } catch (error) {
       next(error);
     }
-  }
+  };
+
+  public createInspector = async (
+    req: BodyResquest<CreateUserRequestDTO>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const infoUser = CreateUserRequestDTO.fromRequest(req);
+      const newInspector = await this.userService.createInspector(infoUser);
+
+      res.json(new ResponseData(newInspector, null, null));
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  };
+
+  public blockInspector = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const updatedInspector = await this.userService.blockInspector(
+        req.body._inspectId
+      );
+      res.json(new ResponseData(updatedInspector, null, null));
+    } catch (error) {
+      next(error);
+    }
+  };
 }
