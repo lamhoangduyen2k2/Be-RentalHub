@@ -17,13 +17,15 @@ import RefreshTokens from "../token/refresh.model";
 import UsersTermp from "./model/users-termp.model";
 import { sign, verify } from "jsonwebtoken";
 import { Pagination } from "../../helpers/response";
+import { UpdateInspectorPassDTO } from "./dtos/inspector-update-pass.dto";
 
 @Service()
 export class UserService {
   otpService = Container.get(OTPService);
   imageService = Container.get(ImageService);
-  //Registor
-  createNewUser = async (userParam: CreateUserRequestDTO) => {
+
+  //User API
+  public createNewUser = async (userParam: CreateUserRequestDTO) => {
     const user = await Users.findOne({
       $and: [{ _email: userParam._email }, { _active: true }, { _role: 0 }],
     });
@@ -41,8 +43,7 @@ export class UserService {
     return UserResponsesDTO.toResponse(newUser);
   };
 
-  //Registor user need to confirm otp
-  registorUser = async (userParam: CreateUserRequestDTO) => {
+  public registorUser = async (userParam: CreateUserRequestDTO) => {
     const user = await Users.findOne({
       _email: userParam._email,
     });
@@ -100,7 +101,7 @@ export class UserService {
     return UserResponsesDTO.toResponse(newUser);
   };
 
-  verifyRegistor = async (email: string, otp: string) => {
+  public verifyRegistor = async (email: string, otp: string) => {
     const checkOTP = await OTP.findOne({
       $and: [{ _email: email }, { _otp: otp }],
     });
@@ -123,7 +124,7 @@ export class UserService {
     return UserResponsesDTO.toResponse(user);
   };
 
-  forgotPass = async (email: string, url: string) => {
+  public forgotPass = async (email: string, url: string) => {
     const user = await Users.findOne({
       $and: [{ _email: email }, { _active: true }],
     });
@@ -151,7 +152,7 @@ export class UserService {
     return true;
   };
 
-  resetPassword = async (
+  public resetPassword = async (
     userId: string,
     token: string,
     _pw: string,
@@ -175,7 +176,7 @@ export class UserService {
     return { message: "Reset password successfully" };
   };
 
-  updateUser = async (userParam: UpdateUserDTO) => {
+  public updateUser = async (userParam: UpdateUserDTO) => {
     console.log("🚀 ~ UserService ~ updateUser= ~ userParam:", userParam._uId);
     //Check phoneNumber
     const userPhone = await Users.findOne({
@@ -195,7 +196,7 @@ export class UserService {
     return UserResponsesDTO.toResponse(userUpdated);
   };
 
-  updateAvatar = async (file: Express.Multer.File, uId: ObjectId) => {
+  public updateAvatar = async (file: Express.Multer.File, uId: ObjectId) => {
     const urlAvatar = await this.imageService.uploadAvatar(file);
 
     //Update avatar user
@@ -212,7 +213,7 @@ export class UserService {
     return UserResponsesDTO.toResponse(userUpdated);
   };
 
-  updateEmail = async (userParam: UserUpdateEmailOrPassDTO) => {
+  public updateEmail = async (userParam: UserUpdateEmailOrPassDTO) => {
     if (userParam._email) {
       const user = await Users.findOne({
         $and: [{ _email: userParam._email }, { _id: { $ne: userParam._uId } }],
@@ -241,7 +242,7 @@ export class UserService {
     return { message: "Please login againt!" };
   };
 
-  getUserById = async (uId: string) => {
+  public getUserById = async (uId: string) => {
     const user = await Users.findOne({
       $and: [{ _id: uId }, { _active: true }, { _role: 0 }],
     });
@@ -251,7 +252,7 @@ export class UserService {
     return UserResponsesDTO.toResponse(user);
   };
 
-  activeHost = async (userParam: UserHostedDTO) => {
+  public activeHost = async (userParam: UserHostedDTO) => {
     //Check phoneNumber
     const userPhone = await Users.findOne({
       $and: [{ _phone: userParam._phone }, { _id: { $ne: userParam._uId } }],
@@ -299,7 +300,7 @@ export class UserService {
     return true;
   };
 
-  verifyHost = async (userId: string, otp: string) => {
+  public verifyHost = async (userId: string, otp: string) => {
     const checkOTP = await OTP.findOne({
       $and: [{ _uId: userId }, { _otp: otp }],
     });
@@ -317,7 +318,7 @@ export class UserService {
     return UserResponsesDTO.toResponse(newUser);
   };
 
-  resetOTP = async (userId: string) => {
+  public resetOTP = async (userId: string) => {
     const user = await Users.findById(userId);
 
     if (!user) throw Errors.UserNotFound;
@@ -355,6 +356,7 @@ export class UserService {
     return true;
   };
 
+  //Admin API
   public getUserList = async (pagination: Pagination) => {
     const count = await Users.countDocuments({ _role: 0 });
     if (count <= 0) throw Errors.UserNotFound;
@@ -424,5 +426,34 @@ export class UserService {
     if (blockInspector) throw Errors.SaveToDatabaseFail;
 
     return { message: "Block inspector successfully" };
+  };
+
+  public getInspectorById = async (inspectId: string) => {
+    const inspector = await Users.findOne({
+      $and: [{ _id: inspectId }, { _role: 2 }, { _active: true }],
+    });
+    if (!inspector) throw Errors.UserNotFound;
+
+    return UserResponsesDTO.toResponse(inspector);
+  };
+
+  public updatePasswordInspector = async (
+    userParam: UpdateInspectorPassDTO
+  ) => {
+    const inspector = await Users.findOne({
+      $and: [{ _id: userParam._inspectId }, { _role: 2 }, { _active: true }],
+    });
+    if (!inspector) throw Errors.UserNotFound;
+
+    //Check password and password confirm
+    if (userParam._pw !== userParam._pwconfirm) throw Errors.PwconfirmInvalid;
+
+    const updateInspector = await Users.updateOne(
+      { _id: userParam._inspectId },
+      { _pw: userParam._pw }
+    );
+    if (updateInspector.modifiedCount <= 0) throw Errors.SaveToDatabaseFail;
+
+    return { message: "Update password successfully" };
   };
 }

@@ -22,6 +22,11 @@ adminRoute.get(
   authMiddleware.authorizedAdmin,
   userController.getInspectorList
 );
+adminRoute.get(
+  "/get-inspector-by-id",
+  authMiddleware.authorizedAdmin,
+  userController.getInspectorById
+);
 
 //POST API
 adminRoute.post(
@@ -40,6 +45,14 @@ adminRoute.post(
   "/block-inspector",
   authMiddleware.authorizedAdmin,
   userController.blockInspector
+);
+
+//PATCH API
+adminRoute.patch(
+  "/update-inspector-pass",
+  authMiddleware.authorizedAdmin,
+  userMiddleWare.checkValidationUpdatePassInspector,
+  userController.updateInspectorPass
 );
 
 export default adminRoute;

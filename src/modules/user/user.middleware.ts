@@ -7,6 +7,7 @@ import { handleErrorOfValidation } from "../../helpers/handle-errors";
 import { UpdateUserDTO } from "./dtos/user-update.dto";
 import { UserUpdateEmailOrPassDTO } from "./dtos/user-update-email-pass.dto";
 import { UserForgotPassDTO } from "./dtos/user-forgot-pass.dto";
+import { UpdateInspectorPassDTO } from "./dtos/inspector-update-pass.dto";
 
 @Service()
 export class UserMiddleWare {
@@ -81,4 +82,23 @@ export class UserMiddleWare {
       next(err);
     }
   };
+
+  public checkValidationUpdatePassInspector = async (
+    req: BodyResquest<UpdateInspectorPassDTO>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const inforInspector = UpdateInspectorPassDTO.fromRequest(req);
+      const errors: ValidationError[] = await validate(inforInspector);
+
+      if (errors[0]) throw errors;
+
+      next();
+    } catch (error) {
+      const err = handleErrorOfValidation(error);
+      next(err);
+    }
+  };
+
 }

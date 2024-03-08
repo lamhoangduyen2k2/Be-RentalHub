@@ -2,6 +2,7 @@
 import mongoose, { Schema } from "mongoose";
 import validator from "validator";
 import { genSalt, hash } from "bcrypt";
+import { NextFunction } from "express";
 
 const usersSchema = new mongoose.Schema({
   _fname: {
@@ -59,13 +60,13 @@ const usersSchema = new mongoose.Schema({
   },
 });
 
-// usersSchema.pre("save", async function (next: NextFunction) {
-//   if (!this.isModified("_pw")) return next();
+usersSchema.pre("save", async function (next: NextFunction) {
+  if (!this.isModified("_pw")) return next();
 
-//   const salt = await genSalt(10);
-//   this._pw = await hash(this._pw, salt);
-//   next();
-// });
+  const salt = await genSalt(10);
+  this._pw = await hash(this._pw, salt);
+  next();
+});
 
 usersSchema.pre("updateOne", async function () {
   const data = this.getUpdate();
