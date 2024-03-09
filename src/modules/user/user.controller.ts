@@ -265,7 +265,7 @@ export class UserController {
   ) => {
     try {
       const updatedInspector = await this.userService.blockInspector(
-        req.query.inspectId.toString() ?? null
+        req.body.inspectId.toString() ?? null
       );
       res.json(new ResponseData(updatedInspector, null, null));
     } catch (error) {
@@ -286,7 +286,7 @@ export class UserController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   public updateInspectorPass = async (
     req: BodyResquest<UpdateInspectorPassDTO>,
