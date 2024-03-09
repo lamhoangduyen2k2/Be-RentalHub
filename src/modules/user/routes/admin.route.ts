@@ -25,7 +25,7 @@ adminRoute.get(
 adminRoute.get(
   "/get-inspector-by-id",
   authMiddleware.authorizedAdmin,
-  userController.getInspectorById
+  userController.getInspectorByIdAdmin
 );
 
 //POST API

@@ -356,6 +356,45 @@ export class UserService {
     return true;
   };
 
+  //Inspector API
+  public updateInspectorProfile = async (userParam: UpdateUserDTO) => {
+    const inspector = await Users.findOne({
+      $and: [{ _id: userParam._uId }, { _role: 2 }, { _active: true }],
+    });
+    if (!inspector) throw Errors.UserNotFound;
+
+    const inspectorPhone = await Users.findOne({
+      $and: [{ _phone: userParam._phone }, { _role: 2 }, { _id: { $ne: userParam._uId } }],
+    });
+    if (inspectorPhone) throw Errors.PhonenumberDuplicate;
+
+    const inspectorUpdated = await Users.findOneAndUpdate(
+      { _id: userParam._uId },
+      userParam,
+      { new: true }
+    );
+    if (!inspectorUpdated) throw Errors.SaveToDatabaseFail;
+
+    return UserResponsesDTO.toResponse(inspectorUpdated);
+  };
+
+  public updateInspectorAvatar = async (file: Express.Multer.File, uId: ObjectId) => {
+    const urlAvatar = await this.imageService.uploadAvatar(file);
+
+    //Update avatar user
+    const inspectorUpdated = await Users.findOneAndUpdate(
+      { _id: uId },
+      { _avatar: urlAvatar },
+      {
+        new: true,
+      }
+    );
+
+    if (!inspectorUpdated) throw Errors.SaveToDatabaseFail;
+
+    return UserResponsesDTO.toResponse(inspectorUpdated);
+  };
+
   //Admin API
   public getUserList = async (pagination: Pagination) => {
     const count = await Users.countDocuments({ _role: 0 });
@@ -414,13 +453,13 @@ export class UserService {
 
   public blockInspector = async (inspectID: string) => {
     const inspector = await Users.findOne({
-      $and: [{ _id: inspectID }, { _role: 2 }, { _active: true }],
+      $and: [{ _id: inspectID }, { _role: 2 }],
     });
     if (!inspector) throw Errors.UserNotFound;
 
     const blockInspector = await Users.findOneAndUpdate(
       { _id: inspectID },
-      { _active: false },
+      { _active: !inspector._active },
       { new: true }
     );
     if (!blockInspector) throw Errors.SaveToDatabaseFail;

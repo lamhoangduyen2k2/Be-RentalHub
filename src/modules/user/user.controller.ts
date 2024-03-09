@@ -273,7 +273,7 @@ export class UserController {
     }
   };
 
-  public getInspectorById = async (
+  public getInspectorByIdAdmin = async (
     req: Request,
     res: Response,
     next: NextFunction
@@ -299,6 +299,57 @@ export class UserController {
       res.json(new ResponseData(newPass, null, null));
     } catch (error) {
       console.log("🚀 ~ UserController ~ error:", error);
+      next(error);
+    }
+  };
+
+  public updateInspectorProfile = async (
+    req: BodyResquest<UpdateUserDTO>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const inforInspector = UpdateUserDTO.fromRequest(req);
+      const updatedUser = await this.userService.updateInspectorProfile(
+        inforInspector
+      );
+      res.json(new ResponseData(updatedUser, null, null));
+    } catch (error) {
+      console.log("🚀 ~ UserController ~ error:", error);
+      next(error);
+    }
+  };
+
+  public updateInspectorAvatar = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const file = req.file as Express.Multer.File;
+      const updatedInspector = await this.userService.updateInspectorAvatar(
+        file,
+        req.body._uId
+      );
+
+      res.json(new ResponseData(updatedInspector, null, null));
+    } catch (error) {
+      console.log("🚀 ~ UserController ~ error:", error);
+      next(error);
+    }
+  };
+
+  public getInspectorById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const inforInspector = await this.userService.getInspectorById(
+        req.body._uId
+      );
+      res.json(new ResponseData(inforInspector, null, null));
+    } catch (error) {
       next(error);
     }
   };
