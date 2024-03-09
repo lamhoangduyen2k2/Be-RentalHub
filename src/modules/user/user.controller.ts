@@ -265,7 +265,7 @@ export class UserController {
   ) => {
     try {
       const updatedInspector = await this.userService.blockInspector(
-        req.body._inspectId
+        req.query.inspectId.toString() ?? null
       );
       res.json(new ResponseData(updatedInspector, null, null));
     } catch (error) {

@@ -423,7 +423,7 @@ export class UserService {
       { _active: false },
       { new: true }
     );
-    if (blockInspector) throw Errors.SaveToDatabaseFail;
+    if (!blockInspector) throw Errors.SaveToDatabaseFail;
 
     return { message: "Block inspector successfully" };
   };

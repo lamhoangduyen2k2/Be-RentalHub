@@ -41,7 +41,7 @@ adminRoute.post(
   userController.createInspector
 );
 
-adminRoute.post(
+adminRoute.patch(
   "/block-inspector",
   authMiddleware.authorizedAdmin,
   userController.blockInspector
