@@ -502,6 +502,7 @@ export class UserService {
       $and: [{ _id: userParam._uId }, { _role: 2 }, { _active: true }],
     });
     if (!inspector) throw Errors.UserNotFound;
+    console.log("🚀 ~ UserService ~ inspector:", inspector)
 
     //Check old password
     const isValid = await compare(userParam._oldpw, inspector._pw);

@@ -42,5 +42,14 @@ inspectorRoute.patch(
   userMiddleWare.checkValidationUpdatePassowdInspector,
   userController.updateInspectorPassword
 );
+inspectorRoute.post(
+  "/forgot-password",
+  userMiddleWare.checkValidationForgotPass,
+  userController.forgotPassword
+);
+inspectorRoute.post(
+  "/reset-password/:id/:token",
+  userController.resetPassword
+);
 
 export default inspectorRoute;
