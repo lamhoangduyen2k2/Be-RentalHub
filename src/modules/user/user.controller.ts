@@ -8,6 +8,7 @@ import { UserHostedDTO } from "./dtos/user-active-host.dto";
 import { UpdateUserDTO } from "./dtos/user-update.dto";
 import { UserUpdateEmailOrPassDTO } from "./dtos/user-update-email-pass.dto";
 import { UpdateInspectorPassDTO } from "./dtos/inspector-update-pass.dto";
+import { UpdateInspectorPasswordDTO } from "./dtos/update-password-inspector.dto";
 
 @Service()
 export class UserController {
@@ -295,7 +296,7 @@ export class UserController {
   ) => {
     try {
       const userInfo = UpdateInspectorPassDTO.fromRequest(req);
-      const newPass = await this.userService.updatePasswordInspector(userInfo);
+      const newPass = await this.userService.updatePassInspector(userInfo);
       res.json(new ResponseData(newPass, null, null));
     } catch (error) {
       console.log("🚀 ~ UserController ~ error:", error);
@@ -353,4 +354,19 @@ export class UserController {
       next(error);
     }
   };
+
+  public updateInspectorPassword = async ( 
+    req: BodyResquest<UpdateInspectorPasswordDTO>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const userInfo = UpdateInspectorPasswordDTO.fromRequest(req);
+      const newPass = await this.userService.updatePasswordInspector(userInfo);
+      res.json(new ResponseData(newPass, null, null));
+    } catch (error) {
+      console.log("🚀 ~ UserController ~ error:", error);
+      next(error);
+    }
+  }
 }

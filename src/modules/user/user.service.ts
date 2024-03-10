@@ -18,6 +18,7 @@ import UsersTermp from "./model/users-termp.model";
 import { sign, verify } from "jsonwebtoken";
 import { Pagination } from "../../helpers/response";
 import { UpdateInspectorPassDTO } from "./dtos/inspector-update-pass.dto";
+import { UpdateInspectorPasswordDTO } from "./dtos/update-password-inspector.dto";
 
 @Service()
 export class UserService {
@@ -395,6 +396,24 @@ export class UserService {
     return UserResponsesDTO.toResponse(inspectorUpdated);
   };
 
+  public updatePassInspector = async ( userParam: UpdateInspectorPassDTO) => {
+    const inspector = await Users.findOne({
+      $and: [{ _id: userParam._inspectId }, { _role: 2 }, { _active: true }],
+    });
+    if (!inspector) throw Errors.UserNotFound;
+
+    //Check password and password confirm
+    if (userParam._pw !== userParam._pwconfirm) throw Errors.PwconfirmInvalid;
+
+    const updateInspector = await Users.updateOne(
+      { _id: userParam._inspectId },
+      { _pw: userParam._pw }
+    );
+    if (updateInspector.modifiedCount <= 0) throw Errors.SaveToDatabaseFail;
+
+    return { message: "Update password successfully" };
+  };
+
   //Admin API
   public getUserList = async (pagination: Pagination) => {
     const count = await Users.countDocuments({ _role: 0 });
@@ -477,18 +496,22 @@ export class UserService {
   };
 
   public updatePasswordInspector = async (
-    userParam: UpdateInspectorPassDTO
+    userParam: UpdateInspectorPasswordDTO
   ) => {
     const inspector = await Users.findOne({
-      $and: [{ _id: userParam._inspectId }, { _role: 2 }, { _active: true }],
+      $and: [{ _id: userParam._uId }, { _role: 2 }, { _active: true }],
     });
     if (!inspector) throw Errors.UserNotFound;
+
+    //Check old password
+    const isValid = await compare(userParam._oldpw, inspector._pw);
+    if (!isValid) throw Errors.OldpwInvalid;
 
     //Check password and password confirm
     if (userParam._pw !== userParam._pwconfirm) throw Errors.PwconfirmInvalid;
 
     const updateInspector = await Users.updateOne(
-      { _id: userParam._inspectId },
+      { _id: userParam._uId },
       { _pw: userParam._pw }
     );
     if (updateInspector.modifiedCount <= 0) throw Errors.SaveToDatabaseFail;

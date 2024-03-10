@@ -36,5 +36,11 @@ inspectorRoute.patch(
   authMiddleware.authorizedInspector,
   userController.updateInspectorAvatar
 );
+inspectorRoute.patch(
+  "/update-password",
+  authMiddleware.authorizedInspector,
+  userMiddleWare.checkValidationUpdatePassowdInspector,
+  userController.updateInspectorPassword
+);
 
 export default inspectorRoute;

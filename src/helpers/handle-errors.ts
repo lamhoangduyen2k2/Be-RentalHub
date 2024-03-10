@@ -58,6 +58,10 @@ export const Errors = {
 
   PwInvalid: new ErrorModel("Password invalid!", "PASSWORD_INVALID", 400),
 
+  OldpwNotFound: new ErrorModel("Old-Password not found!", "OLD_PASSWORD_NOTFOUND", 400),
+
+  OldpwInvalid: new ErrorModel("Old-Password invalid!", "OLD_PASSWORD_INVALID", 400),
+
   PwconfirmNotFound: new ErrorModel(
     "Password Confirm not found!",
     "PASSWORD_CONFIRM_NOTFOUND",
