@@ -19,6 +19,8 @@ import { sign, verify } from "jsonwebtoken";
 import { Pagination } from "../../helpers/response";
 import { UpdateInspectorPassDTO } from "./dtos/inspector-update-pass.dto";
 import { UpdateInspectorPasswordDTO } from "./dtos/update-password-inspector.dto";
+import { convertUTCtoLocal } from "../../helpers/ultil";
+import dayjs from "dayjs";
 
 @Service()
 export class UserService {
@@ -178,12 +180,10 @@ export class UserService {
   };
 
   public updateUser = async (userParam: UpdateUserDTO) => {
-    console.log("🚀 ~ UserService ~ updateUser= ~ userParam:", userParam._uId);
     //Check phoneNumber
     const userPhone = await Users.findOne({
       $and: [{ _phone: userParam._phone }, { _id: { $ne: userParam._uId } }],
     });
-    console.log("🚀 ~ UserService ~ updateUser= ~ userPhone:", userPhone);
     if (userPhone) throw Errors.PhonenumberDuplicate;
 
     const userUpdated = await Users.findOneAndUpdate(
@@ -194,7 +194,13 @@ export class UserService {
 
     if (!userUpdated) throw Errors.SaveToDatabaseFail;
 
-    return UserResponsesDTO.toResponse(userUpdated);
+    const _dob = convertUTCtoLocal(userUpdated._dob);
+    const newUser = {
+      ...userUpdated.toObject(),
+      _dob,
+    };
+
+    return UserResponsesDTO.toResponse(newUser);
   };
 
   public updateAvatar = async (file: Express.Multer.File, uId: ObjectId) => {
@@ -211,7 +217,13 @@ export class UserService {
 
     if (!userUpdated) throw Errors.SaveToDatabaseFail;
 
-    return UserResponsesDTO.toResponse(userUpdated);
+    const _dob = convertUTCtoLocal(userUpdated._dob);
+    const newUser = {
+      ...userUpdated.toObject(),
+      _dob,
+    };
+
+    return UserResponsesDTO.toResponse(newUser);
   };
 
   public updateEmail = async (userParam: UserUpdateEmailOrPassDTO) => {
@@ -250,7 +262,13 @@ export class UserService {
 
     if (!user) throw Errors.UserNotFound;
 
-    return UserResponsesDTO.toResponse(user);
+    const _dob = convertUTCtoLocal(user._dob);
+    const newUser = {
+      ...user.toObject(),
+      _dob,
+    };
+
+    return UserResponsesDTO.toResponse(newUser);
   };
 
   public activeHost = async (userParam: UserHostedDTO) => {
@@ -365,7 +383,11 @@ export class UserService {
     if (!inspector) throw Errors.UserNotFound;
 
     const inspectorPhone = await Users.findOne({
-      $and: [{ _phone: userParam._phone }, { _role: 2 }, { _id: { $ne: userParam._uId } }],
+      $and: [
+        { _phone: userParam._phone },
+        { _role: 2 },
+        { _id: { $ne: userParam._uId } },
+      ],
     });
     if (inspectorPhone) throw Errors.PhonenumberDuplicate;
 
@@ -376,10 +398,19 @@ export class UserService {
     );
     if (!inspectorUpdated) throw Errors.SaveToDatabaseFail;
 
-    return UserResponsesDTO.toResponse(inspectorUpdated);
+    const _dob = convertUTCtoLocal(inspectorUpdated._dob);
+    const newInspector = {
+      ...inspectorUpdated.toObject(),
+      _dob,
+    };
+
+    return UserResponsesDTO.toResponse(newInspector);
   };
 
-  public updateInspectorAvatar = async (file: Express.Multer.File, uId: ObjectId) => {
+  public updateInspectorAvatar = async (
+    file: Express.Multer.File,
+    uId: ObjectId
+  ) => {
     const urlAvatar = await this.imageService.uploadAvatar(file);
 
     //Update avatar user
@@ -393,25 +424,39 @@ export class UserService {
 
     if (!inspectorUpdated) throw Errors.SaveToDatabaseFail;
 
-    return UserResponsesDTO.toResponse(inspectorUpdated);
+    const _dob = convertUTCtoLocal(inspectorUpdated._dob);
+    const newInspector = {
+      ...inspectorUpdated.toObject(),
+      _dob,
+    };
+
+    return UserResponsesDTO.toResponse(newInspector);
   };
 
-  public updatePassInspector = async ( userParam: UpdateInspectorPassDTO) => {
+  public updatePasswordInspector = async (
+    userParam: UpdateInspectorPasswordDTO
+  ) => {
     const inspector = await Users.findOne({
-      $and: [{ _id: userParam._inspectId }, { _role: 2 }, { _active: true }],
+      $and: [{ _id: userParam._uId }, { _role: 2 }, { _active: true }],
     });
     if (!inspector) throw Errors.UserNotFound;
+
+    //Check old password
+    const isValid = await compare(userParam._oldpw, inspector._pw);
+    if (!isValid) throw Errors.OldpwInvalid;
 
     //Check password and password confirm
     if (userParam._pw !== userParam._pwconfirm) throw Errors.PwconfirmInvalid;
 
     const updateInspector = await Users.updateOne(
-      { _id: userParam._inspectId },
+      { _id: userParam._uId },
       { _pw: userParam._pw }
     );
     if (updateInspector.modifiedCount <= 0) throw Errors.SaveToDatabaseFail;
 
-    return { message: "Update password successfully" };
+    await RefreshTokens.deleteMany({ _uId: userParam._uId });
+
+    return { message: "Login againt!" };
   };
 
   //Admin API
@@ -492,27 +537,26 @@ export class UserService {
     });
     if (!inspector) throw Errors.UserNotFound;
 
-    return UserResponsesDTO.toResponse(inspector);
+    const _dob = convertUTCtoLocal(inspector._dob);
+    const newInspector = {
+      ...inspector.toObject(),
+      _dob,
+    };
+
+    return UserResponsesDTO.toResponse(newInspector);
   };
 
-  public updatePasswordInspector = async (
-    userParam: UpdateInspectorPasswordDTO
-  ) => {
+  public updatePassInspector = async (userParam: UpdateInspectorPassDTO) => {
     const inspector = await Users.findOne({
-      $and: [{ _id: userParam._uId }, { _role: 2 }, { _active: true }],
+      $and: [{ _id: userParam._inspectId }, { _role: 2 }, { _active: true }],
     });
     if (!inspector) throw Errors.UserNotFound;
-    console.log("🚀 ~ UserService ~ inspector:", inspector)
-
-    //Check old password
-    const isValid = await compare(userParam._oldpw, inspector._pw);
-    if (!isValid) throw Errors.OldpwInvalid;
 
     //Check password and password confirm
     if (userParam._pw !== userParam._pwconfirm) throw Errors.PwconfirmInvalid;
 
     const updateInspector = await Users.updateOne(
-      { _id: userParam._uId },
+      { _id: userParam._inspectId },
       { _pw: userParam._pw }
     );
     if (updateInspector.modifiedCount <= 0) throw Errors.SaveToDatabaseFail;

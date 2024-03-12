@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import dayjs from "dayjs";
 
 //UpCase funtion
 export const UpCase = (paramStr: string): string => {
@@ -27,4 +28,9 @@ export const giveCurrentDateTime = () => {
     today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
   const dateTime = date + " " + time;
   return dateTime;
+};
+
+//Convert UTC time to Hochiminh time
+export const convertUTCtoLocal = (utcTime: Date) => {
+  return dayjs.utc(utcTime).local().format('DD-MM-YYYY');
 };

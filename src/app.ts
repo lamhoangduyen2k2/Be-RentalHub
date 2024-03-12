@@ -15,11 +15,18 @@ import routerImg from "./modules/image/image.route";
 import inspectorRoute from "./modules/user/routes/inspectors.route";
 import notifiRoute from "./modules/notification/notification.route";
 import adminRoute from "./modules/user/routes/admin.route";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
 //import bodyParser from "body-parser";
 
 (async () => {
   const app = express();
   const port = 3000;
+  dayjs.extend(utc);
+  dayjs.extend(timezone);
+  //dayjs.tz.setDefault("Asia/Ho_Chi_Minh");
 
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));

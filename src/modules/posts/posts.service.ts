@@ -12,7 +12,7 @@ import mongoose, { PipelineStage } from "mongoose";
 import { PostSensorDTO } from "./dtos/post-sensor.dto";
 import { PostUpdateStatusDTO } from "./dtos/post-update-status.dto";
 import FavoritePosts from "./models/favorite-posts.model";
-import { convertToObjectIdArray } from "../../helpers/ultil";
+import { convertToObjectIdArray, convertUTCtoLocal } from "../../helpers/ultil";
 import { ReportCreateDTO } from "./dtos/post-reported.dto";
 import ReportedPosts from "./models/reported-posts.model";
 import { NotificationService } from "../notification/notification.service";
@@ -304,6 +304,11 @@ export class PostsService {
 
     if (!posts[0]?._id) throw Errors.PageNotFound;
 
+    posts.forEach((post) => {
+      post._postingDateLocal = convertUTCtoLocal(post._postingDate);
+      delete post._postingDate;
+    });
+
     return [
       posts,
       { page: pagination.page, limit: pagination.limit, total: totalPages },
@@ -395,6 +400,11 @@ export class PostsService {
       .skip(offset)
       .limit(limit);
 
+    posts.forEach((post) => {
+      post._postingDateLocal = convertUTCtoLocal(post._postingDate);
+      delete post._postingDate;
+    });
+
     return posts;
   };
 
@@ -485,6 +495,11 @@ export class PostsService {
     ]);
 
     if (post.length <= 0) throw Errors.PostNotFound;
+
+    //Convert UTC to Local time
+    post[0]._postingDateLocal = convertUTCtoLocal(post[0]._postingDate);
+    delete post[0]._postingDate;
+
     return post[0];
   };
 
@@ -555,6 +570,10 @@ export class PostsService {
     ]);
 
     if (post.length <= 0) throw Errors.PostNotFound;
+
+    //Convert UTC to Local time
+    post[0]._postingDateLocal = convertUTCtoLocal(post[0]._postingDate);
+    delete post[0]._postingDate;
 
     return post[0];
   };
@@ -638,6 +657,11 @@ export class PostsService {
 
     if (post.length <= 0) throw Errors.PageNotFound;
 
+    post.forEach((pos) => {
+      pos._postingDateLocal = convertUTCtoLocal(pos._postingDate);
+      delete pos._postingDate;
+    });
+
     return [
       post,
       { page: pagination.page, limit: pagination.limit, total: totalPages },
@@ -654,10 +678,7 @@ export class PostsService {
         { _tags: { $in: post._tags } },
       ],
     });
-    console.log(
-      "🚀 ~ file: posts.service.ts:482 ~ PostsService ~ getPostSimilar= ~ count:",
-      count
-    );
+
     if (count <= 0) throw Errors.PostNotFound;
     const totalPage = Math.ceil(count / pagination.limit);
 
@@ -733,6 +754,11 @@ export class PostsService {
       .limit(pagination.limit);
 
     if (posts.length <= 0) throw Errors.PageNotFound;
+
+    posts.forEach((post) => {
+      post._postingDateLocal = convertUTCtoLocal(post._postingDate);
+      delete post._postingDate;
+    });
 
     return [
       posts,
@@ -972,6 +998,11 @@ export class PostsService {
 
     if (posts.length <= 0) throw Errors.PostNotFound;
 
+    posts.forEach((post) => {
+      post._postingDateLocal = convertUTCtoLocal(post._postingDate);
+      delete post._postingDate;
+    });
+
     return [
       posts,
       { page: pagination.page, limit: pagination.limit, total: totalPage },
@@ -987,9 +1018,6 @@ export class PostsService {
         $and: [{ _status: 1 }, { _tags: { $all: tagsObjectId } }],
       },
     };
-
-    // const posts = await Posts.aggregate([condition]);
-    // console.log("🚀 ~ PostsService ~ searchPostByTags= ~ posts:", posts);
 
     //Push condition of joining tables
     pipeline.push(
@@ -1057,6 +1085,11 @@ export class PostsService {
       .limit(pagination.limit);
 
     if (posts.length <= 0) throw Errors.PostNotFound;
+
+    posts.forEach((post) => {
+      post._postingDateLocal = convertUTCtoLocal(post._postingDate);
+      delete post._postingDate;
+    });
 
     return [
       posts,
@@ -1183,6 +1216,7 @@ export class PostsService {
           _images: "$post_info._images",
           _inspectId: "$post_info._inspectId",
           _status: "$post_info._status",
+          _postingDate: "$post_info._postingDate",
           roomId: "$room_info._id",
           roomAddress: {
             $concat: [
@@ -1215,6 +1249,11 @@ export class PostsService {
       .limit(pagination.limit);
 
     if (favoritePosts.length <= 0) throw Errors.PageNotFound;
+
+    favoritePosts.forEach((post) => {
+      post._postingDateLocal = convertUTCtoLocal(post._postingDate);
+      delete post._postingDate;
+    });
 
     return [
       favoritePosts,
@@ -1343,6 +1382,7 @@ export class PostsService {
           _images: "$post_info._images",
           _inspectId: "$post_info._inspectId",
           _status: "$post_info._status",
+          _postingDate: "$post_info._postingDate",
           roomId: "$room_info._id",
           roomAddress: {
             $concat: [
@@ -1375,6 +1415,11 @@ export class PostsService {
       .limit(pagination.limit);
 
     if (reportPosts.length <= 0) throw Errors.PageNotFound;
+
+    reportPosts.forEach((post) => {
+      post._postingDateLocal = convertUTCtoLocal(post._postingDate);
+      delete post._postingDate;
+    });
 
     return [
       reportPosts,
@@ -1453,6 +1498,7 @@ export class PostsService {
           _images: "$post_info._images",
           _inspectId: "$post_info._inspectId",
           _status: "$post_info._status",
+          _postingDate: "$post_info._postingDate",
           roomId: "$room_info._id",
           roomAddress: {
             $concat: [
@@ -1482,7 +1528,14 @@ export class PostsService {
       },
     ]);
 
-    return reportPostInfo;
+    if (reportPostInfo.length <= 0) throw Errors.ReportedPostNotFound;
+
+    reportPostInfo[0]._postingDateLocal = convertUTCtoLocal(
+      reportPostInfo[0]._postingDate
+    );
+    delete reportPostInfo[0]._postingDate;
+
+    return reportPostInfo[0];
   };
 
   public sensorReportPost = async (reportId: string, inspectorId: string) => {
@@ -1586,6 +1639,7 @@ export class PostsService {
           _images: "$post_info._images",
           _inspectId: "$post_info._inspectId",
           _status: "$post_info._status",
+          _postingDate: "$post_info._postingDate",
           roomId: "$room_info._id",
           roomAddress: {
             $concat: [
@@ -1614,6 +1668,13 @@ export class PostsService {
         },
       },
     ]);
+
+    if (reportedPost.length <= 0) throw Errors.ReportedPostNotFound;
+
+    reportedPost[0]._postingDateLocal = convertUTCtoLocal(
+      reportedPost[0]._postingDate
+    );
+    delete reportedPost[0]._postingDate;
 
     return reportedPost[0];
   };
