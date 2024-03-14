@@ -267,7 +267,7 @@ export class PostsService {
           _title: 1,
           _content: 1,
           _desc: 1,
-          _postingDate: 1,
+          updatedAt: 1,
           _tags: 1,
           _videos: 1,
           _images: 1,
@@ -305,8 +305,7 @@ export class PostsService {
     if (!posts[0]?._id) throw Errors.PageNotFound;
 
     posts.forEach((post) => {
-      post._postingDateLocal = convertUTCtoLocal(post._postingDate);
-      delete post._postingDate;
+      post._postingDateLocal = convertUTCtoLocal(post.updatedAt);
     });
 
     return [
@@ -362,7 +361,7 @@ export class PostsService {
           _title: 1,
           _content: 1,
           _desc: 1,
-          _postingDate: 1,
+          updatedAt: 1,
           _tags: "$tags",
           _videos: 1,
           _images: 1,
@@ -401,8 +400,7 @@ export class PostsService {
       .limit(limit);
 
     posts.forEach((post) => {
-      post._postingDateLocal = convertUTCtoLocal(post._postingDate);
-      delete post._postingDate;
+      post._postingDateLocal = convertUTCtoLocal(post.updatedAt);
     });
 
     return posts;
@@ -457,7 +455,7 @@ export class PostsService {
           _title: 1,
           _content: 1,
           _desc: 1,
-          _postingDate: 1,
+          updatedAt: 1,
           _tags: "$tags",
           _videos: 1,
           _images: 1,
@@ -497,8 +495,7 @@ export class PostsService {
     if (post.length <= 0) throw Errors.PostNotFound;
 
     //Convert UTC to Local time
-    post[0]._postingDateLocal = convertUTCtoLocal(post[0]._postingDate);
-    delete post[0]._postingDate;
+    post[0]._postingDateLocal = convertUTCtoLocal(post[0].updatedAt);
 
     return post[0];
   };
@@ -536,7 +533,7 @@ export class PostsService {
           _title: 1,
           _content: 1,
           _desc: 1,
-          _postingDate: 1,
+          updatedAt: 1,
           _tags: 1,
           _videos: 1,
           _images: 1,
@@ -572,8 +569,7 @@ export class PostsService {
     if (post.length <= 0) throw Errors.PostNotFound;
 
     //Convert UTC to Local time
-    post[0]._postingDateLocal = convertUTCtoLocal(post[0]._postingDate);
-    delete post[0]._postingDate;
+    post[0]._postingDateLocal = convertUTCtoLocal(post[0].updatedAt);
 
     return post[0];
   };
@@ -619,7 +615,7 @@ export class PostsService {
           _title: 1,
           _content: 1,
           _desc: 1,
-          _postingDate: 1,
+          updatedAt: 1,
           _tags: 1,
           _videos: 1,
           _images: 1,
@@ -658,8 +654,7 @@ export class PostsService {
     if (post.length <= 0) throw Errors.PageNotFound;
 
     post.forEach((pos) => {
-      pos._postingDateLocal = convertUTCtoLocal(pos._postingDate);
-      delete pos._postingDate;
+      pos._postingDateLocal = convertUTCtoLocal(pos.updatedAt);
     });
 
     return [
@@ -718,7 +713,7 @@ export class PostsService {
           _title: 1,
           _content: 1,
           _desc: 1,
-          _postingDate: 1,
+          updatedAt: 1,
           _tags: 1,
           _videos: 1,
           _images: 1,
@@ -756,8 +751,7 @@ export class PostsService {
     if (posts.length <= 0) throw Errors.PageNotFound;
 
     posts.forEach((post) => {
-      post._postingDateLocal = convertUTCtoLocal(post._postingDate);
-      delete post._postingDate;
+      post._postingDateLocal = convertUTCtoLocal(post.updatedAt);
     });
 
     return [
@@ -958,7 +952,7 @@ export class PostsService {
           _title: 1,
           _content: 1,
           _desc: 1,
-          _postingDate: 1,
+          updatedAt: 1,
           _tags: 1,
           _videos: 1,
           _images: 1,
@@ -999,8 +993,7 @@ export class PostsService {
     if (posts.length <= 0) throw Errors.PostNotFound;
 
     posts.forEach((post) => {
-      post._postingDateLocal = convertUTCtoLocal(post._postingDate);
-      delete post._postingDate;
+      post._postingDateLocal = convertUTCtoLocal(post.updatedAt);
     });
 
     return [
@@ -1046,7 +1039,7 @@ export class PostsService {
           _title: 1,
           _content: 1,
           _desc: 1,
-          _postingDate: 1,
+          updatedAt: 1,
           _tags: 1,
           _videos: 1,
           _images: 1,
@@ -1087,8 +1080,7 @@ export class PostsService {
     if (posts.length <= 0) throw Errors.PostNotFound;
 
     posts.forEach((post) => {
-      post._postingDateLocal = convertUTCtoLocal(post._postingDate);
-      delete post._postingDate;
+      post._postingDateLocal = convertUTCtoLocal(post.updatedAt);
     });
 
     return [
@@ -1216,7 +1208,7 @@ export class PostsService {
           _images: "$post_info._images",
           _inspectId: "$post_info._inspectId",
           _status: "$post_info._status",
-          _postingDate: "$post_info._postingDate",
+          updatedAt: "$post_info.updatedAt",
           roomId: "$room_info._id",
           roomAddress: {
             $concat: [
@@ -1251,8 +1243,7 @@ export class PostsService {
     if (favoritePosts.length <= 0) throw Errors.PageNotFound;
 
     favoritePosts.forEach((post) => {
-      post._postingDateLocal = convertUTCtoLocal(post._postingDate);
-      delete post._postingDate;
+      post._postingDateLocal = convertUTCtoLocal(post.updatedAt);
     });
 
     return [
@@ -1382,7 +1373,7 @@ export class PostsService {
           _images: "$post_info._images",
           _inspectId: "$post_info._inspectId",
           _status: "$post_info._status",
-          _postingDate: "$post_info._postingDate",
+          updatedAt: "$post_info.updatedAt",
           roomId: "$room_info._id",
           roomAddress: {
             $concat: [
@@ -1417,8 +1408,7 @@ export class PostsService {
     if (reportPosts.length <= 0) throw Errors.PageNotFound;
 
     reportPosts.forEach((post) => {
-      post._postingDateLocal = convertUTCtoLocal(post._postingDate);
-      delete post._postingDate;
+      post._postingDateLocal = convertUTCtoLocal(post.updatedAt);
     });
 
     return [
@@ -1498,7 +1488,7 @@ export class PostsService {
           _images: "$post_info._images",
           _inspectId: "$post_info._inspectId",
           _status: "$post_info._status",
-          _postingDate: "$post_info._postingDate",
+          updatedAt: "$post_info.updatedAt",
           roomId: "$room_info._id",
           roomAddress: {
             $concat: [
@@ -1531,9 +1521,8 @@ export class PostsService {
     if (reportPostInfo.length <= 0) throw Errors.ReportedPostNotFound;
 
     reportPostInfo[0]._postingDateLocal = convertUTCtoLocal(
-      reportPostInfo[0]._postingDate
+      reportPostInfo[0].updatedAt
     );
-    delete reportPostInfo[0]._postingDate;
 
     return reportPostInfo[0];
   };
@@ -1639,7 +1628,7 @@ export class PostsService {
           _images: "$post_info._images",
           _inspectId: "$post_info._inspectId",
           _status: "$post_info._status",
-          _postingDate: "$post_info._postingDate",
+          updatedAt: "$post_info.updatedAt",
           roomId: "$room_info._id",
           roomAddress: {
             $concat: [
@@ -1672,9 +1661,8 @@ export class PostsService {
     if (reportedPost.length <= 0) throw Errors.ReportedPostNotFound;
 
     reportedPost[0]._postingDateLocal = convertUTCtoLocal(
-      reportedPost[0]._postingDate
+      reportedPost[0].updatedAt
     );
-    delete reportedPost[0]._postingDate;
 
     return reportedPost[0];
   };
