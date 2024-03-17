@@ -1666,4 +1666,225 @@ export class PostsService {
 
     return reportedPost[0];
   };
+
+  public getPostsListByStatusAdmin = async (
+    status: number,
+    pagination: Pagination
+  ) => {
+    const count = await Posts.countDocuments({ _status: status });
+    if (count <= 0) throw Errors.PostNotFound;
+
+    const totalPages = Math.ceil(count / pagination.limit);
+
+    const posts = await Posts.aggregate([
+      {
+        $match: {
+          _status: status,
+        },
+      },
+      {
+        $lookup: {
+          from: "rooms",
+          localField: "_rooms",
+          foreignField: "_id",
+          as: "room",
+        },
+      },
+      { $unwind: "$room" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_uId",
+          foreignField: "_id",
+          as: "author",
+        },
+      },
+      { $unwind: "$author" },
+      {
+        $lookup: {
+          from: "tags",
+          localField: "_tags",
+          foreignField: "_id",
+          let: { id_tags: "$_tags" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $in: ["$_id", "$$id_tags"] },
+              },
+            },
+          ],
+          as: "tags",
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_inspectId",
+          foreignField: "_id",
+          as: "inspector",
+        },
+      },
+      { $unwind: "$inspector" },
+      {
+        $project: {
+          _id: 1,
+          _title: 1,
+          _content: 1,
+          _desc: 1,
+          updatedAt: 1,
+          _tags: "$tags",
+          _videos: 1,
+          _images: 1,
+          _inspectId: 1,
+          _status: 1,
+          roomId: "$room._id",
+          roomAddress: {
+            $concat: [
+              "$room._street",
+              ", Quận ",
+              "$room._district",
+              ", ",
+              "$room._city",
+            ],
+          },
+          roomStreet: "$room._street",
+          roomDistrict: "$room._district",
+          roomCity: "$room._city",
+          roomServices: "$room._services",
+          roomUtilities: "$room._utilities",
+          roomArea: "$room._area",
+          roomPrice: "$room._price",
+          roomElectricPrice: "$room._electricPrice",
+          roomWaterPrice: "$room._waterPrice",
+          roomIsRented: "$room._isRented",
+          authorId: "$author._id",
+          authorFName: "$author._fname",
+          authorLName: "$author._lname",
+          phoneNumber: "$author._phone",
+          addressAuthor: "$author._address",
+          avatarAuthor: "$author._avatar",
+          inspectorId: "$inspector._id",
+          inspectorFName: "$inspector._fname",
+          inspectorLName: "$inspector._lname",
+        },
+      },
+    ])
+      .skip(pagination.offset)
+      .limit(pagination.limit);
+
+    if (posts.length <= 0) throw Errors.PageNotFound;
+
+    posts.forEach((post) => {
+      post._postingDateLocal = convertUTCtoLocal(post.updatedAt);
+      delete post.updatedAt;
+    });
+
+    return [
+      posts,
+      { page: pagination.page, limit: pagination.limit, total: totalPages },
+    ];
+  };
+
+  public getPostByIdAdmin = async (postId: string) => {
+    const post = await Posts.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(postId),
+        },
+      },
+      {
+        $lookup: {
+          from: "rooms",
+          localField: "_rooms",
+          foreignField: "_id",
+          as: "room",
+        },
+      },
+      { $unwind: "$room" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_uId",
+          foreignField: "_id",
+          as: "author",
+        },
+      },
+      { $unwind: "$author" },
+      {
+        $lookup: {
+          from: "tags",
+          localField: "_tags",
+          foreignField: "_id",
+          let: { id_tags: "$_tags" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $in: ["$_id", "$$id_tags"] },
+              },
+            },
+          ],
+          as: "tags",
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_inspectId",
+          foreignField: "_id",
+          as: "inspector",
+        },
+      },
+      { $unwind: "$inspector" },
+      {
+        $project: {
+          _id: 1,
+          _title: 1,
+          _content: 1,
+          _desc: 1,
+          updatedAt: 1,
+          _tags: "$tags",
+          _videos: 1,
+          _images: 1,
+          _inspectId: 1,
+          _status: 1,
+          roomId: "$room._id",
+          roomAddress: {
+            $concat: [
+              "$room._street",
+              ", Quận ",
+              "$room._district",
+              ", ",
+              "$room._city",
+            ],
+          },
+          roomStreet: "$room._street",
+          roomDistrict: "$room._district",
+          roomCity: "$room._city",
+          roomServices: "$room._services",
+          roomUtilities: "$room._utilities",
+          roomArea: "$room._area",
+          roomPrice: "$room._price",
+          roomElectricPrice: "$room._electricPrice",
+          roomWaterPrice: "$room._waterPrice",
+          roomIsRented: "$room._isRented",
+          authorId: "$author._id",
+          authorFName: "$author._fname",
+          authorLName: "$author._lname",
+          phoneNumber: "$author._phone",
+          addressAuthor: "$author._address",
+          avatarAuthor: "$author._avatar",
+          inspectorId: "$inspector._id",
+          inspectorFName: "$inspector._fname",
+          inspectorLName: "$inspector._lname",
+        },
+      },
+    ]);
+
+    if (post.length <= 0) throw Errors.PostNotFound;
+
+    post[0]._postingDateLocal = convertUTCtoLocal(post[0].updatedAt);
+    delete post[0].updatedAt;
+
+    return post[0];
+  };
 }

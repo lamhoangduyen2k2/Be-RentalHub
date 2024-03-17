@@ -131,4 +131,16 @@ route.patch(
   postsController.sensorPost
 );
 
+//Admin
+route.get(
+  "/admin-get-post-list",
+  authMiddleware.authorizedAdmin,
+  postsController.getPostsListByAdmin
+);
+route.get(
+  "/admin-get-post-id",
+  authMiddleware.authorizedAdmin,
+  postsController.getPostByIdAdmin
+);
+
 export default route;
