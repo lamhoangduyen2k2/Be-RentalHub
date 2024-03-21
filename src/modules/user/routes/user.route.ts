@@ -123,4 +123,14 @@ routerUser.get(
   userController.getInspectorList
 );
 
+routerUser.post(
+  "/send-sms",
+  userController.sendSMS
+);
+routerUser.post(
+  "/verify-sms",
+  userController.verifySMS
+);
+
+
 export default routerUser;

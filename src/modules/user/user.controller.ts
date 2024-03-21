@@ -369,4 +369,34 @@ export class UserController {
       next(error);
     }
   }
+
+  public sendSMS = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const updatedUser = await this.userService.sendSMS(
+        ["84818492109"],
+        "test noi dung sms",
+        2,
+        "84818492109"
+      );
+      res.json(new ResponseData(updatedUser, null, null));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public verifySMS = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const updatedUser = await this.userService.verifySMS(
+        req.body.phone,
+        req.body.otp
+      );
+      res.json(new ResponseData(updatedUser, null, null));
+    } catch (error) {
+      next(error);
+    }
+  };
 }
