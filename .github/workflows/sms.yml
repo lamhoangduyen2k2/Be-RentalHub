@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Demo Build
-        run: echo Hello Retool && exit 1
+        run: echo Hello Retool
 
       - name: Alerts
         uses: twilio-labs/actions-sms@v1
