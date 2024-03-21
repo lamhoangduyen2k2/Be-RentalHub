@@ -375,7 +375,7 @@ export class UserService {
     return true;
   };
 
-  //Inspector API
+  //Inspector
   public updateInspectorProfile = async (userParam: UpdateUserDTO) => {
     const inspector = await Users.findOne({
       $and: [{ _id: userParam._uId }, { _role: 2 }, { _active: true }],
