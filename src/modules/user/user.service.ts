@@ -23,10 +23,10 @@ import { UpdateInspectorPasswordDTO } from "./dtos/update-password-inspector.dto
 import { convertUTCtoLocal } from "../../helpers/ultil";
 import FormData from "form-data";
 import fs from "fs";
-require("esm-hook");
+//require("esm-hook");
 //const fetch = require("node-fetch").default;
-const http = require("http");
-const https = require("https");
+// const http = require("http");
+// const https = require("https");
 const client = require("twilio")(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
