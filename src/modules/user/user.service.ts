@@ -20,7 +20,7 @@ import { Pagination } from "../../helpers/response";
 import { UpdateInspectorPassDTO } from "./dtos/inspector-update-pass.dto";
 import { UpdateInspectorPasswordDTO } from "./dtos/update-password-inspector.dto";
 import { convertUTCtoLocal } from "../../helpers/ultil";
-import dayjs from "dayjs";
+
 
 @Service()
 export class UserService {
