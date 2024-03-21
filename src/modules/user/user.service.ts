@@ -459,7 +459,7 @@ export class UserService {
     return { message: "Login againt!" };
   };
 
-  //Admin API
+  //Admin
   public getUserList = async (pagination: Pagination) => {
     const count = await Users.countDocuments({ _role: 0 });
     if (count <= 0) throw Errors.UserNotFound;
