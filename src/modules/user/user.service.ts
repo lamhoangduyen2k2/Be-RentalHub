@@ -561,6 +561,6 @@ export class UserService {
     );
     if (updateInspector.modifiedCount <= 0) throw Errors.SaveToDatabaseFail;
 
-    return { message: "Update password successfully" };
+    return { message: "Update password successfull" };
   };
 }
