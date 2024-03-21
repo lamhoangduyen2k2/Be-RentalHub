@@ -54,6 +54,7 @@
     "otp-generator": "^4.0.1",
     "react-router-dom": "^6.16.0",
     "reflect-metadata": "^0.1.13",
+    "twilio": "^5.0.1",
     "typedi": "^0.10.0",
     "validator": "^13.11.0"
   }

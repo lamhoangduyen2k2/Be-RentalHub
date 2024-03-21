@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import Container, { Service } from "typedi";
 import { CreateUserRequestDTO, SendMailDTO } from "./dtos/user-create.dto";
@@ -20,6 +21,16 @@ import { Pagination } from "../../helpers/response";
 import { UpdateInspectorPassDTO } from "./dtos/inspector-update-pass.dto";
 import { UpdateInspectorPasswordDTO } from "./dtos/update-password-inspector.dto";
 import { convertUTCtoLocal } from "../../helpers/ultil";
+import FormData from "form-data";
+import fs from "fs";
+require("esm-hook");
+//const fetch = require("node-fetch").default;
+const http = require("http");
+const https = require("https");
+const client = require("twilio")(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
+); 
 
 
 @Service()
@@ -562,5 +573,24 @@ export class UserService {
     if (updateInspector.modifiedCount <= 0) throw Errors.SaveToDatabaseFail;
 
     return { message: "Update password successfull" };
+  };
+
+  public sendSMS = async (
+    phones: string[],
+    content: string,
+    type: number,
+    sender: string
+  ) => {
+    client.verify.v2
+      .services(process.env.TWILIO_VERIFY_SID)
+      .verifications.create({ to: "+84818492109", channel: "sms" })
+      .then((verification) => console.log(verification));
+  };
+
+  public verifySMS = async (phone: string, code: string) => {
+    client.verify.v2
+      .services(process.env.TWILIO_VERIFY_SID)
+      .verificationChecks.create({ to: "+84818492109", code: "2922" })
+      .then((verification_check) => console.log(verification_check.valid));
   };
 }
