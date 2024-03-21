@@ -13,8 +13,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-
       - name: 'Sending SMS OTP'
         uses: twilio-labs/actions-sms@v1
         with:
