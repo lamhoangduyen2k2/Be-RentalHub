@@ -18,8 +18,8 @@ jobs:
       - name: 'Sending SMS OTP'
         uses: twilio-labs/actions-sms@v1
         with:
-           fromPhoneNumber: '+1(234)5678901'
-           toPhoneNumber: '+1(234)3334444'
+           fromPhoneNumber: '+19164680573'
+           toPhoneNumber: '+84818492109'
            message: 'Hello from Twilio'
         env:
            TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
