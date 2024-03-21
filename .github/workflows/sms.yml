@@ -14,8 +14,6 @@ jobs:
       - name: Demo Build
         run: echo Hello Retool
 
-      - name: Alerts
-        uses: twilio-labs/actions-sms@v1
       - name: "Sending SMS OTP"
         uses: twilio-labs/actions-sms@v1
         with:
