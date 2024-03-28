@@ -30,8 +30,7 @@ import fs from "fs";
 const client = require("twilio")(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
-); 
-
+);
 
 @Service()
 export class UserService {
@@ -289,63 +288,103 @@ export class UserService {
     });
     if (userPhone) throw Errors.PhonenumberDuplicate;
 
+    const phone = userParam._phone.replace("0", "+84");
+
     //Kiểm tra user có quyền host hay chưa
     const user = await Users.findById(userParam._uId);
     if (user._isHost) throw Errors.UserIsHosted;
 
-    //Kiểm tra OTP có bị trùng không
-    const Otp = await OTP.findOne({ _uId: user._id });
-    if (Otp) throw Errors.OtpDuplicate;
+    await client.verify.v2
+      .services(process.env.TWILIO_VERIFY_SID)
+      .verifications.create({ to: phone, channel: "sms" })
+      .then((verification) => console.log(verification));
 
-    //Create otp
-    const otp: string = generate(6, {
-      digits: true,
-      lowerCaseAlphabets: false,
-      upperCaseAlphabets: false,
-      specialChars: false,
-    }).toString();
+    // //Kiểm tra OTP có bị trùng không
+    // const Otp = await OTP.findOne({ _uId: user._id });
+    // if (Otp) throw Errors.OtpDuplicate;
 
-    //Create payload for sendEmail
-    const payload: SendMailDTO = {
-      email: user._email,
-      subject: "Confirmation mail ✔",
-      text: "You are successful",
-      html: `<b>Congratulations, you have successfully hosted. Your code is ${otp}</b>`,
-    };
-    await this.otpService.sendEmail(payload);
+    // //Create otp
+    // const otp: string = generate(6, {
+    //   digits: true,
+    //   lowerCaseAlphabets: false,
+    //   upperCaseAlphabets: false,
+    //   specialChars: false,
+    // }).toString();
 
-    //Save this otp to database
-    const newOTP = await OTP.create({
-      _uId: user._id,
-      _otp: otp,
-      expiredAt: Date.now(),
-    });
-    if (!newOTP) throw Errors.SaveToDatabaseFail;
+    // //Create payload for sendEmail
+    // const payload: SendMailDTO = {
+    //   email: user._email,
+    //   subject: "Confirmation mail ✔",
+    //   text: "You are successful",
+    //   html: `<b>Congratulations, you have successfully hosted. Your code is ${otp}</b>`,
+    // };
+    // await this.otpService.sendEmail(payload);
 
-    //Save phonenumber for user
-    await Users.updateOne(
-      { _id: userParam._uId },
-      { _phone: userParam._phone }
-    );
+    // //Save this otp to database
+    // const newOTP = await OTP.create({
+    //   _uId: user._id,
+    //   _otp: otp,
+    //   expiredAt: Date.now(),
+    // });
+    // if (!newOTP) throw Errors.SaveToDatabaseFail;
+
+    // //Save phonenumber for user
+    // await Users.updateOne(
+    //   { _id: userParam._uId },
+    //   { _phone: userParam._phone }
+    // );
     return true;
   };
 
-  public verifyHost = async (userId: string, otp: string) => {
-    const checkOTP = await OTP.findOne({
-      $and: [{ _uId: userId }, { _otp: otp }],
-    });
+  public verifyHost = async (userId: string, phone: string, otp: string) => {
+    try {
+      const _phone = phone.replace("0", "+84");
 
-    if (!checkOTP) throw Errors.ExpiredOtp;
+      const result = await client.verify.v2
+        .services(process.env.TWILIO_VERIFY_SID)
+        .verificationChecks.create({ to: _phone, code: otp })
+        .then((verification_check) => {
+          console.log(
+            "🚀 ~ UserService ~ .then ~ verification_check:",
+            verification_check
+          );
+          return verification_check;
+        })
+        .catch((err) => {
+          console.log("🚀 ~ UserService ~ verifyHost= ~ err:", err);
+          throw Errors.ExpiredOtp;
+        });
 
-    const newUser = await Users.findByIdAndUpdate(
-      userId,
-      { _isHost: true },
-      { new: true }
-    );
+      if (!result.valid) throw Errors.OtpInvalid;
 
-    if (!newUser) Errors.SaveToDatabaseFail;
+      const newUser = await Users.findByIdAndUpdate(
+        userId,
+        { _isHost: true, _phone: phone },
+        { new: true }
+      );
 
-    return UserResponsesDTO.toResponse(newUser);
+      if (!newUser) Errors.SaveToDatabaseFail;
+
+      return UserResponsesDTO.toResponse(newUser);
+    } catch (error) {
+      console.log("🚀 ~ UserService ~ verifyHost= ~ error:", error);
+      throw error;
+    }
+    // const checkOTP = await OTP.findOne({
+    //   $and: [{ _uId: userId }, { _otp: otp }],
+    // });
+
+    // if (!checkOTP) throw Errors.ExpiredOtp;
+
+    // const newUser = await Users.findByIdAndUpdate(
+    //   userId,
+    //   { _isHost: true },
+    //   { new: true }
+    // );
+
+    // if (!newUser) Errors.SaveToDatabaseFail;
+
+    // return UserResponsesDTO.toResponse(newUser);
   };
 
   public resetOTP = async (userId: string) => {

@@ -179,6 +179,7 @@ export class UserController {
     try {
       const updatedUser = await this.userService.verifyHost(
         req.body._uId,
+        req.body.phone,
         req.body.otp
       );
       res.json(new ResponseData(updatedUser, null, null));
@@ -355,7 +356,7 @@ export class UserController {
     }
   };
 
-  public updateInspectorPassword = async ( 
+  public updateInspectorPassword = async (
     req: BodyResquest<UpdateInspectorPasswordDTO>,
     res: Response,
     next: NextFunction
@@ -368,7 +369,7 @@ export class UserController {
       console.log("🚀 ~ UserController ~ error:", error);
       next(error);
     }
-  }
+  };
 
   public sendSMS = async (req: Request, res: Response, next: NextFunction) => {
     try {

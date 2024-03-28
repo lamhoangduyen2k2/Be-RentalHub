@@ -138,6 +138,7 @@ export const Errors = {
   ),
 
   ExpiredOtp: new ErrorModel("OTP is expired", "EXPIRED_OTP", 400),
+  OtpInvalid: new ErrorModel("OTP is invalid", "OTP_INVALID", 400),
 
   //Errors for Post
   PostNotFound: new ErrorModel("Post not found!", "POST_NOTFOUND", 404),
