@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable no-fallthrough */
 import Container, { Service } from "typedi";
 import Posts from "./models/posts.model";
 import { PostCreateDTO } from "./dtos/post-create.dto";
@@ -232,14 +234,38 @@ export class PostsService {
     return true;
   };
 
-  public getAllPosts = async (pagination: Pagination) => {
+  public getAllPosts = async (pagination: Pagination, query: any) => {
+    //console.log("🚀 ~ PostsService ~ getAllPosts= ~ query:",  !!query.water);
+    let sort = {};
+
+    (() => {
+      query.rental && (sort = { ...sort, "room._price": Number(query.rental) });
+      query.electric &&
+        (sort = { ...sort, "room._electricPrice": Number(query.electric) });
+      query.water &&
+        (sort = { ...sort, "room._waterPrice": Number(query.water) });
+    })();
+
+    console.log("🚀 ~ PostsService ~ getAllPosts= ~ sort:", sort);
     const count = await Posts.countDocuments({ _status: 1 });
     const totalPages = Math.ceil(count / pagination.limit);
-    const condition = {
-      $match: {
-        $and: [{ _status: 1 }],
+
+    const condition = [];
+
+    if (Object.keys(sort).length > 0) {
+      condition.push( {
+        $match: {
+          $and: [{ _status: 1 }],
+        },
       },
-    };
+      { $sort: sort },)
+    } else {
+      condition.push({
+        $match: {
+          $and: [{ _status: 1 }],
+        },
+      },)
+    }
 
     const posts = await Posts.aggregate([
       {
@@ -260,7 +286,7 @@ export class PostsService {
         },
       },
       { $unwind: "$author" },
-      condition,
+      ...condition,
       {
         $project: {
           _id: 1,

@@ -20,7 +20,7 @@ export class PostsController {
   ) => {
     try {
       const pagination: Pagination = Pagination.getPagination(req);
-      const posts = await this.postsService.getAllPosts(pagination);
+      const posts = await this.postsService.getAllPosts(pagination, req.query);
       res.json(new ResponseData(posts[0], null, posts[1]));
     } catch (error) {
       console.log(error);
