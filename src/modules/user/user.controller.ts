@@ -189,6 +189,22 @@ export class UserController {
     }
   };
 
+  public verifyIndentity = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const image_front  = req.files["image_front"][0] as Express.Multer.File;
+      const image_back = req.files["image_back"][0] as Express.Multer.File;
+      const identity = await this.userService.verifyIdentity(req.body._uId, image_front, image_back);
+      res.json(new ResponseData(identity, null, null));
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  }
+
   public resetOtp = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const newUser = await this.userService.resetOTP(req.body._uId);
@@ -371,33 +387,33 @@ export class UserController {
     }
   };
 
-  public sendSMS = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const updatedUser = await this.userService.sendSMS(
-        ["84818492109"],
-        "test noi dung sms",
-        2,
-        "84818492109"
-      );
-      res.json(new ResponseData(updatedUser, null, null));
-    } catch (error) {
-      next(error);
-    }
-  };
+  // public sendSMS = async (req: Request, res: Response, next: NextFunction) => {
+  //   try {
+  //     const updatedUser = await this.userService.sendSMS(
+  //       ["84818492109"],
+  //       "test noi dung sms",
+  //       2,
+  //       "84818492109"
+  //     );
+  //     res.json(new ResponseData(updatedUser, null, null));
+  //   } catch (error) {
+  //     next(error);
+  //   }
+  // };
 
-  public verifySMS = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const updatedUser = await this.userService.verifySMS(
-        req.body.phone,
-        req.body.otp
-      );
-      res.json(new ResponseData(updatedUser, null, null));
-    } catch (error) {
-      next(error);
-    }
-  };
+  // public verifySMS = async (
+  //   req: Request,
+  //   res: Response,
+  //   next: NextFunction
+  // ) => {
+  //   try {
+  //     const updatedUser = await this.userService.verifySMS(
+  //       req.body.phone,
+  //       req.body.otp
+  //     );
+  //     res.json(new ResponseData(updatedUser, null, null));
+  //   } catch (error) {
+  //     next(error);
+  //   }
+  // };
 }

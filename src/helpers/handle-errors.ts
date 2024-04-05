@@ -58,9 +58,17 @@ export const Errors = {
 
   PwInvalid: new ErrorModel("Password invalid!", "PASSWORD_INVALID", 400),
 
-  OldpwNotFound: new ErrorModel("Old-Password not found!", "OLD_PASSWORD_NOTFOUND", 400),
+  OldpwNotFound: new ErrorModel(
+    "Old-Password not found!",
+    "OLD_PASSWORD_NOTFOUND",
+    400
+  ),
 
-  OldpwInvalid: new ErrorModel("Old-Password invalid!", "OLD_PASSWORD_INVALID", 400),
+  OldpwInvalid: new ErrorModel(
+    "Old-Password invalid!",
+    "OLD_PASSWORD_INVALID",
+    400
+  ),
 
   PwconfirmNotFound: new ErrorModel(
     "Password Confirm not found!",
@@ -267,6 +275,42 @@ export const Errors = {
     "NOTIFICATION_NOTFOUND",
     404
   ),
+
+  //Error for Indentity
+  ParametersInvalid: new ErrorModel(
+    "Invalid Parameters or Values!",
+    "PARAMETERS_VALUES_INVALID",
+    400
+  ),
+  CroppingFailed: new ErrorModel("Failed in cropping!", "CROPPING_FAILED", 400),
+  IDCardNotFound: new ErrorModel(
+    "Unable to find ID card in the image!",
+    "IDCARD_NOTFOUND",
+    400
+  ),
+  IDCardDuplicate: new ErrorModel(
+    "ID Card is duplicated!",
+    "IDCARD_DUPLICATE",
+    400
+  ),
+  UrlRequestNotFound: new ErrorModel(
+    "No URL in the request!",
+    "URL_REQUEST_NOTFOUND",
+    404
+  ),
+  UrlRequestCanNotOpen: new ErrorModel(
+    "Failed to open the URL!",
+    "URL_REQUEST_CAN_NOT_OPEN",
+    400
+  ),
+  ImageInvalid: new ErrorModel("Invalid image file!", "IMAGE_INVALID", 400),
+  BadData: new ErrorModel("Bad data!", "BAD_DATA", 400),
+  StringBase64NotFound: new ErrorModel(
+    "No string base64 in the request",
+    "STRING_BASE64_NOT_FOUND",
+    400
+  ),
+  StringBase64Invalid: new ErrorModel("String base64 is not valid!", "STRING_BASE64_INVALID", 400),
 };
 
 //Global error handler

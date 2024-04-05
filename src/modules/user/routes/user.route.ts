@@ -54,6 +54,12 @@ routerUser.post(
   userController.verifyHost
 );
 routerUser.post(
+  "/verify-indentity",
+  imageMiddleWare.upload.fields([{ name: "image_front", maxCount: 1 }, { name: "image_back", maxCount: 1 }]),
+  authMiddleware.authorizedUser,
+  userController.verifyIndentity
+);
+routerUser.post(
   "/accounts/reset-otp",
   authMiddleware.authorizedUser,
   userController.resetOtp
@@ -123,14 +129,14 @@ routerUser.get(
   userController.getInspectorList
 );
 
-routerUser.post(
-  "/send-sms",
-  userController.sendSMS
-);
-routerUser.post(
-  "/verify-sms",
-  userController.verifySMS
-);
+// routerUser.post(
+//   "/send-sms",
+//   userController.sendSMS
+// );
+// routerUser.post(
+//   "/verify-sms",
+//   userController.verifySMS
+// );
 
 
 export default routerUser;

@@ -1,14 +1,10 @@
 import { Exclude, Expose, Transform, plainToClass } from "class-transformer";
 import mongoose from "mongoose";
 
-export class CreateNotificationDTO {
+export class CreateNotificationInspectorDTO {
   @Expose()
   @Transform((value) => value.obj._uId.toString())
   _uId: mongoose.Types.ObjectId;
-
-  @Expose()
-  @Transform((value) => value.obj._postId.toString())
-  _postId: mongoose.Types.ObjectId | null;
 
   @Expose()
   _title: string;
@@ -23,7 +19,7 @@ export class CreateNotificationDTO {
   _type: string;
 
   static fromService(data: unknown) {
-    return plainToClass(CreateNotificationDTO, data, {
+    return plainToClass(CreateNotificationInspectorDTO, data, {
       excludeExtraneousValues: true,
     });
   }

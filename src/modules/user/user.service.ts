@@ -11,7 +11,7 @@ import { UserHostedDTO } from "./dtos/user-active-host.dto";
 import { UserResponsesDTO } from "./dtos/user-response.dto";
 import { UpdateUserDTO } from "./dtos/user-update.dto";
 import { ImageService } from "../image/image.service";
-import { ObjectId } from "mongoose";
+import mongoose, { ObjectId, mongo } from "mongoose";
 import { UserUpdateEmailOrPassDTO } from "./dtos/user-update-email-pass.dto";
 import { compare } from "bcrypt";
 import RefreshTokens from "../token/refresh.model";
@@ -23,6 +23,11 @@ import { UpdateInspectorPasswordDTO } from "./dtos/update-password-inspector.dto
 import { convertUTCtoLocal } from "../../helpers/ultil";
 import FormData from "form-data";
 import fs from "fs";
+import { Multer } from "multer";
+import { fetchIDRecognition } from "../../helpers/request";
+import Indentities from "./model/users-identity.model";
+import { NotificationService } from "../notification/notification.service";
+import { CreateNotificationInspectorDTO } from "../notification/dtos/create-notification-inspector.dto";
 //require("esm-hook");
 //const fetch = require("node-fetch").default;
 // const http = require("http");
@@ -36,6 +41,7 @@ const client = require("twilio")(
 export class UserService {
   otpService = Container.get(OTPService);
   imageService = Container.get(ImageService);
+  notificationService = Container.get(NotificationService);
 
   //User API
   public createNewUser = async (userParam: CreateUserRequestDTO) => {
@@ -359,7 +365,7 @@ export class UserService {
 
       const newUser = await Users.findByIdAndUpdate(
         userId,
-        { _isHost: true, _phone: phone },
+        { _phone: phone },
         { new: true }
       );
 
@@ -385,6 +391,100 @@ export class UserService {
     // if (!newUser) Errors.SaveToDatabaseFail;
 
     // return UserResponsesDTO.toResponse(newUser);
+  };
+
+  public verifyIdentity = async (
+    userId: string,
+    image_front: Express.Multer.File,
+    image_back: Express.Multer.File
+  ) => {
+    try {
+      let result;
+      const base64_front = image_front.buffer.toString("base64");
+      const base64_back = image_back.buffer.toString("base64");
+
+      const data_front = await fetchIDRecognition(base64_front);
+
+      const indentity = await Indentities.findOne({
+        $and: [{ _uId: { $ne: userId } }, { _idCard: data_front.id }],
+      });
+      if (indentity) throw Errors.IDCardDuplicate;
+
+      const data_back = await fetchIDRecognition(base64_back);
+      const resultIndentity = { ...data_front, ...data_back };
+      const checkIdentity = await Indentities.findOne({ _uId: userId });
+
+      if (checkIdentity) {
+        const updateIndentity = await Indentities.findOneAndUpdate(
+          { _uId: new mongoose.Types.ObjectId(userId) },
+          {
+            _idCard: resultIndentity.id,
+            _name: resultIndentity.name,
+            _dob: resultIndentity.dob,
+            _home: resultIndentity.home,
+            _address: resultIndentity.address,
+            _gender: resultIndentity.sex,
+            _nationality: resultIndentity.nationality
+              ? resultIndentity.nationality
+              : null,
+            _features: resultIndentity.features,
+            _issueDate: resultIndentity.issue_date,
+            _doe: resultIndentity.doe ? resultIndentity.doe : null,
+            _issueLoc: resultIndentity.issue_loc
+              ? resultIndentity.issue_loc
+              : null,
+            _type: data_front.type_new
+              ? data_front.type_new
+              : data_front.type,
+            _verified: false,
+          },
+          { new: true }
+        );
+        if (!updateIndentity) throw Errors.SaveToDatabaseFail;
+
+        result = updateIndentity;
+      } else {
+        const newIndentity = await Indentities.create({
+          _uId: new mongoose.Types.ObjectId(userId),
+          _idCard: resultIndentity.id,
+          _name: resultIndentity.name,
+          _dob: resultIndentity.dob,
+          _home: resultIndentity.home,
+          _address: resultIndentity.address,
+          _gender: resultIndentity.sex,
+          _nationality: resultIndentity.nationality
+            ? resultIndentity.nationality
+            : null,
+          _features: resultIndentity.features,
+          _issueDate: resultIndentity.issue_date,
+          _doe: resultIndentity.doe ? resultIndentity.doe : null,
+          _issueLoc: resultIndentity.issue_loc
+            ? resultIndentity.issue_loc
+            : null,
+          _type: data_front.type_new
+            ? data_front.type_new
+            : data_front.type,
+        });
+        if (!newIndentity) throw Errors.SaveToDatabaseFail;
+
+        result = newIndentity;
+      }
+      //Create notification for inspector
+      const notification = CreateNotificationInspectorDTO.fromService({
+        _uId: new mongoose.Types.ObjectId(userId),
+        _type: "ACTIVE_HOST",
+        _title: "Yêu cầu quyền host từ người dùng",
+        _message: `Người dùng mang id ${userId} đã gửi yêu cầu quyền host. Vui lòng kiểm tra thông tin và cấp quyền cho người dùng này`,
+      });
+      const newNotification = await this.notificationService.createNotification(notification);
+
+      if (!newNotification) throw Errors.SaveToDatabaseFail;
+
+      return result;
+    } catch (error) {
+      console.log("🚀 ~ UserService ~ error:", error);
+      throw error;
+    }
   };
 
   public resetOTP = async (userId: string) => {
@@ -614,22 +714,22 @@ export class UserService {
     return { message: "Update password successfull" };
   };
 
-  public sendSMS = async (
-    phones: string[],
-    content: string,
-    type: number,
-    sender: string
-  ) => {
-    client.verify.v2
-      .services(process.env.TWILIO_VERIFY_SID)
-      .verifications.create({ to: "+84818492109", channel: "sms" })
-      .then((verification) => console.log(verification));
-  };
+  // public sendSMS = async (
+  //   phones: string[],
+  //   content: string,
+  //   type: number,
+  //   sender: string
+  // ) => {
+  //   client.verify.v2
+  //     .services(process.env.TWILIO_VERIFY_SID)
+  //     .verifications.create({ to: "+84818492109", channel: "sms" })
+  //     .then((verification) => console.log(verification));
+  // };
 
-  public verifySMS = async (phone: string, code: string) => {
-    client.verify.v2
-      .services(process.env.TWILIO_VERIFY_SID)
-      .verificationChecks.create({ to: "+84818492109", code: "2922" })
-      .then((verification_check) => console.log(verification_check.valid));
-  };
+  // public verifySMS = async (phone: string, code: string) => {
+  //   client.verify.v2
+  //     .services(process.env.TWILIO_VERIFY_SID)
+  //     .verificationChecks.create({ to: "+84818492109", code: "2922" })
+  //     .then((verification_check) => console.log(verification_check.valid));
+  // };
 }

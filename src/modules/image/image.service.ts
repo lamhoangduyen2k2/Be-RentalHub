@@ -51,7 +51,7 @@ export class ImageService {
 
   public uploadAvatar = async (file: Express.Multer.File) => {
     //Convert file to base64
-    // const base64 = file.buffer.toString("base64");
+    //const base64 = file.buffer.toString("base64");
     // console.log("🚀 ~ ImageService ~ uploadAvatar= ~ base64:", base64)
     // Initialize Cloud Storage and get a reference to the service
     const storage = getStorage();
