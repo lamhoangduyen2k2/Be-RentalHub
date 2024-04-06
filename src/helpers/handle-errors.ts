@@ -277,6 +277,11 @@ export const Errors = {
   ),
 
   //Error for Indentity
+  UserIdentityNotFound: new ErrorModel(
+    "Identity of user not found!",
+    "USER_IDENTITY_NOTFOUND",
+    404
+  ),
   ParametersInvalid: new ErrorModel(
     "Invalid Parameters or Values!",
     "PARAMETERS_VALUES_INVALID",
@@ -310,7 +315,11 @@ export const Errors = {
     "STRING_BASE64_NOT_FOUND",
     400
   ),
-  StringBase64Invalid: new ErrorModel("String base64 is not valid!", "STRING_BASE64_INVALID", 400),
+  StringBase64Invalid: new ErrorModel(
+    "String base64 is not valid!",
+    "STRING_BASE64_INVALID",
+    400
+  ),
 };
 
 //Global error handler

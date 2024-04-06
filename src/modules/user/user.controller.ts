@@ -195,15 +195,19 @@ export class UserController {
     next: NextFunction
   ) => {
     try {
-      const image_front  = req.files["image_front"][0] as Express.Multer.File;
+      const image_front = req.files["image_front"][0] as Express.Multer.File;
       const image_back = req.files["image_back"][0] as Express.Multer.File;
-      const identity = await this.userService.verifyIdentity(req.body._uId, image_front, image_back);
+      const identity = await this.userService.verifyIdentity(
+        req.body._uId,
+        image_front,
+        image_back
+      );
       res.json(new ResponseData(identity, null, null));
     } catch (error) {
       console.log(error);
       next(error);
     }
-  }
+  };
 
   public resetOtp = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -239,6 +243,56 @@ export class UserController {
       const pagnantion = Pagination.getPagination(req);
       const inforUsers = await this.userService.getUserList(pagnantion);
       res.json(new ResponseData(inforUsers[0], null, inforUsers[1]));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public getActiveHostInspector = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const pagination = Pagination.getPagination(req);
+      const activeHosts = await this.userService.getActiveHostRequestsByStatus(
+        isNaN(Number(req.query.status)) ? -1 : Number(req.query.status),
+        pagination
+      );
+      res.json(new ResponseData(activeHosts[0], null, activeHosts[1]));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public getActiveHostByIdInspector = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const activeHost = await this.userService.getActiveHostRequestById(
+        req.query.userId.toString()
+      );
+      res.json(new ResponseData(activeHost, null, null));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public sensorActiveHostRequest = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const updatedHost = await this.userService.sensorActiveHostRequest(
+        req.body.identId,
+        isNaN(Number(req.body.status)) ? -1 : Number(req.body.status),
+        req.body.reason,
+        req.body._uId
+      );
+      res.json(new ResponseData(updatedHost, null, null));
     } catch (error) {
       next(error);
     }

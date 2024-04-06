@@ -6,10 +6,13 @@ import { CreateNotificationDTO } from "./dtos/create-notification.dto";
 import { GetNotificationsListDTO } from "./dtos/get-notification.dto";
 import mongoose from "mongoose";
 import { CreateNotificationInspectorDTO } from "./dtos/create-notification-inspector.dto";
+import { GetNotificationsInspectorDTO } from "./dtos/get-notificaion-inspector.dto";
 
 @Service()
 export class NotificationService {
-  public createNotification = async (data: CreateNotificationDTO | CreateNotificationInspectorDTO) => {
+  public createNotification = async (
+    data: CreateNotificationDTO | CreateNotificationInspectorDTO
+  ) => {
     const newNotification = Notification.create(data);
     if (!newNotification) throw Errors.SaveToDatabaseFail;
     return newNotification;
@@ -44,5 +47,20 @@ export class NotificationService {
     if (!notification) throw Errors.NotificationNotFound;
 
     return notification._postId;
+  };
+
+  public getNotificationsInspector = async () => {
+    const countNewNotifications = await Notification.countDocuments({
+      $and: [{ _type: "ACTIVE_HOST" }, { _read: false }],
+    });
+
+    const notifications = await Notification.find({ _type: "ACTIVE_HOST" });
+
+    const result = {
+      notifications: GetNotificationsInspectorDTO.toResponse(notifications),
+      totalNewNotification: countNewNotifications,
+    };
+
+    return result;
   };
 }

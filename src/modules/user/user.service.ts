@@ -11,7 +11,7 @@ import { UserHostedDTO } from "./dtos/user-active-host.dto";
 import { UserResponsesDTO } from "./dtos/user-response.dto";
 import { UpdateUserDTO } from "./dtos/user-update.dto";
 import { ImageService } from "../image/image.service";
-import mongoose, { ObjectId, mongo } from "mongoose";
+import mongoose, { ObjectId, PipelineStage, mongo } from "mongoose";
 import { UserUpdateEmailOrPassDTO } from "./dtos/user-update-email-pass.dto";
 import { compare } from "bcrypt";
 import RefreshTokens from "../token/refresh.model";
@@ -433,10 +433,9 @@ export class UserService {
             _issueLoc: resultIndentity.issue_loc
               ? resultIndentity.issue_loc
               : null,
-            _type: data_front.type_new
-              ? data_front.type_new
-              : data_front.type,
+            _type: data_front.type_new ? data_front.type_new : data_front.type,
             _verified: false,
+            _reason: null,
           },
           { new: true }
         );
@@ -461,9 +460,7 @@ export class UserService {
           _issueLoc: resultIndentity.issue_loc
             ? resultIndentity.issue_loc
             : null,
-          _type: data_front.type_new
-            ? data_front.type_new
-            : data_front.type,
+          _type: data_front.type_new ? data_front.type_new : data_front.type,
         });
         if (!newIndentity) throw Errors.SaveToDatabaseFail;
 
@@ -476,7 +473,9 @@ export class UserService {
         _title: "Yêu cầu quyền host từ người dùng",
         _message: `Người dùng mang id ${userId} đã gửi yêu cầu quyền host. Vui lòng kiểm tra thông tin và cấp quyền cho người dùng này`,
       });
-      const newNotification = await this.notificationService.createNotification(notification);
+      const newNotification = await this.notificationService.createNotification(
+        notification
+      );
 
       if (!newNotification) throw Errors.SaveToDatabaseFail;
 
@@ -607,6 +606,154 @@ export class UserService {
     await RefreshTokens.deleteMany({ _uId: userParam._uId });
 
     return { message: "Login againt!" };
+  };
+
+  public getActiveHostRequestsByStatus = async (
+    status: number,
+    pagination: Pagination
+  ) => {
+    let condition: PipelineStage;
+    let count: number = 0;
+    // Set condition and count follow status
+    if (status === 0) {
+      count = await Indentities.countDocuments({
+        $and: [{ _verified: false }, { _reason: null }],
+      });
+      condition = {
+        $match: { $and: [{ _verified: false }, { _reason: null }] },
+      };
+    } else if (status === 1) {
+      count = await Indentities.countDocuments({ _verified: true });
+      condition = { $match: { _verified: true } };
+    } else if (status === 2) {
+      count = await Indentities.countDocuments({
+        $and: [{ _verified: false }, { _reason: { $ne: null } }],
+      });
+      condition = {
+        $match: { $and: [{ _verified: false }, { _reason: { $ne: null } }] },
+      };
+    } else throw Errors.StatusInvalid;
+
+    if (count <= 0) throw Errors.UserIdentityNotFound;
+
+    const totalPages = Math.ceil(count / pagination.limit);
+
+    if (pagination.page > totalPages) throw Errors.PageNotFound;
+
+    const userIdentities = await Indentities.aggregate([
+      condition,
+      {
+        $lookup: {
+          from: "users",
+          localField: "_uId",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      { $unwind: "$user" },
+      {
+        $project: {
+          _id: 1,
+          _uId: "$user._id",
+          _name: 1,
+          _dob: 1,
+          _home: 1,
+          _address: 1,
+          _fullname: { $concat: ["$user._lname", " ", "$user._fname"] },
+          updatedAt: 1,
+        },
+      },
+    ])
+      .skip(pagination.offset)
+      .limit(pagination.limit);
+
+    if (userIdentities.length <= 0) throw Errors.UserIdentityNotFound;
+
+    userIdentities.forEach((ident) => {
+      ident._date = convertUTCtoLocal(ident.updatedAt);
+      delete ident.updatedAt;
+    });
+
+    return [
+      userIdentities,
+      { page: pagination.page, limit: pagination.limit, total: totalPages },
+    ];
+  };
+
+  public getActiveHostRequestById = async (userId: string) => {
+    const userIdentity = await Indentities.findOne({
+      _uId: new mongoose.Types.ObjectId(userId),
+    });
+    if (!userIdentity) throw Errors.UserIdentityNotFound;
+
+    return userIdentity;
+  };
+
+  public sensorActiveHostRequest = async (
+    identId: string,
+    status: number,
+    reason: string,
+    inspectorId: string
+  ) => {
+    let updateObj = {};
+    let notification: CreateNotificationInspectorDTO;
+    const userIdentity = await Indentities.findOne({ _id: identId });
+    if (!userIdentity) throw Errors.UserIdentityNotFound;
+
+    if (status === 1) {
+      updateObj = {
+        ...updateObj,
+        _verified: true,
+        _reason: reason,
+        _inspectorId: new mongoose.Types.ObjectId(inspectorId),
+      };
+      notification = CreateNotificationInspectorDTO.fromService({
+        _uId: userIdentity._uId,
+        _type: "ACTIVE_HOST_SUCCESS",
+        _title: "Thông báo xác thực quyền host thành công",
+        _message:
+          "Thông tin của bạn đã được xác thực. Bạn đã có thể sử dụng quyền host (Đăng kí địa chỉ, Đăng bài)",
+      });
+    } else if (status === 2) {
+      updateObj = {
+        ...updateObj,
+        _verified: false,
+        _reason: reason,
+        _inspectorId: new mongoose.Types.ObjectId(inspectorId),
+      };
+      notification = CreateNotificationInspectorDTO.fromService({
+        _uId: userIdentity._uId,
+        _type: "ACTIVE_HOST_FAIL",
+        _title: "Thông báo xác thực quyền host thất bại",
+        _message: `Thông tin của bạn không đúng. Lý do: ${reason}. Vui lòng kiểm tra lại thông tin và thử lại`,
+      });
+    } else throw Errors.StatusInvalid;
+
+    const updateIdentity = await Indentities.findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(identId) },
+      updateObj,
+      { new: true }
+    );
+
+    if (!updateIdentity) throw Errors.SaveToDatabaseFail;
+
+    if (status === 1) {
+      const updateUser = await Users.findOneAndUpdate(
+        { _id: new mongoose.Types.ObjectId(userIdentity._uId) },
+        { _isHost: true },
+        { new: true }
+      );
+
+      if (!updateUser) throw Errors.SaveToDatabaseFail;
+    }
+
+    const newNotification = await this.notificationService.createNotification(
+      notification
+    );
+
+    if (!newNotification) throw Errors.SaveToDatabaseFail;
+
+    return updateIdentity;
   };
 
   //Admin

@@ -51,5 +51,20 @@ inspectorRoute.post(
   "/reset-password/:id/:token",
   userController.resetPassword
 );
+inspectorRoute.get(
+  "/get-active-host",
+  authMiddleware.authorizedInspector,
+  userController.getActiveHostInspector
+);
+inspectorRoute.get(
+  "/get-active-host-by-id",
+  authMiddleware.authorizedInspector,
+  userController.getActiveHostByIdInspector
+);
+inspectorRoute.patch(
+  "/sensor-active-host",
+  authMiddleware.authorizedInspector,
+  userController.sensorActiveHostRequest
+);
 
 export default inspectorRoute;

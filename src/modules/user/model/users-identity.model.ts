@@ -60,6 +60,14 @@ const userIdentitySchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    _inspectorId: {
+      type: Schema.Types.ObjectId,
+      default: null,
+    },
+    _reason: {
+      type: String,
+      default: null,
+    }
   },
   { timestamps: true }
 );

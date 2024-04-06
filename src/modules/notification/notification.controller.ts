@@ -23,4 +23,19 @@ export class NotificationController {
       next(error);
     }
   };
+
+  public getNotificationsInspector = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const notifications = await this.notificationService.getNotificationsInspector();
+
+      res.json(new ResponseData(notifications, null, null));
+    } catch (error) {
+      console.log("🚀 ~ NotificationController ~ error:", error);
+      next(error);
+    }
+  }
 }

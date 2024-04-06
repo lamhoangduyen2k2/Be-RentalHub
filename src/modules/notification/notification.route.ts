@@ -12,5 +12,9 @@ notifiRoute.get(
   authMiddleware.authorizedUser,
   notifiController.getNotificationsList
 );
-
+notifiRoute.get(
+  "/get-notifi-inspector",
+  authMiddleware.authorizedInspector,
+  notifiController.getNotificationsInspector
+);
 export default notifiRoute;
