@@ -9,6 +9,7 @@ import { UserUpdateEmailOrPassDTO } from "./dtos/user-update-email-pass.dto";
 import { UserForgotPassDTO } from "./dtos/user-forgot-pass.dto";
 import { UpdateInspectorPassDTO } from "./dtos/inspector-update-pass.dto";
 import { UpdateInspectorPasswordDTO } from "./dtos/update-password-inspector.dto";
+import { SensorIdenityDTO } from "./dtos/sensor-identity.dto";
 
 @Service()
 export class UserMiddleWare {
@@ -119,5 +120,24 @@ export class UserMiddleWare {
       next(err);
     }
   }
+
+  public checkValidationSensorIdentity = async (
+    req: BodyResquest<SensorIdenityDTO>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const inforSensor = SensorIdenityDTO.fromRequest(req);
+      const errors: ValidationError[] = await validate(inforSensor);
+
+      if (errors[0]) throw errors;
+
+      next();
+    } catch (error) {
+      const err = handleErrorOfValidation(error);
+      next(err);
+    }
+  }
+
 
 }

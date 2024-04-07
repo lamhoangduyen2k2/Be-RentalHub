@@ -697,7 +697,9 @@ export class UserService {
   ) => {
     let updateObj = {};
     let notification: CreateNotificationInspectorDTO;
-    const userIdentity = await Indentities.findOne({ _id: identId });
+    const userIdentity = await Indentities.findOne({
+      $and: [{ _id: identId }, { _reason: null }, { _verified: false }],
+    });
     if (!userIdentity) throw Errors.UserIdentityNotFound;
 
     if (status === 1) {

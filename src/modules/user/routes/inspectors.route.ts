@@ -64,6 +64,7 @@ inspectorRoute.get(
 inspectorRoute.patch(
   "/sensor-active-host",
   authMiddleware.authorizedInspector,
+  userMiddleWare.checkValidationSensorIdentity,
   userController.sensorActiveHostRequest
 );
 

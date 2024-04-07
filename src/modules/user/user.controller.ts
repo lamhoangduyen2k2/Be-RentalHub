@@ -9,6 +9,7 @@ import { UpdateUserDTO } from "./dtos/user-update.dto";
 import { UserUpdateEmailOrPassDTO } from "./dtos/user-update-email-pass.dto";
 import { UpdateInspectorPassDTO } from "./dtos/inspector-update-pass.dto";
 import { UpdateInspectorPasswordDTO } from "./dtos/update-password-inspector.dto";
+import { SensorIdenityDTO } from "./dtos/sensor-identity.dto";
 
 @Service()
 export class UserController {
@@ -281,16 +282,17 @@ export class UserController {
   };
 
   public sensorActiveHostRequest = async (
-    req: Request,
+    req: BodyResquest<SensorIdenityDTO>,
     res: Response,
     next: NextFunction
   ) => {
     try {
+      const sensorInfo = SensorIdenityDTO.fromRequest(req);
       const updatedHost = await this.userService.sensorActiveHostRequest(
-        req.body.identId,
-        isNaN(Number(req.body.status)) ? -1 : Number(req.body.status),
-        req.body.reason,
-        req.body._uId
+        sensorInfo.identId,
+        isNaN(Number(sensorInfo.status)) ? -1 : Number(sensorInfo.status),
+        sensorInfo.reason,
+        sensorInfo._uId
       );
       res.json(new ResponseData(updatedHost, null, null));
     } catch (error) {

@@ -320,6 +320,10 @@ export const Errors = {
     "STRING_BASE64_INVALID",
     400
   ),
+  IdentIdNotFound: new ErrorModel( "IdentId not found!", "IDENTID_NOTFOUND", 404),
+  StatusNotFound : new ErrorModel("Status not found!", "STATUS_NOTFOUND", 404),
+  ReasonNotFound : new ErrorModel("Reason not found!", "REASON_NOTFOUND", 404),
+  ReasonInvalid : new ErrorModel("Reason invalid!", "REASON_INVALID", 400),
 };
 
 //Global error handler
