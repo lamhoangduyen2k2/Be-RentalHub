@@ -28,6 +28,7 @@ import { fetchIDRecognition } from "../../helpers/request";
 import Indentities from "./model/users-identity.model";
 import { NotificationService } from "../notification/notification.service";
 import { CreateNotificationInspectorDTO } from "../notification/dtos/create-notification-inspector.dto";
+import Notification from "../notification/notification.model";
 //require("esm-hook");
 //const fetch = require("node-fetch").default;
 // const http = require("http");
@@ -680,11 +681,24 @@ export class UserService {
     ];
   };
 
-  public getActiveHostRequestById = async (userId: string) => {
+  public getActiveHostRequestById = async (userId: string, notiId?: string) => {
     const userIdentity = await Indentities.findOne({
       _uId: new mongoose.Types.ObjectId(userId),
     });
     if (!userIdentity) throw Errors.UserIdentityNotFound;
+
+    if (notiId) {
+      await Notification.findOneAndUpdate(
+        {
+          $and: [
+            { _id: new mongoose.Types.ObjectId(notiId) },
+            { _read: false },
+          ],
+        },
+        { _read: true },
+        { new: true }
+      );
+    }
 
     return userIdentity;
   };
