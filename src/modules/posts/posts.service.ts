@@ -235,36 +235,54 @@ export class PostsService {
   };
 
   public getAllPosts = async (pagination: Pagination, query: any) => {
-    //console.log("🚀 ~ PostsService ~ getAllPosts= ~ query:",  !!query.water);
     let sort = {};
+    let arrange = [];
 
-    (() => {
-      query.rental && (sort = { ...sort, "room._price": Number(query.rental) });
-      query.electric &&
-        (sort = { ...sort, "room._electricPrice": Number(query.electric) });
-      query.water &&
-        (sort = { ...sort, "room._waterPrice": Number(query.water) });
-    })();
+    Object.keys(query).forEach((key) => {
+      switch (key) {
+        case "rental":
+          sort = { ...sort, "room._price": Number(query.rental) };
+          break;
+        case "electric":
+          sort = { ...sort, "room._electricPrice": Number(query.electric) };
+          break;
+        case "water":
+          sort = { ...sort, "room._waterPrice": Number(query.water) };
+          break;
+        case "less":
+          arrange = [...arrange, { "room._price": { $lte: Number(query.less) } }];
+          break;
+        case "greater":
+          arrange = [
+            ...arrange,
+            { "room._price": { $gte: Number(query.greater) } },
+          ];
+          break;
+        default:
+          break;
+      }
+    });
 
-    console.log("🚀 ~ PostsService ~ getAllPosts= ~ sort:", sort);
     const count = await Posts.countDocuments({ _status: 1 });
     const totalPages = Math.ceil(count / pagination.limit);
 
     const condition = [];
 
     if (Object.keys(sort).length > 0) {
-      condition.push( {
-        $match: {
-          $and: [{ _status: 1 }],
+      condition.push(
+        {
+          $match: {
+            $and: [{ _status: 1 }, ...arrange],
+          },
         },
-      },
-      { $sort: sort },)
+        { $sort: sort }
+      );
     } else {
       condition.push({
         $match: {
-          $and: [{ _status: 1 }],
+          $and: [{ _status: 1 }, ...arrange],
         },
-      },)
+      });
     }
 
     const posts = await Posts.aggregate([
