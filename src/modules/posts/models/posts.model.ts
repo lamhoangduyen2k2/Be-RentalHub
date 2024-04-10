@@ -12,10 +12,6 @@ const postsSchema = new mongoose.Schema(
       type: String,
       required: [true, "Content is required"],
     },
-    // _postingDate: {
-    //   type: Date,
-    //   default: Date.now(),
-    // },
     _status: {
       type: Schema.Types.Number,
       default: 0, //O: draft, 1: public, 2: delete, 3: reported

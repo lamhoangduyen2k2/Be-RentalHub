@@ -58,6 +58,10 @@ const usersSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  _addressRetal: {
+    type: [String],
+    default: [],
+  }
 });
 
 usersSchema.pre("save", async function (next: NextFunction) {

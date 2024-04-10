@@ -55,7 +55,10 @@ routerUser.post(
 );
 routerUser.post(
   "/verify-indentity",
-  imageMiddleWare.upload.fields([{ name: "image_front", maxCount: 1 }, { name: "image_back", maxCount: 1 }]),
+  imageMiddleWare.upload.fields([
+    { name: "image_front", maxCount: 1 },
+    { name: "image_back", maxCount: 1 },
+  ]),
   authMiddleware.authorizedUser,
   userController.verifyIndentity
 );
@@ -137,6 +140,12 @@ routerUser.get(
 //   "/verify-sms",
 //   userController.verifySMS
 // );
-
+routerUser.post(
+  "/register-address",
+  imageMiddleWare.upload.array("_licenses"),
+  imageMiddleWare.checkUploadImages,
+  authMiddleware.authorizedUser,
+  userController.registerAddress
+);
 
 export default routerUser;

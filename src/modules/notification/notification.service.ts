@@ -25,7 +25,7 @@ export class NotificationService {
 
     const notifications = await Notification.find({
       _uId: userId,
-    });
+    }).sort({ _read: 1 });
 
     const result = {
       notifications: GetNotificationsListDTO.toResponse(notifications),
@@ -42,19 +42,29 @@ export class NotificationService {
       },
       {
         _read: true,
-      }
+      },
+      { new: true }
     );
     if (!notification) throw Errors.NotificationNotFound;
 
-    return notification._postId;
+    const resultId = notification._postId
+      ? notification._postId
+      : notification._uId;
+
+    return resultId;
   };
 
   public getNotificationsInspector = async () => {
     const countNewNotifications = await Notification.countDocuments({
-      $and: [{ _type: "ACTIVE_HOST" }, { _read: false }],
+      $and: [
+        { _type: { $in: ["ACTIVE_HOST", "REGISTER_ADDRESS"] } },
+        { _read: false },
+      ],
     });
 
-    const notifications = await Notification.find({ _type: "ACTIVE_HOST" });
+    const notifications = await Notification.find({
+      _type: { $in: ["ACTIVE_HOST", "REGISTER_ADDRESS"] },
+    });
 
     const result = {
       notifications: GetNotificationsInspectorDTO.toResponse(notifications),

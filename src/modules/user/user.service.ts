@@ -29,6 +29,7 @@ import Indentities from "./model/users-identity.model";
 import { NotificationService } from "../notification/notification.service";
 import { CreateNotificationInspectorDTO } from "../notification/dtos/create-notification-inspector.dto";
 import Notification from "../notification/notification.model";
+import addressRental from "./model/user-address.model";
 //require("esm-hook");
 //const fetch = require("node-fetch").default;
 // const http = require("http");
@@ -525,6 +526,43 @@ export class UserService {
     return true;
   };
 
+  public registerAddress = async (
+    address: string,
+    totalRooms: number,
+    userId: string,
+    img: Express.Multer.File[]
+  ) => {
+    const user = await Users.findOne({ _id: userId });
+    if (!user) throw Errors.UserNotFound;
+    if (!user._isHost) throw Errors.Unauthorized;
+
+    //upload certificate image to firebase
+    const urlCerf = await this.imageService.uploadCerf(img, userId);
+    if (!urlCerf) throw Errors.UploadImageFail;
+
+    const addressUser = await addressRental.create({
+      _uId: new mongoose.Types.ObjectId(userId),
+      _address: address,
+      _totalRoom: totalRooms ? totalRooms : 1,
+      _imgLicense: urlCerf,
+    });
+    if (!addressUser) throw Errors.SaveToDatabaseFail;
+
+    //create notification for inspector
+    const notification = CreateNotificationInspectorDTO.fromService({
+      _uId: user._id,
+      _type: "REGISTER_ADDRESS",
+      _title: "Yêu cầu đăng kí địa chỉ host",
+      _message: `Người dùng mang id ${userId} đã gửi yêu cầu đăng kí địa chỉ phòng trọ. Vui lòng kiểm tra thông tin và cấp quyền cho người dùng này`,
+    });
+    const newNotification = await this.notificationService.createNotification(
+      notification
+    );
+    if (!newNotification) throw Errors.SaveToDatabaseFail;
+
+    return addressUser;
+  };
+
   //Inspector
   public updateInspectorProfile = async (userParam: UpdateUserDTO) => {
     const inspector = await Users.findOne({
@@ -681,7 +719,7 @@ export class UserService {
     ];
   };
 
-  public getActiveHostRequestById = async (userId: string, notiId?: string) => {
+  public getActiveHostRequestById = async (userId: string, notiId: string) => {
     const userIdentity = await Indentities.findOne({
       _uId: new mongoose.Types.ObjectId(userId),
     });
@@ -771,6 +809,128 @@ export class UserService {
 
     return updateIdentity;
   };
+
+  public getAddressRequestsByStatus = async (
+    status: number,
+    pagination: Pagination
+  ) => {
+    const count: number = await addressRental.countDocuments({
+      _status: status,
+    });
+    if (count <= 0) throw Errors.UserIdentityNotFound;
+
+    const totalPages = Math.ceil(count / pagination.limit);
+
+    if (pagination.page > totalPages) throw Errors.PageNotFound;
+
+    const addressRequests = await addressRental
+      .aggregate([
+        { $match: { _status: status } },
+        {
+          $lookup: {
+            from: "users",
+            localField: "_uId",
+            foreignField: "_id",
+            as: "user",
+          },
+        },
+        { $unwind: "$user" },
+        {
+          $project: {
+            _id: 1,
+            _uId: "$user._id",
+            _address: 1,
+            _totalRoom: 1,
+            _imgLicense: 1,
+            _fullname: { $concat: ["$user._lname", " ", "$user._fname"] },
+            updatedAt: 1,
+          },
+        },
+      ])
+      .skip(pagination.offset)
+      .limit(pagination.limit);
+
+    if (addressRequests.length <= 0) throw Errors.PageNotFound;
+
+    addressRequests.forEach((address) => {
+      address._date = convertUTCtoLocal(address.updatedAt);
+      delete address.updatedAt;
+    });
+
+    return [
+      addressRequests,
+      { page: pagination.page, limit: pagination.limit, total: totalPages },
+    ];
+  };
+
+  public getAddressRequestById = async (addressId: string, notiId: string) => {
+    const addressRequest = await addressRental.findOne({
+      _id: new mongoose.Types.ObjectId(addressId),
+    });
+    if (!addressRequest) throw Errors.AddressRentakNotFound;
+
+    if (notiId) {
+      const userId = await this.notificationService.getNotificationById(notiId);
+      if (!userId) throw Errors.SaveToDatabaseFail;
+    }
+
+    return addressRequest;
+  };
+
+  public sensorAddressRequest = async ( addressId: string, status: number, reason: string, inspectorId: string) => {
+    let updateObj = {};
+    let notification: CreateNotificationInspectorDTO;
+
+    const addressRequest = await addressRental.findOne({
+      $and: [{ _id: addressId }, { _status: 0 }],
+    });
+    if (!addressRequest) throw Errors.AddressRentakNotFound;
+
+    if (status === 1) {
+      updateObj = {
+        ...updateObj,
+        _status: 1,
+        _reason: reason,
+        _inspectorId: new mongoose.Types.ObjectId(inspectorId),
+      };
+      notification = CreateNotificationInspectorDTO.fromService({
+        _uId: addressRequest._uId,
+        _type: "REGISTER_ADDRESS_SUCCESS",
+        _title: "Thông báo xác thực địa chỉ host thành công",
+        _message:
+          "Thông tin địa chỉ trọ của bạn đã được xác thực. Bạn đã có thể sử dụng địa chỉ này để đăng bài",
+      });
+    } else if (status === 2) {
+      updateObj = {
+        ...updateObj,
+        _status: 2,
+        _reason: reason,
+        _inspectorId: new mongoose.Types.ObjectId(inspectorId),
+      };
+      notification = CreateNotificationInspectorDTO.fromService({
+        _uId: addressRequest._uId,
+        _type: "REGISTER_ADDRESS_FAIL",
+        _title: "Thông báo xác thực địa chỉ host thất bại",
+        _message: `Thông tin địa chỉ của bạn không đúng. Lý do: ${reason}. Vui lòng kiểm tra lại thông tin và thử lại`,
+      });
+    } else throw Errors.StatusInvalid;
+
+    const updateAddress = await addressRental.findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(addressId) },
+      updateObj,
+      { new: true }
+    );
+
+    if (!updateAddress) throw Errors.SaveToDatabaseFail;
+
+    const newNotification = await this.notificationService.createNotification(
+      notification
+    );
+
+    if (!newNotification) throw Errors.SaveToDatabaseFail;
+
+    return updateAddress;
+  }
 
   //Admin
   public getUserList = async (pagination: Pagination) => {

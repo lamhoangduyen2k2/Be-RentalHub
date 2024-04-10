@@ -210,6 +210,27 @@ export class UserController {
     }
   };
 
+  public registerAddress = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const image = req.files as Express.Multer.File[];
+      const address = await this.userService.registerAddress(
+        req.body._uId,
+        req.body._address,
+        req.body._totalRoom,
+        image
+      );
+
+      res.json(new ResponseData(address, null, null));
+    } catch (error) {
+      console.log("🚀 ~ UserController ~ error:", error);
+      next(error);
+    }
+  };
+
   public resetOtp = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const newUser = await this.userService.resetOTP(req.body._uId);
@@ -273,7 +294,8 @@ export class UserController {
   ) => {
     try {
       const activeHost = await this.userService.getActiveHostRequestById(
-        req.query.userId.toString()
+        req.query.userId.toString(),
+        req.query.notiId ? req.query.notiId.toString() : null
       );
       res.json(new ResponseData(activeHost, null, null));
     } catch (error) {

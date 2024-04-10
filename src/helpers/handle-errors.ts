@@ -324,6 +324,13 @@ export const Errors = {
   StatusNotFound : new ErrorModel("Status not found!", "STATUS_NOTFOUND", 404),
   ReasonNotFound : new ErrorModel("Reason not found!", "REASON_NOTFOUND", 404),
   ReasonInvalid : new ErrorModel("Reason invalid!", "REASON_INVALID", 400),
+
+  //Error for Address Rental
+  AddressRentakNotFound: new ErrorModel(
+    "Address rental not found!",
+    "ADDRESS_RENTAL_NOTFOUND",
+    404
+  ),
 };
 
 //Global error handler
