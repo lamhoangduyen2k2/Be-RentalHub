@@ -1056,7 +1056,7 @@ export class PostsService {
       },
     };
 
-    //Push condition of joining tables
+    //Push condition of joining table
     pipeline.push(
       {
         $lookup: {
