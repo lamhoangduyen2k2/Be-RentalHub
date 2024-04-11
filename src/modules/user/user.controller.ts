@@ -15,6 +15,7 @@ import { SensorIdenityDTO } from "./dtos/sensor-identity.dto";
 export class UserController {
   constructor(@Inject() private userService: UserService) {}
 
+  //Customer
   public registor = async (
     req: BodyResquest<CreateUserRequestDTO>,
     res: Response,
@@ -218,9 +219,9 @@ export class UserController {
     try {
       const image = req.files as Express.Multer.File[];
       const address = await this.userService.registerAddress(
-        req.body._uId,
         req.body._address,
-        req.body._totalRoom,
+        isNaN(Number(req.body._totalRoom)) ? -1 : Number(req.body._totalRoom),
+        req.body._uId,
         image
       );
 
@@ -256,6 +257,7 @@ export class UserController {
     }
   };
 
+  //Inspector
   public getUserList = async (
     req: Request,
     res: Response,
@@ -311,7 +313,7 @@ export class UserController {
     try {
       const sensorInfo = SensorIdenityDTO.fromRequest(req);
       const updatedHost = await this.userService.sensorActiveHostRequest(
-        sensorInfo.identId,
+        sensorInfo.id,
         isNaN(Number(sensorInfo.status)) ? -1 : Number(sensorInfo.status),
         sensorInfo.reason,
         sensorInfo._uId
@@ -338,6 +340,60 @@ export class UserController {
     }
   };
 
+  public getAddressRequestsByStatusInspector = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const pagination = Pagination.getPagination(req);
+      const addressRequests = await this.userService.getAddressRequestsByStatus(
+        isNaN(Number(req.query.status)) ? -1 : Number(req.query.status),
+        pagination
+      );
+      res.json(new ResponseData(addressRequests[0], null, addressRequests[1]));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public getAddressRequestByIdInspector = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const addressRequest = await this.userService.getAddressRequestById(
+        req.query.addressId.toString(),
+        req.query.notiId ? req.query.notiId.toString() : null
+      );
+      res.json(new ResponseData(addressRequest, null, null));
+    } catch (error) {
+      console.log("🚀 ~ UserController ~ error:", error)
+      next(error);
+    }
+  };
+
+  public sensorAddressRequestInspector = async (
+    req: BodyResquest<SensorIdenityDTO>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const sensorInfo = SensorIdenityDTO.fromRequest(req);
+      const updatedAddress = await this.userService.sensorAddressRequest(
+        sensorInfo.id,
+        isNaN(Number(sensorInfo.status)) ? -1 : Number(sensorInfo.status),
+        sensorInfo.reason,
+        sensorInfo._uId
+      );
+      res.json(new ResponseData(updatedAddress, null, null));
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  //Admin
   public createInspector = async (
     req: BodyResquest<CreateUserRequestDTO>,
     res: Response,

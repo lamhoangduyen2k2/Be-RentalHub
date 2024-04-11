@@ -121,7 +121,7 @@ export class UserMiddleWare {
     }
   }
 
-  public checkValidationSensorIdentity = async (
+  public checkValidationSensor = async (
     req: BodyResquest<SensorIdenityDTO>,
     res: Response,
     next: NextFunction

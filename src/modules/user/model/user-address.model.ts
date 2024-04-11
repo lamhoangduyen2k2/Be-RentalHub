@@ -24,6 +24,10 @@ const addressRentalSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    _active: {
+      type: Boolean,
+      default: true,
+    },
     _inspectorId: {
       type: Schema.Types.ObjectId,
       default: null,

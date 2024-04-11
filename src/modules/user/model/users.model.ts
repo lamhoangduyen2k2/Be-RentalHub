@@ -58,7 +58,7 @@ const usersSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  _addressRetal: {
+  _addressRental: {
     type: [String],
     default: [],
   }

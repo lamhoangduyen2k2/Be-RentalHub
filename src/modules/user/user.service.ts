@@ -814,6 +814,8 @@ export class UserService {
     status: number,
     pagination: Pagination
   ) => {
+    if (status === -1) throw Errors.StatusInvalid;
+
     const count: number = await addressRental.countDocuments({
       _status: status,
     });
@@ -877,14 +879,23 @@ export class UserService {
     return addressRequest;
   };
 
-  public sensorAddressRequest = async ( addressId: string, status: number, reason: string, inspectorId: string) => {
+  public sensorAddressRequest = async (
+    addressId: string,
+    status: number,
+    reason: string,
+    inspectorId: string
+  ) => {
     let updateObj = {};
     let notification: CreateNotificationInspectorDTO;
+    let newAddressRental = [];
 
     const addressRequest = await addressRental.findOne({
       $and: [{ _id: addressId }, { _status: 0 }],
     });
     if (!addressRequest) throw Errors.AddressRentakNotFound;
+
+    const user = await Users.findOne({ _id: addressRequest._uId });
+    if (!user || !user._isHost) throw Errors.UserNotFound;
 
     if (status === 1) {
       updateObj = {
@@ -900,6 +911,7 @@ export class UserService {
         _message:
           "Thông tin địa chỉ trọ của bạn đã được xác thực. Bạn đã có thể sử dụng địa chỉ này để đăng bài",
       });
+      newAddressRental = [...user._addressRental, addressRequest._address];
     } else if (status === 2) {
       updateObj = {
         ...updateObj,
@@ -923,6 +935,15 @@ export class UserService {
 
     if (!updateAddress) throw Errors.SaveToDatabaseFail;
 
+    if (newAddressRental.length > 0) {
+      const updateUser = await Users.findOneAndUpdate(
+        { _id: new mongoose.Types.ObjectId(addressRequest._uId) },
+        { _addressRental: newAddressRental },
+        { new: true }
+      );
+      if (!updateUser) throw Errors.SaveToDatabaseFail;
+    }
+
     const newNotification = await this.notificationService.createNotification(
       notification
     );
@@ -930,7 +951,7 @@ export class UserService {
     if (!newNotification) throw Errors.SaveToDatabaseFail;
 
     return updateAddress;
-  }
+  };
 
   //Admin
   public getUserList = async (pagination: Pagination) => {

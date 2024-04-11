@@ -6,7 +6,7 @@ export class SensorIdenityDTO {
   @Expose()
   @IsNotEmpty()
   @IsString()
-  identId: string;
+  id: string;
 
   @Expose()
   @IsNotEmpty()

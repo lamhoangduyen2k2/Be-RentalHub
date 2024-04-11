@@ -64,8 +64,24 @@ inspectorRoute.get(
 inspectorRoute.patch(
   "/sensor-active-host",
   authMiddleware.authorizedInspector,
-  userMiddleWare.checkValidationSensorIdentity,
+  userMiddleWare.checkValidationSensor,
   userController.sensorActiveHostRequest
+);
+inspectorRoute.get(
+  "/get-register-address",
+  authMiddleware.authorizedInspector,
+  userController.getAddressRequestsByStatusInspector
+);
+inspectorRoute.get(
+  "/get-register-address-by-id",
+  authMiddleware.authorizedInspector,
+  userController.getAddressRequestByIdInspector
+);
+inspectorRoute.patch(
+  "/sensor-register-address",
+  authMiddleware.authorizedInspector,
+  userMiddleWare.checkValidationSensor,
+  userController.sensorAddressRequestInspector
 );
 
 export default inspectorRoute;
