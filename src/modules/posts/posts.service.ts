@@ -19,6 +19,7 @@ import { ReportCreateDTO } from "./dtos/post-reported.dto";
 import ReportedPosts from "./models/reported-posts.model";
 import { NotificationService } from "../notification/notification.service";
 import { CreateNotificationDTO } from "../notification/dtos/create-notification.dto";
+import addressRental from "../user/model/user-address.model";
 
 @Service()
 export class PostsService {
@@ -35,12 +36,23 @@ export class PostsService {
     });
     if (!user) throw Errors.UserNotFound;
 
+    //Check address is registered
+    const address = await addressRental.findOne({
+      $and: [
+        { _uId: postParam._uId },
+        { _address: postParam._address },
+        { _status: 1 },
+      ],
+    });
+    if (!address) throw Errors.AddressRentakNotFound;
+
     //Create new room
     const newRoom = await Rooms.create({
       _uId: postParam._uId,
-      _street: postParam._street,
-      _district: postParam._district,
-      _city: postParam._city,
+      // _street: postParam._street,
+      // _district: postParam._district,
+      // _city: postParam._city,
+      _address: postParam._address,
       _services: postParam._services
         ? postParam._services.split(",")
         : undefined,
@@ -84,12 +96,24 @@ export class PostsService {
     let active: boolean = true;
     let images: string[] = [];
 
-    //Find post is active
+    //Find post of user is exist
     const post = await Posts.findOne({
       $and: [{ _id: postId }, { _uId: postParam._uId }],
     });
 
     if (!post) throw Errors.PostNotFound;
+
+    // Check address is registered
+    if (postParam._address) {
+      const address = await addressRental.findOne({
+        $and: [
+          { _uId: postParam._uId },
+          { _address: postParam._address },
+          { _status: 1 },
+        ],
+      });
+      if (!address) throw Errors.AddressRentakNotFound;
+    }
 
     if (post._status === 2) {
       status = 2;
@@ -145,8 +169,9 @@ export class PostsService {
       { _id: post._rooms },
       {
         _street: postParam._street,
-        _district: postParam._district,
-        _city: postParam._city,
+        // _district: postParam._district,
+        // _city: postParam._city,
+        _address: postParam._address,
         _services: postParam._services
           ? postParam._services.split(",")
           : undefined,
@@ -250,7 +275,10 @@ export class PostsService {
           sort = { ...sort, "room._waterPrice": Number(query.water) };
           break;
         case "less":
-          arrange = [...arrange, { "room._price": { $lte: Number(query.less) } }];
+          arrange = [
+            ...arrange,
+            { "room._price": { $lte: Number(query.less) } },
+          ];
           break;
         case "greater":
           arrange = [
@@ -327,6 +355,7 @@ export class PostsService {
               "$room._city",
             ],
           },
+          roomAdd: "$room._address",
           roomServices: "$room._services",
           roomUtilities: "$room._utilities",
           roomArea: "$room._area",
@@ -421,6 +450,7 @@ export class PostsService {
               "$room._city",
             ],
           },
+          roomAdd: "$room._address",
           roomStreet: "$room._street",
           roomDistrict: "$room._district",
           roomCity: "$room._city",
@@ -515,6 +545,7 @@ export class PostsService {
               "$room._city",
             ],
           },
+          roomAdd: "$room._address",
           roomStreet: "$room._street",
           roomDistrict: "$room._district",
           roomCity: "$room._city",
@@ -593,6 +624,7 @@ export class PostsService {
               "$room._city",
             ],
           },
+          roomAdd: "$room._address",
           roomServices: "$room._services",
           roomUtilities: "$room._utilities",
           roomArea: "$room._area",
@@ -675,6 +707,7 @@ export class PostsService {
               "$room._city",
             ],
           },
+          roomAdd: "$room._address",
           roomServices: "$room._services",
           roomUtilities: "$room._utilities",
           roomArea: "$room._area",
@@ -773,6 +806,7 @@ export class PostsService {
               "$room._city",
             ],
           },
+          roomAdd: "$room._address",
           roomServices: "$room._services",
           roomUtilities: "$room._utilities",
           roomArea: "$room._area",
@@ -1012,6 +1046,7 @@ export class PostsService {
               "$room._city",
             ],
           },
+          roomAdd: "$room._address",
           roomServices: "$room._services",
           roomUtilities: "$room._utilities",
           roomArea: "$room._area",
@@ -1099,6 +1134,7 @@ export class PostsService {
               "$room._city",
             ],
           },
+          roomAdd: "$room._address",
           roomServices: "$room._services",
           roomUtilities: "$room._utilities",
           roomArea: "$room._area",
@@ -1263,6 +1299,7 @@ export class PostsService {
               "$room_info._city",
             ],
           },
+          roomAdd: "$room._address",
           roomServices: "$room_info._services",
           roomUtilities: "$room_info._utilities",
           roomArea: "$room_info._area",
@@ -1428,6 +1465,7 @@ export class PostsService {
               "$room_info._city",
             ],
           },
+          roomAdd: "$room._address",
           roomServices: "$room_info._services",
           roomUtilities: "$room_info._utilities",
           roomArea: "$room_info._area",
@@ -1543,6 +1581,7 @@ export class PostsService {
               "$room_info._city",
             ],
           },
+          roomAdd: "$room._address",
           roomServices: "$room_info._services",
           roomUtilities: "$room_info._utilities",
           roomArea: "$room_info._area",
@@ -1683,6 +1722,7 @@ export class PostsService {
               "$room_info._city",
             ],
           },
+          roomAdd: "$room._address",
           roomServices: "$room_info._services",
           roomUtilities: "$room_info._utilities",
           roomArea: "$room_info._area",
@@ -1791,6 +1831,7 @@ export class PostsService {
               "$room._city",
             ],
           },
+          roomAdd: "$room._address",
           roomStreet: "$room._street",
           roomDistrict: "$room._district",
           roomCity: "$room._city",
@@ -1901,6 +1942,7 @@ export class PostsService {
               "$room._city",
             ],
           },
+          roomAdd: "$room._address",
           roomStreet: "$room._street",
           roomDistrict: "$room._district",
           roomCity: "$room._city",

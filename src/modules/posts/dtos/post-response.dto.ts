@@ -48,6 +48,9 @@ export class PostResponseDTO {
   _city: string;
 
   @Expose()
+  _address: string;
+
+  @Expose()
   _services: string[];
 
   @Expose()

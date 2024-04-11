@@ -37,20 +37,25 @@ export class PostCreateDTO {
   @IsArray()
   _tags: string[];
 
-  @Expose()
-  @IsString()
-  @IsNotEmpty()
-  _street: string;
+  // @Expose()
+  // @IsString()
+  // @IsNotEmpty()
+  // _street: string;
 
-  @Expose()
-  @IsString()
-  @IsNotEmpty()
-  _district: string;
+  // @Expose()
+  // @IsString()
+  // @IsNotEmpty()
+  // _district: string;
 
-  @ValidateIf((o: PostCreateDTO) => o._city !== undefined)
+  // @ValidateIf((o: PostCreateDTO) => o._city !== undefined)
+  // @Expose()
+  // @IsString()
+  // _city: string;
+
+  @ValidateIf((o: PostCreateDTO) => o._address !== undefined)
   @Expose()
   @IsString()
-  _city: string;
+  _address: string;
 
   @ValidateIf((o: PostCreateDTO) => o._services !== undefined)
   @Expose()

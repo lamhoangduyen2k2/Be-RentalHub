@@ -6,25 +6,25 @@ const roomSchema = new mongoose.Schema({
     type: Schema.Types.ObjectId,
     ref: Users,
   },
-  _street: {
-    type: String,
-    required: [true, "Street is required"],
-    trim: true,
-  },
-  _district: {
-    type: String,
-    required: [true, "District is required"],
-  },
-  _city: {
-    type: String,
-    trim: true,
-    default: "Thành phố Hồ Chí Minh",
-  },
-  // _address: {
+  // _street: {
   //   type: String,
-  //   required: [true, "Address is required"],
+  //   required: [true, "Street is required"],
   //   trim: true,
   // },
+  // _district: {
+  //   type: String,
+  //   required: [true, "District is required"],
+  // },
+  // _city: {
+  //   type: String,
+  //   trim: true,
+  //   default: "Thành phố Hồ Chí Minh",
+  // },
+  _address: {
+    type: String,
+    required: [true, "Address is required"],
+    trim: true,
+  },
   _services: {
     type: [String],
     default: null,
