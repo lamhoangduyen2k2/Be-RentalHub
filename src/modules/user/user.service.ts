@@ -536,7 +536,7 @@ export class UserService {
     if (!user) throw Errors.UserNotFound;
     if (!user._isHost) throw Errors.Unauthorized;
 
-    //upload certificate image to firebase
+    //Upload certificate image to firebase
     const urlCerf = await this.imageService.uploadCerf(img, userId);
     if (!urlCerf) throw Errors.UploadImageFail;
 
