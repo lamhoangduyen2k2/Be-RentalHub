@@ -30,6 +30,7 @@ import { NotificationService } from "../notification/notification.service";
 import { CreateNotificationInspectorDTO } from "../notification/dtos/create-notification-inspector.dto";
 import Notification from "../notification/notification.model";
 import addressRental from "./model/user-address.model";
+import { CreateNotificationRegisterAddressDTO } from "../notification/dtos/create-notification-register-address.dto";
 //require("esm-hook");
 //const fetch = require("node-fetch").default;
 // const http = require("http");
@@ -549,8 +550,9 @@ export class UserService {
     if (!addressUser) throw Errors.SaveToDatabaseFail;
 
     //create notification for inspector
-    const notification = CreateNotificationInspectorDTO.fromService({
+    const notification = CreateNotificationRegisterAddressDTO.fromService({
       _uId: user._id,
+      _addressId: addressUser._id,
       _type: "REGISTER_ADDRESS",
       _title: "Yêu cầu đăng kí địa chỉ host",
       _message: `Người dùng mang id ${userId} đã gửi yêu cầu đăng kí địa chỉ phòng trọ. Vui lòng kiểm tra thông tin và cấp quyền cho người dùng này`,
@@ -866,15 +868,15 @@ export class UserService {
   };
 
   public getAddressRequestById = async (addressId: string, notiId: string) => {
+    if (notiId) {
+      const userId = await this.notificationService.getNotificationById(notiId);
+      if (!userId) throw Errors.SaveToDatabaseFail;
+    }
     const addressRequest = await addressRental.findOne({
       _id: new mongoose.Types.ObjectId(addressId),
     });
     if (!addressRequest) throw Errors.AddressRentakNotFound;
 
-    if (notiId) {
-      const userId = await this.notificationService.getNotificationById(notiId);
-      if (!userId) throw Errors.SaveToDatabaseFail;
-    }
 
     return addressRequest;
   };

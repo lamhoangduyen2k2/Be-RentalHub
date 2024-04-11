@@ -12,6 +12,11 @@ const notificationSchema = new mongoose.Schema(
       default: null,
       ref: "posts",
     },
+    _addressId: {
+      type: Schema.Types.ObjectId,
+      default: null,
+      ref: "address-rentals",
+    },
     _title: {
       type: String,
       required: true,

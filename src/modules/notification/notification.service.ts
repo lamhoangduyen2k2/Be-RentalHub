@@ -7,11 +7,12 @@ import { GetNotificationsListDTO } from "./dtos/get-notification.dto";
 import mongoose from "mongoose";
 import { CreateNotificationInspectorDTO } from "./dtos/create-notification-inspector.dto";
 import { GetNotificationsInspectorDTO } from "./dtos/get-notificaion-inspector.dto";
+import { CreateNotificationRegisterAddressDTO } from "./dtos/create-notification-register-address.dto";
 
 @Service()
 export class NotificationService {
   public createNotification = async (
-    data: CreateNotificationDTO | CreateNotificationInspectorDTO
+    data: CreateNotificationDTO | CreateNotificationInspectorDTO | CreateNotificationRegisterAddressDTO
   ) => {
     const newNotification = Notification.create(data);
     if (!newNotification) throw Errors.SaveToDatabaseFail;

@@ -11,6 +11,10 @@ export class GetNotificationsInspectorDTO {
   _uId: mongoose.Types.ObjectId;
 
   @Expose()
+  @Transform((value) => value.obj._addressId && value.obj._addressId.toString())
+  _addressId: mongoose.Types.ObjectId;
+
+  @Expose()
   _title: string;
 
   @Expose()
