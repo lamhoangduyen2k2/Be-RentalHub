@@ -61,7 +61,11 @@ const usersSchema = new mongoose.Schema({
   _addressRental: {
     type: [String],
     default: [],
-  }
+  },
+  _totalReported: {
+    type: Number,
+    default: 0,
+  },
 });
 
 usersSchema.pre("save", async function (next: NextFunction) {

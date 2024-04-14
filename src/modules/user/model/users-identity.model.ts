@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+import Users from "./users.model";
 
 const userIdentitySchema = new mongoose.Schema(
   {
@@ -6,6 +7,7 @@ const userIdentitySchema = new mongoose.Schema(
       type: Schema.Types.ObjectId,
       required: [true, "User ID is required"],
       unique: true,
+      ref: Users,
     },
     _idCard: {
       type: String,
@@ -67,7 +69,7 @@ const userIdentitySchema = new mongoose.Schema(
     _reason: {
       type: String,
       default: null,
-    }
+    },
   },
   { timestamps: true }
 );

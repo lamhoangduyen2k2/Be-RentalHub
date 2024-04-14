@@ -31,6 +31,8 @@ import { CreateNotificationInspectorDTO } from "../notification/dtos/create-noti
 import Notification from "../notification/notification.model";
 import addressRental from "./model/user-address.model";
 import { CreateNotificationRegisterAddressDTO } from "../notification/dtos/create-notification-register-address.dto";
+import UserBlocked from "./model/user-blocked.model";
+import { CreateNotificationDTO } from "../notification/dtos/create-notification.dto";
 //require("esm-hook");
 //const fetch = require("node-fetch").default;
 // const http = require("http");
@@ -1061,6 +1063,63 @@ export class UserService {
 
     return { message: "Update password successfull" };
   };
+
+  //Automaticly
+  public increaseTotalReported = async (userId: string) => {
+    const user = await Users.findOne({ _id: userId });
+    if (!user) throw Errors.UserNotFound;
+
+    //Increase total reported
+    const totalReported = user._totalReported + 1;
+    const updateUser = await Users.findOneAndUpdate(
+      { _id: userId },
+      { _totalReported: totalReported },
+      { new: true }
+    );
+    if (!updateUser) throw Errors.SaveToDatabaseFail;
+
+    return true;
+  }
+
+  public blockUser = async (userId: string) => {
+    const user = await Users.findOne({ _id: userId });
+    if (!user) throw Errors.UserNotFound;
+
+    const identity = await Indentities.findOne({ _uId: userId });
+    if (!identity) throw Errors.UserIdentityNotFound;
+
+    //Block user
+    const updateUser = await Users.findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(userId) },
+      { _isHost: false },
+      { new: true }
+    );
+    if (!updateUser) throw Errors.SaveToDatabaseFail;
+
+    //Create block user
+    const userBlock = await UserBlocked.create({
+      _uId: new mongoose.Types.ObjectId(userId),
+      _idCard: identity._idCard,
+      _email: user._email,
+      _phone: user._phone,
+      _reason: "Có 3 bài viết bị báo cáo",
+    });
+    if (!userBlock) throw Errors.SaveToDatabaseFail;
+
+    //create notification for user
+    const notification = CreateNotificationDTO.fromService({
+      _uId: new mongoose.Types.ObjectId(userId),
+      _type: "BLOCK_USER",
+      _title: "Thông báo khóa tài khoản",
+      _message: `Tài khoản của bạn đã bị khóa chức năng host do có 3 bài viết bị báo cáo. Vui lòng liên hệ với admin nếu có sai sót`,
+    });
+    const newNotification = await this.notificationService.createNotification(
+      notification
+    );
+    if (!newNotification) throw Errors.SaveToDatabaseFail;
+
+    return userBlock;
+  }
 
   // public sendSMS = async (
   //   phones: string[],

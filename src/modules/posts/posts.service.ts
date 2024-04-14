@@ -20,11 +20,13 @@ import ReportedPosts from "./models/reported-posts.model";
 import { NotificationService } from "../notification/notification.service";
 import { CreateNotificationDTO } from "../notification/dtos/create-notification.dto";
 import addressRental from "../user/model/user-address.model";
+import { UserService } from "../user/user.service";
 
 @Service()
 export class PostsService {
   imageService = Container.get(ImageService);
   notificationService = Container.get(NotificationService);
+  userService = Container.get(UserService);
 
   public createNewPost = async (
     postParam: PostCreateDTO,
@@ -1661,6 +1663,18 @@ export class PostsService {
       { new: true }
     );
     if (!sensorReport) throw Errors.SaveToDatabaseFail;
+
+    //Increase totalReported or block user
+    const user = await Users.findOne({ _id: reportPost._uIdReported });
+    if (!user) throw Errors.UserNotFound;
+
+    if (user._totalReported >= 3) {
+      const userBlocked = await this.userService.blockUser(user._id.toString());
+      if (!userBlocked) throw Errors.SaveToDatabaseFail;
+    } else {
+      const userTotalReported = await this.userService.increaseTotalReported(user._id.toString());
+      if (!userTotalReported) throw Errors.SaveToDatabaseFail;
+    }
 
     //Create notification
     const notification = CreateNotificationDTO.fromService({
