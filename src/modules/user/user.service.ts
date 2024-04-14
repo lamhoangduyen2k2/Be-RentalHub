@@ -60,8 +60,8 @@ export class UserService {
     if (userParam._pw !== userParam._pwconfirm) throw Errors.PwconfirmInvalid;
 
     const newUser = await Users.create({
-      // _fname: userParam._fname,
-      // _lname: userParam._lname,
+      _fname: userParam._fname,
+      _lname: userParam._lname,
       _email: userParam._email,
       _pw: userParam._pw,
     });
