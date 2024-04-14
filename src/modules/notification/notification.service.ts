@@ -58,13 +58,13 @@ export class NotificationService {
   public getNotificationsInspector = async () => {
     const countNewNotifications = await Notification.countDocuments({
       $and: [
-        { _type: { $in: ["ACTIVE_HOST", "REGISTER_ADDRESS"] } },
+        { _type: { $in: ["ACTIVE_HOST", "REGISTER_ADDRESS", "CREATE_POST"] } },
         { _read: false },
       ],
     });
 
     const notifications = await Notification.find({
-      _type: { $in: ["ACTIVE_HOST", "REGISTER_ADDRESS"] },
+      _type: { $in: ["ACTIVE_HOST", "REGISTER_ADDRESS", "CREATE_POST"] },
     });
 
     const result = {

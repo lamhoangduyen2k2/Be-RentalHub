@@ -3,6 +3,16 @@ import { IsEmail, IsNotEmpty, Matches, MinLength } from "class-validator";
 import { Request } from "express";
 
 export class CreateUserRequestDTO {
+  // @IsString()
+  // @IsNotEmpty()
+  // @Expose()
+  // _fname: string;
+
+  // @IsString()
+  // @IsNotEmpty()
+  // @Expose()
+  // _lname: string;
+
   @IsEmail()
   @IsNotEmpty()
   @Expose()

@@ -100,7 +100,8 @@ export class PostsController {
   ) => {
     try {
       const postId = req.query.postId ? req.query.postId.toString() : undefined;
-      const post = await this.postsService.getPostById(postId);
+      const notiId = req.query.notiId ? req.query.notiId.toString() : undefined;
+      const post = await this.postsService.getPostById(postId, notiId);
 
       res.json(new ResponseData(post, null, null));
     } catch (error) {
@@ -119,7 +120,8 @@ export class PostsController {
   ) => {
     try {
       const postId = req.query.postId ? req.query.postId.toString() : undefined;
-      const post = await this.postsService.getPostByIdInspector(postId);
+      const notiId = req.query.notiId ? req.query.notiId.toString() : undefined;
+      const post = await this.postsService.getPostByIdInspector(postId, notiId);
 
       res.json(new ResponseData(post, null, null));
     } catch (error) {

@@ -82,6 +82,17 @@ export class PostsService {
     });
     if (!newPosts) throw Errors.SaveToDatabaseFail;
 
+    //Create notification for inspector
+    const notification = CreateNotificationDTO.fromService({
+      _title: "Có bài đăng mới cần kiểm duyệt",
+      _content: `Bài đăng ${newPosts._id} cần kiểm duyệt`,
+      _type: "CREATE_POST",
+      _uId: user._id,
+      _postId: newPosts._id,
+    });
+
+    await this.notificationService.createNotification(notification);
+
     const newInfo = { ...newRoom.toObject(), ...newPosts.toObject() };
 
     return PostResponseDTO.toResponse(newInfo);
@@ -187,6 +198,17 @@ export class PostsService {
       { new: true }
     );
 
+    //Create notification for inspector
+    const notification = CreateNotificationDTO.fromService({
+      _title: "Có bài đăng mới cần kiểm duyệt",
+      _content: `Bài đăng ${postUdated._id} cần kiểm duyệt`,
+      _type: "CREATE_POST",
+      _uId: postUdated._uId,
+      _postId: postUdated._id,
+    });
+
+    await this.notificationService.createNotification(notification);
+
     return PostResponseDTO.toResponse({
       ...postUdated.toObject(),
       ...roomUpdated.toObject(),
@@ -226,6 +248,17 @@ export class PostsService {
         _isRented: isRented,
       }
     );
+
+    //Create notification for user
+    const notification = CreateNotificationDTO.fromService({
+      _title: "Bài đăng của bạn đã được duyệt",
+      _content: `Bài đăng ${updatedPost._id} đã được duyệt`,
+      _type: "CREATE_POST_SUCCESS",
+      _uId: updatedPost._uId,
+      _postId: updatedPost._id,
+    });
+
+    await this.notificationService.createNotification(notification);
 
     return true;
   };
@@ -480,7 +513,8 @@ export class PostsService {
     return posts;
   };
 
-  public getPostById = async (postId: string) => {
+  public getPostById = async (postId: string, notiId: string) => {
+    if (notiId) this.notificationService.getNotificationById(notiId);
     const condition = {
       $match: {
         $and: [{ _status: 1 }, { _id: new mongoose.Types.ObjectId(postId) }],
@@ -575,7 +609,8 @@ export class PostsService {
     return post[0];
   };
 
-  public getPostByIdInspector = async (postId: string) => {
+  public getPostByIdInspector = async (postId: string, notiId: string) => {
+    if (notiId) this.notificationService.getNotificationById(notiId);
     const condition = {
       $match: {
         _id: new mongoose.Types.ObjectId(postId),
@@ -1633,7 +1668,7 @@ export class PostsService {
       _postId: reportPost._postId,
       _type: "REPORTED_POST",
       _title: "Bài viết của bạn đã bị xóa",
-      _message: `Bài viết mang ID ${reportPost._postId} của bạn đã bị xóa do vi phạm quy định của chúng tôi. Vui lòng kiểm tra lại bài viết của bạn.`,
+      _message: `Bài viết mang ID ${reportPost._postId} của bạn đã bị xóa do vi phạm quy định của chúng tôi.`,
     });
 
     const newNotification = await this.notificationService.createNotification(
