@@ -881,7 +881,6 @@ export class UserService {
     });
     if (!addressRequest) throw Errors.AddressRentakNotFound;
 
-
     return addressRequest;
   };
 
@@ -1064,6 +1063,158 @@ export class UserService {
     return { message: "Update password successfull" };
   };
 
+  public sensorActiveHostRequestAdmin = async (
+    identId: string,
+    status: number,
+    reason: string,
+    inspectorId: string
+  ) => {
+    let updateObj = {};
+    let notification: CreateNotificationInspectorDTO;
+    const userIdentity = await Indentities.findOne({
+      $and: [{ _id: identId }],
+    });
+    if (!userIdentity) throw Errors.UserIdentityNotFound;
+
+    if (status === 1) {
+      updateObj = {
+        ...updateObj,
+        _verified: true,
+        _reason: reason,
+        _inspectorId: new mongoose.Types.ObjectId(inspectorId),
+      };
+      notification = CreateNotificationInspectorDTO.fromService({
+        _uId: userIdentity._uId,
+        _type: "ACTIVE_HOST_SUCCESS",
+        _title: "Thông báo xác thực quyền host thành công",
+        _message:
+          "Thông tin của bạn đã được xác thực. Bạn đã có thể sử dụng quyền host (Đăng kí địa chỉ, Đăng bài)",
+      });
+    } else if (status === 2) {
+      updateObj = {
+        ...updateObj,
+        _verified: false,
+        _reason: reason,
+        _inspectorId: new mongoose.Types.ObjectId(inspectorId),
+      };
+      notification = CreateNotificationInspectorDTO.fromService({
+        _uId: userIdentity._uId,
+        _type: "ACTIVE_HOST_FAIL",
+        _title: "Thông báo xác thực quyền host thất bại",
+        _message: `Thông tin của bạn không đúng. Lý do: ${reason}. Vui lòng kiểm tra lại thông tin và thử lại`,
+      });
+    } else throw Errors.StatusInvalid;
+
+    const updateIdentity = await Indentities.findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(identId) },
+      updateObj,
+      { new: true }
+    );
+
+    if (!updateIdentity) throw Errors.SaveToDatabaseFail;
+
+    if (status === 1) {
+      const updateUser = await Users.findOneAndUpdate(
+        { _id: new mongoose.Types.ObjectId(userIdentity._uId) },
+        { _isHost: true },
+        { new: true }
+      );
+
+      if (!updateUser) throw Errors.SaveToDatabaseFail;
+    } else {
+      const updateUser = await Users.findOneAndUpdate(
+        { _id: new mongoose.Types.ObjectId(userIdentity._uId) },
+        { _isHost: false },
+        { new: true }
+      );
+
+      if (!updateUser) throw Errors.SaveToDatabaseFail;
+    }
+
+    const newNotification = await this.notificationService.createNotification(
+      notification
+    );
+
+    if (!newNotification) throw Errors.SaveToDatabaseFail;
+
+    return updateIdentity;
+  };
+
+  public sensorAddressRequestAdmin = async (
+    addressId: string,
+    status: number,
+    reason: string,
+    inspectorId: string
+  ) => {
+    let updateObj = {};
+    let notification: CreateNotificationInspectorDTO;
+    let newAddressRental = [];
+
+    const addressRequest = await addressRental.findOne({
+      $and: [{ _id: addressId }],
+    });
+    if (!addressRequest) throw Errors.AddressRentakNotFound;
+
+    const user = await Users.findOne({ _id: addressRequest._uId });
+    if (!user || !user._isHost) throw Errors.UserNotFound;
+
+    if (status === 1) {
+      updateObj = {
+        ...updateObj,
+        _status: 1,
+        _reason: reason,
+        _inspectorId: new mongoose.Types.ObjectId(inspectorId),
+      };
+      notification = CreateNotificationInspectorDTO.fromService({
+        _uId: addressRequest._uId,
+        _type: "REGISTER_ADDRESS_SUCCESS",
+        _title: "Thông báo xác thực địa chỉ host thành công",
+        _message:
+          "Thông tin địa chỉ trọ của bạn đã được xác thực. Bạn đã có thể sử dụng địa chỉ này để đăng bài",
+      });
+      newAddressRental = [...user._addressRental, addressRequest._address];
+    } else if (status === 2) {
+      updateObj = {
+        ...updateObj,
+        _status: 2,
+        _reason: reason,
+        _inspectorId: new mongoose.Types.ObjectId(inspectorId),
+      };
+      notification = CreateNotificationInspectorDTO.fromService({
+        _uId: addressRequest._uId,
+        _type: "REGISTER_ADDRESS_FAIL",
+        _title: "Thông báo xác thực địa chỉ host thất bại",
+        _message: `Thông tin địa chỉ của bạn không đúng. Lý do: ${reason}. Vui lòng kiểm tra lại thông tin và thử lại`,
+      });
+      const index = user._addressRental.indexOf(addressRequest._address);
+      user._addressRental.splice(index, 1)
+      newAddressRental = user._addressRental;
+    } else throw Errors.StatusInvalid;
+
+    const updateAddress = await addressRental.findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(addressId) },
+      updateObj,
+      { new: true }
+    );
+
+    if (!updateAddress) throw Errors.SaveToDatabaseFail;
+
+    const updateUser = await Users.findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(addressRequest._uId) },
+      { _addressRental: newAddressRental },
+      { new: true }
+    );
+    if (!updateUser) throw Errors.SaveToDatabaseFail;
+
+    const newNotification = await this.notificationService.createNotification(
+      notification
+    );
+
+    if (!newNotification) throw Errors.SaveToDatabaseFail;
+
+    return updateAddress;
+  };
+
   //Automaticly
   public increaseTotalReported = async (userId: string) => {
     const user = await Users.findOne({ _id: userId });
@@ -1079,7 +1230,7 @@ export class UserService {
     if (!updateUser) throw Errors.SaveToDatabaseFail;
 
     return true;
-  }
+  };
 
   public blockUser = async (userId: string) => {
     const user = await Users.findOne({ _id: userId });
@@ -1119,7 +1270,7 @@ export class UserService {
     if (!newNotification) throw Errors.SaveToDatabaseFail;
 
     return userBlock;
-  }
+  };
 
   // public sendSMS = async (
   //   phones: string[],

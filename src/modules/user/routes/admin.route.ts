@@ -28,6 +28,30 @@ adminRoute.get(
   userController.getInspectorByIdAdmin
 );
 
+adminRoute.get(
+  "/get-active-host",
+  authMiddleware.authorizedAdmin,
+  userController.getActiveHostInspector
+);
+
+adminRoute.get(
+  "/get-active-host-by-id",
+  authMiddleware.authorizedAdmin,
+  userController.getActiveHostByIdInspector
+);
+
+adminRoute.get(
+  "/get-register-address",
+  authMiddleware.authorizedAdmin,
+  userController.getAddressRequestsByStatusInspector
+);
+
+adminRoute.get(
+  "/get-register-address-by-id",
+  authMiddleware.authorizedAdmin,
+  userController.getAddressRequestByIdInspector
+);
+
 //POST API
 adminRoute.post(
   "/login-admin",
@@ -53,6 +77,20 @@ adminRoute.patch(
   authMiddleware.authorizedAdmin,
   userMiddleWare.checkValidationUpdatePassInspector,
   userController.updateInspectorPass
+);
+
+adminRoute.patch(
+  "/sensor-active-host",
+  authMiddleware.authorizedAdmin,
+  userMiddleWare.checkValidationSensor,
+  userController.sensorActiveHostRequestAdmin
+);
+
+adminRoute.patch(
+  "/sensor-register-address",
+  authMiddleware.authorizedAdmin,
+  userMiddleWare.checkValidationSensor,
+  userController.sensorAddressRequestAdmin
 );
 
 export default adminRoute;

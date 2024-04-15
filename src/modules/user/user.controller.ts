@@ -521,6 +521,44 @@ export class UserController {
     }
   };
 
+  public sensorActiveHostRequestAdmin = async (
+    req: BodyResquest<SensorIdenityDTO>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const sensorInfo = SensorIdenityDTO.fromRequest(req);
+      const updatedHost = await this.userService.sensorActiveHostRequestAdmin(
+        sensorInfo.id,
+        isNaN(Number(sensorInfo.status)) ? -1 : Number(sensorInfo.status),
+        sensorInfo.reason,
+        sensorInfo._uId
+      );
+      res.json(new ResponseData(updatedHost, null, null));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public sensorAddressRequestAdmin = async (
+    req: BodyResquest<SensorIdenityDTO>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const sensorInfo = SensorIdenityDTO.fromRequest(req);
+      const updatedAddress = await this.userService.sensorAddressRequestAdmin(
+        sensorInfo.id,
+        isNaN(Number(sensorInfo.status)) ? -1 : Number(sensorInfo.status),
+        sensorInfo.reason,
+        sensorInfo._uId
+      );
+      res.json(new ResponseData(updatedAddress, null, null));
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // public sendSMS = async (req: Request, res: Response, next: NextFunction) => {
   //   try {
   //     const updatedUser = await this.userService.sendSMS(
