@@ -569,6 +569,101 @@ export class UserService {
     return addressUser;
   };
 
+  public getAddressesByStatusUser = async (
+    userId: string,
+    status: number,
+    pagination: Pagination
+  ) => {
+    const user = await Users.findOne({
+      $and: [{ _id: userId }, { _active: true }],
+    });
+    if (!user) throw Errors.UserNotFound;
+
+    if (status < 0 || status > 3) throw Errors.StatusInvalid;
+
+    const count = await addressRental.countDocuments({
+      $and: [{ _uId: userId }, { _status: status }],
+    });
+    if (count <= 0) throw Errors.AddressRentakNotFound;
+
+    const totalPages = Math.ceil(count / pagination.limit);
+
+    const addresses = await addressRental
+      .find({ $and: [{ _uId: userId }, { _status: status }] })
+      .limit(pagination.limit)
+      .skip(pagination.offset);
+
+    if (addresses.length <= 0) throw Errors.AddressRentakNotFound;
+
+    return [
+      addresses,
+      { page: pagination.page, limit: pagination.limit, total: totalPages },
+    ];
+  };
+
+  public getAddressByIdUser = async (addressId: string, userId: string) => {
+    const user = await Users.findOne({
+      $and: [{ _id: userId }, { _active: true }],
+    });
+    if (!user) throw Errors.UserNotFound;
+
+    const address = await addressRental.findOne({
+      $and: [{ _id: addressId }, { _uId: userId }],
+    });
+    if (!address) throw Errors.AddressRentakNotFound;
+
+    return address;
+  };
+
+  public manageSatusOfAddressUser = async (
+    status: number,
+    userId: string,
+    addressId: string
+  ) => {
+    const user = await Users.findOne({
+      $and: [{ _id: userId }, { _active: true }],
+    });
+    if (!user) throw Errors.UserNotFound;
+
+    const address = await addressRental.findOne({
+      $and: [{ _id: addressId }, { _uId: userId }],
+    });
+    if (!address) throw Errors.AddressRentakNotFound;
+
+    if (status !== 1 && status !== 3) throw Errors.StatusInvalid;
+
+    const updateAddress = await addressRental.findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(addressId) },
+      { _status: status, _active: status === 1 ? true : false },
+      { new: true }
+    );
+    if (!updateAddress) throw Errors.SaveToDatabaseFail;
+
+    const index = user._addressRental.indexOf(updateAddress._address);
+
+    if (status === 1 && index < 0) {
+      user._addressRental.push(updateAddress._address);
+
+      const updateUser = await Users.findOneAndUpdate(
+        { _id: new mongoose.Types.ObjectId(userId) },
+        { _addressRental: user._addressRental },
+        { new: true }
+      );
+      if (!updateUser) throw Errors.SaveToDatabaseFail;
+    } else if (status === 3 && index >= 0) {
+      user._addressRental.splice(index, 1);
+
+      const updateUser = await Users.findOneAndUpdate(
+        { _id: new mongoose.Types.ObjectId(userId) },
+        { _addressRental: user._addressRental },
+        { new: true }
+      );
+      if (!updateUser) throw Errors.SaveToDatabaseFail;
+    }
+
+    return updateAddress;
+  };
+
   //Inspector
   public updateInspectorProfile = async (userParam: UpdateUserDTO) => {
     const inspector = await Users.findOne({
@@ -1187,7 +1282,7 @@ export class UserService {
         _message: `Thông tin địa chỉ của bạn không đúng. Lý do: ${reason}. Vui lòng kiểm tra lại thông tin và thử lại`,
       });
       const index = user._addressRental.indexOf(addressRequest._address);
-      user._addressRental.splice(index, 1)
+      user._addressRental.splice(index, 1);
       newAddressRental = user._addressRental;
     } else throw Errors.StatusInvalid;
 

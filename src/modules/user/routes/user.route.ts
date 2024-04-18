@@ -14,7 +14,7 @@ const userMiddleWare = Container.get(UserMiddleWare);
 const userController = Container.get(UserController);
 const imageMiddleWare = Container.get(ImageMiddleWare);
 
-//Authentication API
+//Post API
 routerUser.post(
   "/accounts/login",
   authMiddleware.checkValidation,
@@ -42,7 +42,6 @@ routerUser.post(
 );
 routerUser.post("/accounts/verify-user", userController.verifyUser);
 
-//API for User
 routerUser.post(
   "/accounts/active-host",
   authMiddleware.authorizedUser,
@@ -67,17 +66,6 @@ routerUser.post(
   authMiddleware.authorizedUser,
   userController.resetOtp
 );
-// routerUser.post(
-//   "/accounts/forgot-pass",
-//   userMiddleWare.checkValidationForgotPass,
-//   userController.resetPassword
-// );
-// routerUser.get(
-//   "/accounts/forgot-password",
-//   (req: Request, res: Response, next: NextFunction) => {
-//     res.render("forgot-password");
-//   }
-// );
 
 routerUser.post(
   "/accounts/forgot-password",
@@ -85,23 +73,19 @@ routerUser.post(
   userController.forgotPassword
 );
 
-// routerUser.get(
-//   "/accounts/reset-password/:id/:token",
-//   (req: Request, res: Response, next: NextFunction) => {
-//     res.render("reset-password");
-//   }
-// );
-
 routerUser.post(
   "/accounts/reset-password/:id/:token",
   userController.resetPassword
 );
-///////////////////////
-routerUser.get(
-  "/get-profile",
+routerUser.post(
+  "/register-address",
+  imageMiddleWare.upload.array("_licenses"),
+  imageMiddleWare.checkUploadImages,
   authMiddleware.authorizedUser,
-  userController.getUserById
+  userController.registerAddress
 );
+
+//Patch API
 routerUser.patch(
   "/update-profile",
   authMiddleware.authorized,
@@ -121,6 +105,18 @@ routerUser.patch(
   userMiddleWare.checkValidationUpdateEmailOrPass,
   userController.updateEmailOrPass
 );
+routerUser.patch(
+  "/update-address-status",
+  authMiddleware.authorizedUser,
+  userController.manageStatusOfAddress
+);
+
+//Get API
+routerUser.get(
+  "/get-profile",
+  authMiddleware.authorizedUser,
+  userController.getUserById
+);
 routerUser.get(
   "/get-users-list",
   authMiddleware.authorizedAdmin,
@@ -131,6 +127,16 @@ routerUser.get(
   authMiddleware.authorizedAdmin,
   userController.getInspectorList
 );
+routerUser.get(
+  "/get-address-list",
+  authMiddleware.authorizedUser,
+  userController.getAddressByStatusUser
+);
+routerUser.get(
+  "/get-address-by-id",
+  authMiddleware.authorizedUser,
+  userController.getAddressByIdUser
+);
 
 // routerUser.post(
 //   "/send-sms",
@@ -140,12 +146,24 @@ routerUser.get(
 //   "/verify-sms",
 //   userController.verifySMS
 // );
-routerUser.post(
-  "/register-address",
-  imageMiddleWare.upload.array("_licenses"),
-  imageMiddleWare.checkUploadImages,
-  authMiddleware.authorizedUser,
-  userController.registerAddress
-);
+
+// routerUser.post(
+//   "/accounts/forgot-pass",
+//   userMiddleWare.checkValidationForgotPass,
+//   userController.resetPassword
+// );
+// routerUser.get(
+//   "/accounts/forgot-password",
+//   (req: Request, res: Response, next: NextFunction) => {
+//     res.render("forgot-password");
+//   }
+// );
+
+// routerUser.get(
+//   "/accounts/reset-password/:id/:token",
+//   (req: Request, res: Response, next: NextFunction) => {
+//     res.render("reset-password");
+//   }
+// );
 
 export default routerUser;

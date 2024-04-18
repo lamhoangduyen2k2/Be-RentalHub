@@ -257,6 +257,58 @@ export class UserController {
     }
   };
 
+  public getAddressByStatusUser = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const pagination = Pagination.getPagination(req);
+      const address = await this.userService.getAddressesByStatusUser(
+        req.body._uId,
+        req.query.status ? Number(req.query.status) : -1,
+        pagination
+      );
+      res.json(new ResponseData(address[0], null, address[1]));
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public getAddressByIdUser = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const address = await this.userService.getAddressByIdUser(
+        req.query.addressId.toString(),
+        req.body._uId
+      );
+      res.json(new ResponseData(address, null, null));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public manageStatusOfAddress = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const status = isNaN(Number(req.body.status)) ? -1 : Number(req.body.status);
+      const updatedAddress = await this.userService.manageSatusOfAddressUser(
+        status,
+        req.body._uId,
+        req.body.addressId,
+      );
+      res.json(new ResponseData(updatedAddress, null, null));
+    } catch (error) {
+      next(error);
+    }
+  };
+
   //Inspector
   public getUserList = async (
     req: Request,
