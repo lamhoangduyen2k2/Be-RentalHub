@@ -416,8 +416,51 @@ export class PostsService {
       post._postingDateLocal = convertUTCtoLocal(post.updatedAt);
     });
 
+    const range = await Rooms.aggregate([
+      {
+        $group: {
+          _id: null,
+          maxPrice: {
+            $max: "$_price",
+          },
+          minPrice: {
+            $min: "$_price",
+          },
+          maxElectric: {
+            $max: "$_electricPrice",
+          },
+          minElectric: {
+            $min: "$_electricPrice",
+          },
+          maxWater: {
+            $max: "$_waterPrice",
+          },
+          minWater: {
+            $min: "$_waterPrice",
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          priceRange: {
+            max: "$maxPrice",
+            min: "$minPrice",
+          },
+          electricRange: {
+            max: "$maxElectric",
+            min: "$minElectric",
+          },
+          waterRange: {
+            max: "$maxWater",
+            min: "$minWater",
+          },
+        },
+      },
+    ]);
+
     return [
-      posts,
+      [...posts, range[0]],
       { page: pagination.page, limit: pagination.limit, total: totalPages },
     ];
   };
@@ -1672,7 +1715,9 @@ export class PostsService {
       const userBlocked = await this.userService.blockUser(user._id.toString());
       if (!userBlocked) throw Errors.SaveToDatabaseFail;
     } else {
-      const userTotalReported = await this.userService.increaseTotalReported(user._id.toString());
+      const userTotalReported = await this.userService.increaseTotalReported(
+        user._id.toString()
+      );
       if (!userTotalReported) throw Errors.SaveToDatabaseFail;
     }
 
