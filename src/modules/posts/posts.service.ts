@@ -352,7 +352,6 @@ export class PostsService {
         }
       ]
     )
-    console.log("🚀 ~ PostsService ~ getAllPosts= ~ count[0].totalDocument:", count[0].totalDocument)
     const totalPages = Math.ceil(count[0].totalDocument / pagination.limit);
 
     const condition = [];
