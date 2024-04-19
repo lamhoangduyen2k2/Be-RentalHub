@@ -326,8 +326,34 @@ export class PostsService {
       }
     });
 
-    const count = await Posts.countDocuments({ _status: 1 });
-    const totalPages = Math.ceil(count / pagination.limit);
+    const count = await Posts.aggregate(
+      [
+        {
+          $lookup: {
+                from: "rooms",
+                localField: "_rooms",
+                foreignField: "_id",
+                as: "room",
+              },
+        },
+        { $unwind: "$room" },
+        {
+          $match: {
+            $and: [{ _status: 1 }, ...arrange],
+          }
+        },
+        {
+          $count: 'total'
+        },
+        {
+          $project: {
+            totalDocument: "$total"
+          }
+        }
+      ]
+    )
+    console.log("🚀 ~ PostsService ~ getAllPosts= ~ count[0].totalDocument:", count[0].totalDocument)
+    const totalPages = Math.ceil(count[0].totalDocument / pagination.limit);
 
     const condition = [];
 
