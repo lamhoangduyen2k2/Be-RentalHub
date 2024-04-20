@@ -12,7 +12,10 @@ import { CreateNotificationRegisterAddressDTO } from "./dtos/create-notification
 @Service()
 export class NotificationService {
   public createNotification = async (
-    data: CreateNotificationDTO | CreateNotificationInspectorDTO | CreateNotificationRegisterAddressDTO
+    data:
+      | CreateNotificationDTO
+      | CreateNotificationInspectorDTO
+      | CreateNotificationRegisterAddressDTO
   ) => {
     const newNotification = Notification.create(data);
     if (!newNotification) throw Errors.SaveToDatabaseFail;
@@ -58,7 +61,17 @@ export class NotificationService {
   public getNotificationsInspector = async () => {
     const countNewNotifications = await Notification.countDocuments({
       $and: [
-        { _type: { $in: ["ACTIVE_HOST", "REGISTER_ADDRESS", "CREATE_POST"] } },
+        {
+          _type: {
+            $in: [
+              "ACTIVE_HOST",
+              "REGISTER_ADDRESS",
+              "CREATE_POST",
+              "NEW_REPORT_POST",
+              "UPDATE_ADDRESS",
+            ],
+          },
+        },
         { _read: false },
       ],
     });

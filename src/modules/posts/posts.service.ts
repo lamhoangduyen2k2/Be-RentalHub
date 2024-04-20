@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-fallthrough */
-import Container, { Service } from "typedi";
+import { Inject, Service } from "typedi";
 import Posts from "./models/posts.model";
 import { PostCreateDTO } from "./dtos/post-create.dto";
 import { Errors } from "../../helpers/handle-errors";
@@ -24,9 +24,15 @@ import { UserService } from "../user/user.service";
 
 @Service()
 export class PostsService {
-  imageService = Container.get(ImageService);
-  notificationService = Container.get(NotificationService);
-  userService = Container.get(UserService);
+  // imageService = Container.get(ImageService);
+  // notificationService = Container.get(NotificationService);
+  // userService = Container.get(UserService);
+
+  constructor(
+    @Inject() private imageService: ImageService,
+    @Inject() private notificationService: NotificationService,
+    @Inject() private userService: UserService
+  ) {}
 
   public createNewPost = async (
     postParam: PostCreateDTO,
@@ -1739,20 +1745,22 @@ export class PostsService {
     if (status) {
       const post = await Posts.findOne({ _id: reportPost._postId });
       if (!post) throw Errors.PostNotFound;
-  
+
       const sensorReport = await Posts.findOneAndUpdate(
         { _id: reportPost._postId },
         { _status: status, _active: false, _inspectId: inspectorId },
         { new: true }
       );
       if (!sensorReport) throw Errors.SaveToDatabaseFail;
-  
+
       //Increase totalReported or block user
       const user = await Users.findOne({ _id: reportPost._uIdReported });
       if (!user) throw Errors.UserNotFound;
-  
+
       if (user._totalReported >= 3) {
-        const userBlocked = await this.userService.blockUser(user._id.toString());
+        const userBlocked = await this.userService.blockUser(
+          user._id.toString()
+        );
         if (!userBlocked) throw Errors.SaveToDatabaseFail;
       } else {
         const userTotalReported = await this.userService.increaseTotalReported(
@@ -1760,7 +1768,7 @@ export class PostsService {
         );
         if (!userTotalReported) throw Errors.SaveToDatabaseFail;
       }
-  
+
       //Create notification
       const notification = CreateNotificationDTO.fromService({
         _uId: reportPost._uIdReported,
@@ -1769,7 +1777,7 @@ export class PostsService {
         _title: "Bài viết của bạn đã bị xóa",
         _message: `Bài viết mang ID ${reportPost._postId} của bạn đã bị xóa do vi phạm quy định của chúng tôi.`,
       });
-  
+
       const newNotification = await this.notificationService.createNotification(
         notification
       );

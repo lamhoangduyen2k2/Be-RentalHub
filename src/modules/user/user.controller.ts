@@ -10,6 +10,7 @@ import { UserUpdateEmailOrPassDTO } from "./dtos/user-update-email-pass.dto";
 import { UpdateInspectorPassDTO } from "./dtos/inspector-update-pass.dto";
 import { UpdateInspectorPasswordDTO } from "./dtos/update-password-inspector.dto";
 import { SensorIdenityDTO } from "./dtos/sensor-identity.dto";
+import { UpdateAddressDTO } from "./dtos/update-address.dto";
 
 @Service()
 export class UserController {
@@ -308,6 +309,22 @@ export class UserController {
       next(error);
     }
   };
+
+  public updateAddress = async (
+    req: BodyResquest<UpdateAddressDTO>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const addressInfo = UpdateAddressDTO.fromRequest(req);
+      const cef = req.files as Express.Multer.File[];
+      const updatedAddress = await this.userService.updateAddress(cef, addressInfo);
+      res.json(new ResponseData(updatedAddress, null, null));
+    } catch (error) {
+      console.log("🚀 ~ UserController ~ error:", error)
+      next(error);
+    }
+  }
 
   //Inspector
   public getUserList = async (

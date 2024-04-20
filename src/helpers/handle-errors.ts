@@ -331,6 +331,8 @@ export const Errors = {
     "ADDRESS_RENTAL_NOTFOUND",
     404
   ),
+
+  
 };
 
 //Global error handler

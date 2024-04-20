@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import Container, { Service } from "typedi";
+import Container, { Inject, Service } from "typedi";
 import { CreateUserRequestDTO, SendMailDTO } from "./dtos/user-create.dto";
 import Users from "./model/users.model";
 import { Errors } from "../../helpers/handle-errors";
@@ -33,6 +33,7 @@ import addressRental from "./model/user-address.model";
 import { CreateNotificationRegisterAddressDTO } from "../notification/dtos/create-notification-register-address.dto";
 import UserBlocked from "./model/user-blocked.model";
 import { CreateNotificationDTO } from "../notification/dtos/create-notification.dto";
+import { UpdateAddressDTO } from "./dtos/update-address.dto";
 //require("esm-hook");
 //const fetch = require("node-fetch").default;
 // const http = require("http");
@@ -44,9 +45,15 @@ const client = require("twilio")(
 
 @Service()
 export class UserService {
-  otpService = Container.get(OTPService);
-  imageService = Container.get(ImageService);
-  notificationService = Container.get(NotificationService);
+  // otpService = Container.get(OTPService);
+  // imageService = Container.get(ImageService);
+  // notificationService = Container.get(NotificationService);
+
+  constructor(
+    @Inject() private imageService: ImageService,
+    @Inject() private otpService: OTPService,
+    @Inject() private notificationService: NotificationService
+  ) {}
 
   //User API
   public createNewUser = async (userParam: CreateUserRequestDTO) => {
@@ -662,6 +669,69 @@ export class UserService {
     }
 
     return updateAddress;
+  };
+
+  public updateAddress = async (
+    img: Express.Multer.File[],
+    addressInfo: UpdateAddressDTO
+  ) => {
+    const user = await Users.findOne({
+      $and: [{ _id: addressInfo._uId }, { _active: true }, { _isHost: true }],
+    });
+    if (!user) throw Errors.UserNotFound;
+
+    const address = await addressRental.findOne({
+      $and: [
+        { _id: addressInfo._id },
+        { _uId: addressInfo._uId },
+        { _status: 1 },
+        { _active: true },
+      ],
+    });
+    if (!address) throw Errors.AddressRentakNotFound;
+
+    const updateAddress = {
+      _address: addressInfo._address || address._address,
+      _totalRoom: addressInfo._totalRoom || address._totalRoom,
+      _imgLicense: address._imgLicense,
+      _status: 0,
+      _active: address._active,
+      _inspectorId: address._inspectorId,
+      _reason: address._reason,
+    };
+
+    //Upload certificate images to firebase (if have)
+    if (img.length > 0) {
+      const urlCerf = await this.imageService.uploadCerf(img, addressInfo._uId);
+      if (!urlCerf) throw Errors.UploadImageFail;
+
+      updateAddress._imgLicense = urlCerf;
+    }
+
+    //Update address
+    const updatedAddress = await addressRental.findOneAndUpdate(
+      {
+        _id: new mongoose.Types.ObjectId(addressInfo._id),
+      },
+      updateAddress,
+      { new: true }
+    );
+    if (!updatedAddress) throw Errors.SaveToDatabaseFail;
+
+    //create notification for inspector
+    const notification = CreateNotificationRegisterAddressDTO.fromService({
+      _uId: user._id,
+      _addressId: updatedAddress._id,
+      _type: "UPDATE_ADDRESS",
+      _title: "Thông báo cập nhật thông tin địa chỉ host",
+      _message: `Người dùng mang id ${user._id} đã cập nhật thông tin địa chỉ phòng trọ. Vui lòng kiểm tra thông tin và cấp quyền cho người dùng này`,
+    });
+    const newNotification = await this.notificationService.createNotification(
+      notification
+    );
+    if (!newNotification) throw Errors.SaveToDatabaseFail;
+
+    return updatedAddress;
   };
 
   //Inspector

@@ -110,6 +110,13 @@ routerUser.patch(
   authMiddleware.authorizedUser,
   userController.manageStatusOfAddress
 );
+routerUser.patch(
+  "/update-address",
+  imageMiddleWare.upload.array("_licenses"),
+  imageMiddleWare.checkUploadImages,
+  authMiddleware.authorizedUser,
+  userController.updateAddress
+);
 
 //Get API
 routerUser.get(
