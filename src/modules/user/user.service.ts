@@ -538,6 +538,17 @@ export class UserService {
     return true;
   };
 
+  public getIdentityUser = async (userId: string) => {
+    const user = await Users.findOne({ $and: [{ _id: userId }, { _active: true }] });
+
+    const identity = await Indentities.findOne({
+      $and: [{ _uId: userId }, { _verified: true }],
+    });
+    if (!identity) throw Errors.UserIdentityNotFound;
+
+    return identity;
+  }
+
   public registerAddress = async (
     address: string,
     totalRooms: number,

@@ -144,6 +144,12 @@ routerUser.get(
   authMiddleware.authorizedUser,
   userController.getAddressByIdUser
 );
+routerUser.get(
+  "/get-identity",
+  authMiddleware.authorizedUser,
+  userController.getIdentityUser
+);
+
 
 // routerUser.post(
 //   "/send-sms",

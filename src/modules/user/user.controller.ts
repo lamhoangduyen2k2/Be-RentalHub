@@ -326,6 +326,19 @@ export class UserController {
     }
   }
 
+  public getIdentityUser = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const identity = await this.userService.getIdentityUser(req.body._uId);
+      res.json(new ResponseData(identity, null, null));
+    } catch (error) {
+      next(error);
+    }
+  };
+
   //Inspector
   public getUserList = async (
     req: Request,

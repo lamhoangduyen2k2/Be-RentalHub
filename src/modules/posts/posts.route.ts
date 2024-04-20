@@ -1,17 +1,15 @@
 import express from "express";
 import { PostsController } from "./posts.controller";
-import { PostsService } from "./posts.service";
 import { AuthenMiddWare } from "../auth/auth.middleware";
-import { AuthService } from "../auth/auth.service";
 import { ImageMiddleWare } from "../image/image.middleware";
 import Container from "typedi";
 import { PostsMiddleWare } from "./posts.middleware";
 import { TagController } from "../tags/tag.controller";
 
 const route = express.Router();
-const postsController = new PostsController(new PostsService());
+const postsController = Container.get(PostsController);
 const postMiddleWare = Container.get(PostsMiddleWare);
-const authMiddleware = new AuthenMiddWare(new AuthService());
+const authMiddleware = Container.get(AuthenMiddWare);
 const imageMiddleWare = Container.get(ImageMiddleWare);
 const tagController = Container.get(TagController);
 
