@@ -402,7 +402,8 @@ export class PostsController {
   ) => {
     try {
       const postId = req.query.postId ? req.query.postId.toString() : undefined;
-      const data = await this.postsService.getReportPostById(postId);
+      const notiId = req.query.notiId ? req.query.notiId.toString() : undefined;
+      const data = await this.postsService.getReportPostById(postId, notiId);
 
       res.json(new ResponseData(data, null, null));
     } catch (error) {
@@ -422,7 +423,8 @@ export class PostsController {
     try {
       const data = await this.postsService.sensorReportPost(
         req.params.reportedId,
-        req.body._uId
+        req.body._uId,
+        req.body.status
       );
 
       res.json(new ResponseData(data, null, null));

@@ -326,32 +326,30 @@ export class PostsService {
       }
     });
 
-    const count = await Posts.aggregate(
-      [
-        {
-          $lookup: {
-                from: "rooms",
-                localField: "_rooms",
-                foreignField: "_id",
-                as: "room",
-              },
+    const count = await Posts.aggregate([
+      {
+        $lookup: {
+          from: "rooms",
+          localField: "_rooms",
+          foreignField: "_id",
+          as: "room",
         },
-        { $unwind: "$room" },
-        {
-          $match: {
-            $and: [{ _status: 1 }, ...arrange],
-          }
+      },
+      { $unwind: "$room" },
+      {
+        $match: {
+          $and: [{ _status: 1 }, ...arrange],
         },
-        {
-          $count: 'total'
+      },
+      {
+        $count: "total",
+      },
+      {
+        $project: {
+          totalDocument: "$total",
         },
-        {
-          $project: {
-            totalDocument: "$total"
-          }
-        }
-      ]
-    )
+      },
+    ]);
     const totalPages = Math.ceil(count[0].totalDocument / pagination.limit);
 
     const condition = [];
@@ -1488,6 +1486,16 @@ export class PostsService {
     );
     if (!newReport) throw Errors.SaveToDatabaseFail;
 
+    //create notification
+    const notification = CreateNotificationDTO.fromService({
+      _uId: report._uId,
+      _postId: report._postId,
+      _title: "Báo cáo bài viết",
+      _message: `Người dùng mang Id ${report._uId} đã báo cáo bài viết mang Id ${report._postId} với nội dung: ${report._content}`,
+      _type: "NEW_REPORT_POST",
+    });
+    await this.notificationService.createNotification(notification);
+
     return newReport;
   };
 
@@ -1604,7 +1612,9 @@ export class PostsService {
     ];
   };
 
-  public getReportPostById = async (reportId: string) => {
+  public getReportPostById = async (reportId: string, notiId: string) => {
+    if (notiId) this.notificationService.getNotificationById(notiId);
+
     const reportPost = await ReportedPosts.findOne({ _id: reportId });
     if (!reportPost) throw Errors.ReportedPostNotFound;
 
@@ -1715,52 +1725,60 @@ export class PostsService {
     return reportPostInfo[0];
   };
 
-  public sensorReportPost = async (reportId: string, inspectorId: string) => {
+  public sensorReportPost = async (
+    reportId: string,
+    inspectorId: string,
+    status: number
+  ) => {
     const reportPost = await ReportedPosts.findOneAndUpdate(
       { $and: [{ _id: reportId }, { _sensored: false }] },
       { _sensored: true }
     );
     if (!reportPost) throw Errors.ReportedPostNotFound;
 
-    const post = await Posts.findOne({ _id: reportPost._postId });
-    if (!post) throw Errors.PostNotFound;
-
-    const sensorReport = await Posts.findOneAndUpdate(
-      { _id: reportPost._postId },
-      { _status: 4, _active: false, _inspectId: inspectorId },
-      { new: true }
-    );
-    if (!sensorReport) throw Errors.SaveToDatabaseFail;
-
-    //Increase totalReported or block user
-    const user = await Users.findOne({ _id: reportPost._uIdReported });
-    if (!user) throw Errors.UserNotFound;
-
-    if (user._totalReported >= 3) {
-      const userBlocked = await this.userService.blockUser(user._id.toString());
-      if (!userBlocked) throw Errors.SaveToDatabaseFail;
-    } else {
-      const userTotalReported = await this.userService.increaseTotalReported(
-        user._id.toString()
+    if (status) {
+      const post = await Posts.findOne({ _id: reportPost._postId });
+      if (!post) throw Errors.PostNotFound;
+  
+      const sensorReport = await Posts.findOneAndUpdate(
+        { _id: reportPost._postId },
+        { _status: status, _active: false, _inspectId: inspectorId },
+        { new: true }
       );
-      if (!userTotalReported) throw Errors.SaveToDatabaseFail;
+      if (!sensorReport) throw Errors.SaveToDatabaseFail;
+  
+      //Increase totalReported or block user
+      const user = await Users.findOne({ _id: reportPost._uIdReported });
+      if (!user) throw Errors.UserNotFound;
+  
+      if (user._totalReported >= 3) {
+        const userBlocked = await this.userService.blockUser(user._id.toString());
+        if (!userBlocked) throw Errors.SaveToDatabaseFail;
+      } else {
+        const userTotalReported = await this.userService.increaseTotalReported(
+          user._id.toString()
+        );
+        if (!userTotalReported) throw Errors.SaveToDatabaseFail;
+      }
+  
+      //Create notification
+      const notification = CreateNotificationDTO.fromService({
+        _uId: reportPost._uIdReported,
+        _postId: reportPost._postId,
+        _type: "REPORTED_POST",
+        _title: "Bài viết của bạn đã bị xóa",
+        _message: `Bài viết mang ID ${reportPost._postId} của bạn đã bị xóa do vi phạm quy định của chúng tôi.`,
+      });
+  
+      const newNotification = await this.notificationService.createNotification(
+        notification
+      );
+      if (!newNotification) throw Errors.SaveToDatabaseFail;
+
+      return sensorReport;
     }
 
-    //Create notification
-    const notification = CreateNotificationDTO.fromService({
-      _uId: reportPost._uIdReported,
-      _postId: reportPost._postId,
-      _type: "REPORTED_POST",
-      _title: "Bài viết của bạn đã bị xóa",
-      _message: `Bài viết mang ID ${reportPost._postId} của bạn đã bị xóa do vi phạm quy định của chúng tôi.`,
-    });
-
-    const newNotification = await this.notificationService.createNotification(
-      notification
-    );
-    if (!newNotification) throw Errors.SaveToDatabaseFail;
-
-    return sensorReport;
+    return true;
   };
 
   public getReportedPostByUser = async (notiId: string) => {
