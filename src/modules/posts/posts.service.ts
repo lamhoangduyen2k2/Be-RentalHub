@@ -227,6 +227,8 @@ export class PostsService {
     let isRented: boolean = false;
     let active: boolean = true;
 
+    if (postParam._status !== 1 && postParam._status !== 2) throw Errors.StatusInvalid;
+
     await Posts.findById(postId)
       .then((result) => {
         console.log(result);
@@ -241,7 +243,7 @@ export class PostsService {
     }
 
     const updatedPost = await Posts.findOneAndUpdate(
-      { _id: postId },
+      { _id: new mongoose.Types.ObjectId(postId) },
       {
         _status: postParam._status,
         _active: active,
@@ -258,15 +260,26 @@ export class PostsService {
     );
 
     //Create notification for user
-    const notification = CreateNotificationDTO.fromService({
-      _title: "Bài đăng của bạn đã được duyệt",
-      _content: `Bài đăng ${updatedPost._id} đã được duyệt`,
-      _type: "CREATE_POST_SUCCESS",
-      _uId: updatedPost._uId,
-      _postId: updatedPost._id,
-    });
+    if (postParam._status === 1) {
+      const notification = CreateNotificationDTO.fromService({
+        _title: "Bài đăng của bạn đã được duyệt",
+        _message: `Bài đăng ${updatedPost._id} đã được duyệt`,
+        _type: "CREATE_POST_SUCCESS",
+        _uId: updatedPost._uId,
+        _postId: updatedPost._id,
+      });
+      await this.notificationService.createNotification(notification);
+    } else {
+      const notification = CreateNotificationDTO.fromService({
+        _title: "Bài đăng của bạn đã bị từ chối",
+        _message: `Bài đăng ${updatedPost._id} đã bị từ chối`,
+        _type: "CREATE_POST_FAIL",
+        _uId: updatedPost._uId,
+        _postId: updatedPost._id,
+      });
+      await this.notificationService.createNotification(notification);
+    }
 
-    await this.notificationService.createNotification(notification);
 
     return true;
   };
