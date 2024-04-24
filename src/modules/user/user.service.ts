@@ -302,6 +302,10 @@ export class UserService {
   };
 
   public activeHost = async (userParam: UserHostedDTO) => {
+    // Check user is Block Host
+    const userBlock = await UserBlocked.findOne({ $or: [{ _uId: userParam._uId }, { _phone: userParam._phone }]});
+    if (userBlock) throw Errors.UserIsBlocked;
+
     //Check phoneNumber
     const userPhone = await Users.findOne({
       $and: [{ _phone: userParam._phone }, { _id: { $ne: userParam._uId } }],
@@ -318,41 +322,6 @@ export class UserService {
       .services(process.env.TWILIO_VERIFY_SID)
       .verifications.create({ to: phone, channel: "sms" })
       .then((verification) => console.log(verification));
-
-    // //Kiểm tra OTP có bị trùng không
-    // const Otp = await OTP.findOne({ _uId: user._id });
-    // if (Otp) throw Errors.OtpDuplicate;
-
-    // //Create otp
-    // const otp: string = generate(6, {
-    //   digits: true,
-    //   lowerCaseAlphabets: false,
-    //   upperCaseAlphabets: false,
-    //   specialChars: false,
-    // }).toString();
-
-    // //Create payload for sendEmail
-    // const payload: SendMailDTO = {
-    //   email: user._email,
-    //   subject: "Confirmation mail ✔",
-    //   text: "You are successful",
-    //   html: `<b>Congratulations, you have successfully hosted. Your code is ${otp}</b>`,
-    // };
-    // await this.otpService.sendEmail(payload);
-
-    // //Save this otp to database
-    // const newOTP = await OTP.create({
-    //   _uId: user._id,
-    //   _otp: otp,
-    //   expiredAt: Date.now(),
-    // });
-    // if (!newOTP) throw Errors.SaveToDatabaseFail;
-
-    // //Save phonenumber for user
-    // await Users.updateOne(
-    //   { _id: userParam._uId },
-    //   { _phone: userParam._phone }
-    // );
     return true;
   };
 
@@ -414,11 +383,19 @@ export class UserService {
   ) => {
     try {
       let result;
+      // Check user is Block Host
+      const userBlock = await UserBlocked.findOne({ _uId: new mongoose.Types.ObjectId(userId) });
+      if (userBlock) throw Errors.UserIsBlocked;
+
       const base64_front = image_front.buffer.toString("base64");
       const base64_back = image_back.buffer.toString("base64");
 
       const data_front = await fetchIDRecognition(base64_front);
 
+      // Check user is Block Host
+      const userBlockIdentity = await UserBlocked.findOne({ _idCard: data_front.id });
+      if (userBlockIdentity) throw Errors.UserIsBlocked;
+      //Check identity card is duplicate
       const indentity = await Indentities.findOne({
         $and: [{ _uId: { $ne: userId } }, { _idCard: data_front.id }],
       });
@@ -455,7 +432,14 @@ export class UserService {
         );
         if (!updateIndentity) throw Errors.SaveToDatabaseFail;
 
-        result = updateIndentity;
+        const updatedUser = await Users.findOneAndUpdate(
+          { _id: new mongoose.Types.ObjectId(userId) },
+          { _isHost: false, _temptHostBlocked: true },
+          { new: true }
+        );
+        if (!updatedUser) throw Errors.SaveToDatabaseFail;
+
+        result = UserResponsesDTO.toResponse(updatedUser);
       } else {
         const newIndentity = await Indentities.create({
           _uId: new mongoose.Types.ObjectId(userId),
@@ -539,7 +523,9 @@ export class UserService {
   };
 
   public getIdentityUser = async (userId: string) => {
-    const user = await Users.findOne({ $and: [{ _id: userId }, { _active: true }] });
+    const user = await Users.findOne({
+      $and: [{ _id: userId }, { _active: true }],
+    });
 
     const identity = await Indentities.findOne({
       $and: [{ _uId: userId }, { _verified: true }],
@@ -547,7 +533,7 @@ export class UserService {
     if (!identity) throw Errors.UserIdentityNotFound;
 
     return identity;
-  }
+  };
 
   public registerAddress = async (
     address: string,
@@ -1418,7 +1404,7 @@ export class UserService {
     //Block user
     const updateUser = await Users.findOneAndUpdate(
       { _id: new mongoose.Types.ObjectId(userId) },
-      { _isHost: false },
+      { _isHost: false, _temptHostBlocked: false },
       { new: true }
     );
     if (!updateUser) throw Errors.SaveToDatabaseFail;

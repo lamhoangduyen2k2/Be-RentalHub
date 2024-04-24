@@ -66,6 +66,10 @@ const usersSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  _temptHostBlocked: {
+    type: Boolean,
+    default: null,
+  },
 });
 
 usersSchema.pre("save", async function (next: NextFunction) {

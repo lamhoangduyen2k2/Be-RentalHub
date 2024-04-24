@@ -17,6 +17,8 @@ export class ErrorModel extends Error {
 }
 
 export const Errors = {
+  UserIsBlocked: new ErrorModel("User is blocked!", "USER_IS_BLOCKED", 400),
+  
   SaveToDatabaseFail: new ErrorModel(
     "Save data is failed!",
     "SAVE_TO_DATABASE_FAIL",
@@ -320,10 +322,14 @@ export const Errors = {
     "STRING_BASE64_INVALID",
     400
   ),
-  IdentIdNotFound: new ErrorModel( "IdentId not found!", "IDENTID_NOTFOUND", 404),
-  StatusNotFound : new ErrorModel("Status not found!", "STATUS_NOTFOUND", 404),
-  ReasonNotFound : new ErrorModel("Reason not found!", "REASON_NOTFOUND", 404),
-  ReasonInvalid : new ErrorModel("Reason invalid!", "REASON_INVALID", 400),
+  IdentIdNotFound: new ErrorModel(
+    "IdentId not found!",
+    "IDENTID_NOTFOUND",
+    404
+  ),
+  StatusNotFound: new ErrorModel("Status not found!", "STATUS_NOTFOUND", 404),
+  ReasonNotFound: new ErrorModel("Reason not found!", "REASON_NOTFOUND", 404),
+  ReasonInvalid: new ErrorModel("Reason invalid!", "REASON_INVALID", 400),
 
   //Error for Address Rental
   AddressRentakNotFound: new ErrorModel(
@@ -331,8 +337,6 @@ export const Errors = {
     "ADDRESS_RENTAL_NOTFOUND",
     404
   ),
-
-  
 };
 
 //Global error handler

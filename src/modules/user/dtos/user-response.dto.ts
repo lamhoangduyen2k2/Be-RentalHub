@@ -42,6 +42,12 @@ export class UserResponsesDTO {
   @Expose()
   _rating: number;
 
+  @Expose()
+  _addressRental: string[];
+
+  @Expose()
+  _temptHostBlocked: boolean | null;
+
   static toResponse = (data: unknown) => {
     return plainToClass(UserResponsesDTO, data, {
       excludeExtraneousValues: true,

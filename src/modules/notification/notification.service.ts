@@ -28,7 +28,21 @@ export class NotificationService {
     });
 
     const notifications = await Notification.find({
-      _uId: userId,
+      $and: [
+        { _uId: userId },
+        {
+          _type: {
+            $nin: [
+              "ACTIVE_HOST",
+              "REGISTER_ADDRESS",
+              "CREATE_POST",
+              "NEW_REPORT_POST",
+              "UPDATE_ADDRESS",
+            ],
+          },
+        },
+      
+      ],
     }).sort({ _read: 1 });
 
     const result = {
