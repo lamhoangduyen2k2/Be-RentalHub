@@ -18,6 +18,7 @@ import adminRoute from "./modules/user/routes/admin.route";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import statisRoute from "./modules/statistic/statistic.route";
 
 //import bodyParser from "body-parser";
 
@@ -47,6 +48,7 @@ import timezone from "dayjs/plugin/timezone";
   app.use("/api/upload", routerImg);
   app.use("/api/inspector", inspectorRoute);
   app.use("/api/admin", adminRoute);
+  app.use("/api/statistic", statisRoute);
 
   app.use(erroHandler);
 
