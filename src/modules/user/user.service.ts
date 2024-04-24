@@ -962,7 +962,7 @@ export class UserService {
     if (status === 1) {
       const updateUser = await Users.findOneAndUpdate(
         { _id: new mongoose.Types.ObjectId(userIdentity._uId) },
-        { _isHost: true },
+        { _isHost: true, _temptHostBlocked: false },
         { new: true }
       );
 
@@ -1278,7 +1278,7 @@ export class UserService {
     if (status === 1) {
       const updateUser = await Users.findOneAndUpdate(
         { _id: new mongoose.Types.ObjectId(userIdentity._uId) },
-        { _isHost: true },
+        { _isHost: true, _temptHostBlocked: false},
         { new: true }
       );
 
