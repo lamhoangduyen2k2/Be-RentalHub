@@ -70,7 +70,7 @@ const usersSchema = new mongoose.Schema({
     type: Boolean,
     default: null,
   },
-});
+}, { timestamps: true });
 
 usersSchema.pre("save", async function (next: NextFunction) {
   if (!this.isModified("_pw")) return next();
