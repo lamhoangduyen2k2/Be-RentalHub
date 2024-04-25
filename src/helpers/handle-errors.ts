@@ -337,6 +337,9 @@ export const Errors = {
     "ADDRESS_RENTAL_NOTFOUND",
     404
   ),
+
+  //Error for Statistic
+  YearInvalid : new ErrorModel("Year invalid!", "YEAR_INVALID", 400),
 };
 
 //Global error handler

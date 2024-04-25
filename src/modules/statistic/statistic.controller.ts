@@ -32,4 +32,34 @@ export class StatisticController {
             next(error);
         }
     }
+
+    public countNewUserByMonth = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) => {
+        try {
+            const year = isNaN(Number(req.query.year)) ? new Date().getFullYear() : Number(req.query.year);
+            const countNewUsers = await this.statisticService.countNewUserByMonth(year);
+            res.json(new ResponseData(countNewUsers, null, null));
+        } catch (error) {
+            console.log("🚀 ~ StatisticController ~ error:", error)
+            next(error);
+        }
+    }
+
+    public countNewUserByYear = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) => {
+        try {
+            const year = isNaN(Number(req.query.year)) ? req.query.year.toString() : Number(req.query.year);
+            const countNewUsers = await this.statisticService.countNewUserByYear(year);
+            res.json(new ResponseData(countNewUsers, null, null));
+        } catch (error) {
+            console.log("🚀 ~ StatisticController ~ error:", error)
+            next(error);
+        }
+    }
 }
