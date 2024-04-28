@@ -58,7 +58,7 @@ export class StatisticService {
     const result = months.map(month => {
       const monthData = countNewUsers.find((data: unknown) => data["_id"] === month);
       return {
-        name: month,
+        name: month.toString(),
         value: monthData ? monthData.value : 0,
       };
     })
@@ -91,7 +91,7 @@ export class StatisticService {
         {
           $project: {
             _id: 0,
-            name: "$_id",
+            name: { $toString: "$_id" },
             value: 1,
           }
         }
