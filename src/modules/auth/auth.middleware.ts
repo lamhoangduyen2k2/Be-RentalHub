@@ -6,6 +6,7 @@ import { Errors, handleErrorOfValidation } from "../../helpers/handle-errors";
 import { AuthService } from "./auth.service";
 import Users from "../user/model/users.model";
 import { Inject, Service } from "typedi";
+import passport from "passport";
 
 @Service()
 export class AuthenMiddWare {
@@ -138,4 +139,19 @@ export class AuthenMiddWare {
       next(error);
     }
   };
+
+  googleCallback = (req: Request, res: Response, next: NextFunction) => {
+    passport.authenticate("google", (err, profile) => {
+      const user = {
+        email: profile._json.email,
+        given_name: profile._json.given_name,
+        family_name: profile._json.family_name,
+        picture: profile._json.picture,
+        email_verified: profile._json.email_verified,
+        type_login: profile.provider,
+      };
+      req.body = user;
+      next();
+    })(req, res, next);
+  }
 }

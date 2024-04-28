@@ -40,7 +40,8 @@ const usersSchema = new mongoose.Schema({
   },
   _pw: {
     type: String,
-    required: [true, "Password is required"],
+    //required: [true, "Password is required"],
+    default: null,
   },
   _active: {
     type: Boolean,
@@ -69,6 +70,10 @@ const usersSchema = new mongoose.Schema({
   _temptHostBlocked: {
     type: Boolean,
     default: null,
+  },
+  _loginType: {
+    type: String,
+    default: "local",
   },
 }, { timestamps: true });
 

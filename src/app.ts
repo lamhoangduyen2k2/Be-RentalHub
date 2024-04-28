@@ -19,7 +19,8 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import statisRoute from "./modules/statistic/statistic.route";
-
+import "./modules/auth/passport";
+import authRoute from "./modules/auth/auth.route";
 //import bodyParser from "body-parser";
 
 (async () => {
@@ -33,7 +34,11 @@ import statisRoute from "./modules/statistic/statistic.route";
   app.use(express.urlencoded({ extended: false }));
   app.use(compression());
   app.use(helmet());
-  app.use(cors());
+  app.use(
+    cors({
+      origin: "http://localhost:4200",
+    })
+  );
   app.use(morgan("combined"));
   app.set("view engine", "ejs");
 
@@ -49,6 +54,7 @@ import statisRoute from "./modules/statistic/statistic.route";
   app.use("/api/inspector", inspectorRoute);
   app.use("/api/admin", adminRoute);
   app.use("/api/statistic", statisRoute);
+  app.use("/api/auth", authRoute);
 
   app.use(erroHandler);
 

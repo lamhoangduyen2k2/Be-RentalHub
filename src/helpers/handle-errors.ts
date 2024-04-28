@@ -92,6 +92,8 @@ export const Errors = {
 
   EmailInvalid: new ErrorModel("Emailname invalid!", "EMAIL_INVALID", 400),
 
+  EmailNotVerified: new ErrorModel("Email is not verified!", "EMAIL_NOT_VERIFIED", 400),
+
   GenderInvalid: new ErrorModel("Gendername invalid!", "GENDER_INVALID", 400),
 
   PhoneInvalid: new ErrorModel(

@@ -7,6 +7,7 @@ import RefreshTokens from "../token/refresh.model";
 import { Service } from "typedi";
 import tokenService from "../token/token.service";
 import { UserResponsesDTO } from "../user/dtos/user-response.dto";
+import { LoginGoogleRequestDTO } from "./dtos/login-google";
 
 @Service()
 export class AuthService {
@@ -28,6 +29,33 @@ export class AuthService {
 
     return { ...UserResponsesDTO.toResponse(users), ...token };
   };
+
+  loginByGoogle = async (loginInfo: LoginGoogleRequestDTO) => {
+    console.log("🚀 ~ AuthService ~ loginByGoogle= ~ loginInfo:", loginInfo)
+    if (!loginInfo.email_verified) throw Errors.EmailNotVerified;
+
+    let user = await Users.findOne({ _email: loginInfo.email });
+    if (user && user._loginType !== "google") throw Errors.Duplicate;
+
+    if (!user) {
+      user = await Users.create({
+        _email: loginInfo.email,
+        _fname: loginInfo.family_name,
+        _lname: loginInfo.given_name,
+        _avatar: loginInfo.picture,
+        _loginType: loginInfo.type_login,
+      });
+    }
+
+    if (!user) throw Errors.SaveToDatabaseFail;
+
+    const token = await tokenService.createTokenByLogin(
+      user._id.toString(),
+      3600
+    );
+
+    return { ...UserResponsesDTO.toResponse(user), ...token };
+  }
 
   loginInspectorService = async (loginParam: LoginRequestDTO) => {
     const users = await Users.findOne({

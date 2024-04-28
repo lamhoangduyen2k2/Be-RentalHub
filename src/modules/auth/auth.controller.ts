@@ -4,6 +4,7 @@ import { AuthService } from "./auth.service";
 import { LoginRequestDTO } from "./dtos/auth-login.dto";
 import { ResponseData } from "../../helpers/response";
 import { Inject, Service } from "typedi";
+import { LoginGoogleRequestDTO } from "./dtos/login-google";
 
 @Service()
 export class AuthController {
@@ -16,6 +17,21 @@ export class AuthController {
   ) => {
     try {
       const user = await this.authSerivce.loginService(req.body);
+
+      res.json(new ResponseData(user, null, null));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public loginByGoogleController = async (
+    req: BodyResquest<LoginGoogleRequestDTO>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const loginInfo = LoginGoogleRequestDTO.fromRequest(req);
+      const user = await this.authSerivce.loginByGoogle(loginInfo);
 
       res.json(new ResponseData(user, null, null));
     } catch (error) {
