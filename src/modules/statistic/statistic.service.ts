@@ -13,18 +13,14 @@ export class StatisticService {
   };
 
   public getFiveRecentYear = async () => {
-    const listYear: [string | number] = ["All years"];
-    console.log(
-      "🚀 ~ StatisticService ~ getFiveRecentYear= ~ listYear:",
-      listYear
-    );
     const currentYear = new Date().getFullYear();
+    const listYear: [number | string] = [currentYear];
 
-    for (let i = currentYear; listYear.length <= 6 && i >= 2023; i--) {
-      listYear.push(i);
+    for (let i = currentYear - 1; listYear.length <= 6 && i >= 2023; i--) {
+      listYear.unshift(i);
     }
 
-    listYear.sort();
+    listYear.unshift("All years");
 
     return listYear;
   };
@@ -62,7 +58,7 @@ export class StatisticService {
     const result = months.map(month => {
       const monthData = countNewUsers.find((data: unknown) => data["_id"] === month);
       return {
-        month,
+        name: month,
         value: monthData ? monthData.value : 0,
       };
     })
