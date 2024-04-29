@@ -62,4 +62,46 @@ export class StatisticController {
             next(error);
         }
     }
+
+    public getUserData = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) => {
+        try {
+            const userData = await this.statisticService.getUserData();
+            res.json(new ResponseData(userData, null, null));
+        } catch (error) {
+            console.log("🚀 ~ StatisticController ~ error:", error)
+            next(error);
+        }
+    }
+
+    public getHostData = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) => {
+        try {
+            const hostData = await this.statisticService.getHostData();
+            res.json(new ResponseData(hostData, null, null));
+        } catch (error) {
+            console.log("🚀 ~ StatisticController ~ error:", error)
+            next(error);
+        }
+    }
+
+    public getInspectorData = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) => {
+        try {
+            const inspectorData = await this.statisticService.getInspectorData();
+            res.json(new ResponseData(inspectorData, null, null));
+        } catch (error) {
+            console.log("🚀 ~ StatisticController ~ error:", error)
+            next(error);
+        }
+    }
 }

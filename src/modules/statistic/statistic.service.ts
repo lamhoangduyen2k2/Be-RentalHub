@@ -1,6 +1,8 @@
 import { Service } from "typedi";
 import Users from "../user/model/users.model";
 import { Errors } from "../../helpers/handle-errors";
+import Posts from "../posts/models/posts.model";
+import { UserDataResponsesDTO } from "./dto/users-data-response.dto";
 
 @Service()
 export class StatisticService {
@@ -27,7 +29,7 @@ export class StatisticService {
 
   public countNewUserByMonth = async (year: number) => {
     if (year > new Date().getFullYear()) throw Errors.YearInvalid;
-    const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
     const countNewUsers = await Users.aggregate([
       {
         $match: {
@@ -50,18 +52,20 @@ export class StatisticService {
       },
       {
         $sort: {
-          "_id": 1,
+          _id: 1,
         },
       },
     ]);
 
-    const result = months.map(month => {
-      const monthData = countNewUsers.find((data: unknown) => data["_id"] === month);
+    const result = months.map((month) => {
+      const monthData = countNewUsers.find(
+        (data: unknown) => data["_id"] === month
+      );
       return {
         name: month.toString(),
         value: monthData ? monthData.value : 0,
       };
-    })
+    });
 
     return result;
   };
@@ -71,10 +75,7 @@ export class StatisticService {
       const years = await Users.aggregate([
         {
           $match: {
-            $and: [
-              { _active: true },
-              { _role: 0 },
-            ],
+            $and: [{ _active: true }, { _role: 0 }],
           },
         },
         {
@@ -85,7 +86,7 @@ export class StatisticService {
         },
         {
           $sort: {
-            "_id": 1,
+            _id: 1,
           },
         },
         {
@@ -93,8 +94,8 @@ export class StatisticService {
             _id: 0,
             name: { $toString: "$_id" },
             value: 1,
-          }
-        }
+          },
+        },
       ]);
       return years;
     } else {
@@ -121,14 +122,122 @@ export class StatisticService {
             _id: 0,
             name: year.toString(),
             value: 1,
-          }
-        }
+          },
+        },
       ]);
-      if (years.length === 0) return { name: year, value: 0}
+      if (years.length === 0) return { name: year, value: 0 };
 
       return years[0];
     }
-    
-
   };
+
+  public countPostByMonth = async (year: number) => {
+    if (year > new Date().getFullYear()) throw Errors.YearInvalid;
+    const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const countPosts = await Posts.aggregate([
+      {
+        $match: {
+          $and: [
+            { _active: true },
+            { _role: 1 },
+            {
+              $expr: {
+                $eq: [{ $year: "$createdAt" }, year],
+              },
+            },
+          ],
+        },
+      },
+      {
+        $group: {
+          _id: { $month: "$createdAt" },
+          value: { $sum: 1 },
+        },
+      },
+      {
+        $sort: {
+          _id: 1,
+        },
+      },
+    ]);
+
+    const result = months.map((month) => {
+      const monthData = countPosts.find(
+        (data: unknown) => data["_id"] === month
+      );
+      return {
+        name: month.toString(),
+        value: monthData ? monthData.value : 0,
+      };
+    });
+
+    return result;
+  };
+
+  public getUserData = async () => {
+    const users = await Users.find({
+      $and: [{ _isHost: false }, { _role: 0 }],
+    });
+
+    return UserDataResponsesDTO.toResponse(users);
+  };
+
+  public getHostData = async () => {
+    const users = await Users.aggregate([
+      {
+        $match: {
+          $and: [{ _isHost: true }, { _role: 0 }],
+        },
+      },
+      {
+        $lookup: {
+          from: "indentities",
+          localField: "_id",
+          foreignField: "_uId",
+          as: "identities",
+        },
+      },
+      {
+        $unwind: {
+          path: "$identities",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          _fname: 1,
+          _lname: 1,
+          _email: 1,
+          _phone: 1,
+          _isHost: 1,
+          _address: "$identities._address",
+          _loginType: 1,
+          _dob: "$identities._dob",
+          _home: "$identities._home",
+          _gender: "$identities._gender",
+          _nationality: "$identities._nationality",
+          _features: "$identities._features",
+          _issueDate: "$identities._issueDate",
+          _doe: "$identities._doe",
+          _issueLoc: "$identities._issueLoc",
+          _type: "$identities._type",
+          _addressRental: 1,
+          _totalReported: 1,
+        },
+      },
+    ]);
+    if (users.length <= 0) throw Errors.UserNotFound;
+
+    return users;
+  };
+
+  public getInspectorData = async () => {
+    const inspectors = await Users.find({
+      _role: 2,
+    })
+    if (inspectors.length <= 0) throw Errors.UserNotFound;
+
+    return UserDataResponsesDTO.toResponse(inspectors);
+  }
 }

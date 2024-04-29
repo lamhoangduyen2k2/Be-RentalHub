@@ -11,5 +11,8 @@ statisRoute.get("/count-all-users", authMiddleware.authorizedAdmin, statisticCon
 statisRoute.get("/get-recent-years", authMiddleware.authorizedAdmin, statisticController.getFiveRecentYear);
 statisRoute.get("/count-users-month", authMiddleware.authorizedAdmin, statisticController.countNewUserByMonth);
 statisRoute.get("/count-users-year", authMiddleware.authorizedAdmin, statisticController.countNewUserByYear);
+statisRoute.get("/get-user-data", authMiddleware.authorizedAdmin, statisticController.getUserData);
+statisRoute.get("/get-host-data", authMiddleware.authorizedAdmin, statisticController.getHostData);
+statisRoute.get("/get-inspector-data", authMiddleware.authorizedAdmin, statisticController.getInspectorData);
 
 export default statisRoute;
