@@ -131,21 +131,21 @@ export class StatisticService {
     }
   };
 
+  public countAllPosts = async () => {
+    const totalPosts = await Posts.countDocuments();
+
+    return totalPosts;
+  };
+
   public countPostByMonth = async (year: number) => {
     if (year > new Date().getFullYear()) throw Errors.YearInvalid;
     const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
     const countPosts = await Posts.aggregate([
       {
         $match: {
-          $and: [
-            { _active: true },
-            { _role: 1 },
-            {
-              $expr: {
-                $eq: [{ $year: "$createdAt" }, year],
-              },
-            },
-          ],
+          $expr: {
+            $eq: [{ $year: "$createdAt" }, year],
+          },
         },
       },
       {
@@ -173,6 +173,91 @@ export class StatisticService {
 
     return result;
   };
+
+  public countPostByYear = async (year: number | string) => {
+    if (typeof year === "string") {
+      const years = await Posts.aggregate([
+        {
+          $group: {
+            _id: { $year: "$createdAt"},
+            value: { $sum: 1 },
+          },
+        },
+        {
+          $sort: {
+            _id: 1,
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            name: { $toString: "$_id" },
+            value: 1,
+          },
+        },
+      ]);
+      return years;
+    } else {
+      if (year > new Date().getFullYear()) throw Errors.YearInvalid;
+      const years = await Posts.aggregate([
+        {
+          $match: {
+            $expr: {
+              $eq: [{ $year: "$createdAt" }, year],
+            },
+          },
+        },
+        {
+          $count: "value",
+        },
+        {
+          $project: {
+            _id: 0,
+            name: year.toString(),
+            value: 1,
+          },
+        },
+      ]);
+      if (years.length === 0) return { name: year, value: 0 };
+      return years[0];
+    }
+  };
+
+  public countPostByStatus = async () => {
+    const status = ["Chờ duyệt", "Đang đăng", "Không được duyệt", "Đã gỡ", "Bị báo cáo"]
+    const countPosts = await Posts.aggregate([
+      {
+        $group: {
+          _id: "$_status",
+          value: { $sum: 1 },
+        },
+      },
+      {
+        $sort: {
+          _id: 1,
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          name: "$_id",
+          value: 1,
+        },
+      },
+    ]);
+
+    const result = status.map((item, index) => {
+      const statusData = countPosts.find(
+        (data: unknown) => data["name"] === index
+      );
+      return {
+        name: item,
+        value: statusData ? statusData.value : 0,
+      };
+    });
+
+    return result;
+  }
 
   public getUserData = async () => {
     const users = await Users.find({
@@ -235,9 +320,9 @@ export class StatisticService {
   public getInspectorData = async () => {
     const inspectors = await Users.find({
       _role: 2,
-    })
+    });
     if (inspectors.length <= 0) throw Errors.UserNotFound;
 
     return UserDataResponsesDTO.toResponse(inspectors);
-  }
+  };
 }

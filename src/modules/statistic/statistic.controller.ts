@@ -63,6 +63,66 @@ export class StatisticController {
         }
     }
 
+    public countAllPosts = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) => {
+        try {
+            const totalPost = await this.statisticService.countAllPosts();
+            res.json(new ResponseData(totalPost, null, null));
+        } catch (error) {
+            console.log("🚀 ~ StatisticController ~ error:", error)
+            next(error);
+        }
+    }
+    
+
+    public countPostsByMonth = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) => {
+        try {
+            const year = isNaN(Number(req.query.year)) ? new Date().getFullYear() : Number(req.query.year);
+            const countPosts = await this.statisticService.countPostByMonth(year);
+            res.json(new ResponseData(countPosts, null, null));
+        } catch (error) {
+            console.log("🚀 ~ StatisticController ~ error:", error)
+            next(error);
+        }
+    }
+
+    public countPostsByYear = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) => {
+        try {
+            console.log("🚀 ~ StatisticController ~ req.query.year:", req.query.year)
+            const year = isNaN(Number(req.query.year)) ? req.query.year.toString() : Number(req.query.year);
+            const countPosts = await this.statisticService.countPostByYear(year);
+            res.json(new ResponseData(countPosts, null, null));
+        } catch (error) {
+            console.log("🚀 ~ StatisticController ~ error:", error)
+            next(error);
+        }
+    }
+
+    public countPostsByStatus = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) => {
+        try {
+            const countPosts = await this.statisticService.countPostByStatus();
+            res.json(new ResponseData(countPosts, null, null));
+        } catch (error) {
+            console.log("🚀 ~ StatisticController ~ error:", error)
+            next(error);
+        }
+    }
+
     public getUserData = async (
         req: Request,
         res: Response,
