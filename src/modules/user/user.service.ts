@@ -1377,6 +1377,38 @@ export class UserService {
     return updateAddress;
   };
 
+  public getUserByEmailOrId = async (keyword: string) => {
+    const checkEmail = keyword.includes("@");
+
+    if (checkEmail) {
+      const user = await Users.findOne({ _email: keyword });
+      if (!user) throw Errors.UserNotFound;
+
+      return user;
+    } else {
+      const user = await Users.findOne({ _id: keyword });
+      if (!user) throw Errors.UserNotFound;
+
+      return user;
+    }
+  }
+
+  public getUserBlockedByEmailOrId = async (keyword: string) => {
+    const checkEmail = keyword.includes("@");
+
+    if (checkEmail) {
+      const user = await UserBlocked.findOne({ _email: keyword });
+      if (!user) throw Errors.UserNotFound;
+
+      return user;
+    } else {
+      const user = await UserBlocked.findOne({ _id: keyword });
+      if (!user) throw Errors.UserNotFound;
+
+      return user;
+    }
+  }
+
   //Automaticly
   public increaseTotalReported = async (userId: string) => {
     const user = await Users.findOne({ _id: userId });

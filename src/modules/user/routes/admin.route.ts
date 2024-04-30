@@ -52,6 +52,18 @@ adminRoute.get(
   userController.getAddressRequestByIdInspector
 );
 
+adminRoute.get(
+  "/get-user-keyword",
+  authMiddleware.authorizedAdmin,
+  userController.getUserByEmailOrId
+);
+
+adminRoute.get(
+  "/get-user-blocked--keyword",
+  authMiddleware.authorizedAdmin,
+  userController.getUserBlockedByEmailOrId
+);
+
 //POST API
 adminRoute.post(
   "/login-admin",

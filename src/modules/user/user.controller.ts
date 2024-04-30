@@ -641,6 +641,38 @@ export class UserController {
     }
   }
 
+  public getUserByEmailOrId = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const inforUser = await this.userService.getUserByEmailOrId(
+        req.query.keyword.toString()
+      );
+      res.json(new ResponseData(inforUser, null, null));
+    } catch (error) {
+      console.log("🚀 ~ UserController ~ error:", error)
+      next(error);
+    }
+  };
+
+  public getUserBlockedByEmailOrId = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const inforUser = await this.userService.getUserBlockedByEmailOrId(
+        req.query.keyword.toString()
+      );
+      res.json(new ResponseData(inforUser, null, null));
+    } catch (error) {
+      console.log("🚀 ~ UserController ~ error:", error)
+      next(error);
+    }
+  };
+
   // public sendSMS = async (req: Request, res: Response, next: NextFunction) => {
   //   try {
   //     const updatedUser = await this.userService.sendSMS(
