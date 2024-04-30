@@ -59,7 +59,7 @@ adminRoute.get(
 );
 
 adminRoute.get(
-  "/get-user-blocked--keyword",
+  "/get-user-blocked-keyword",
   authMiddleware.authorizedAdmin,
   userController.getUserBlockedByEmailOrId
 );
