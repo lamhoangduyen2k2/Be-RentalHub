@@ -38,4 +38,34 @@ export class NotificationController {
       next(error);
     }
   }
+
+  public getNotificationById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const notiId = req.query.notiId.toString();
+      const notification = await this.notificationService.getNotificationById(notiId);
+
+      res.json(new ResponseData(notification, null, null));
+    } catch (error) {
+      console.log("🚀 ~ NotificationController ~ error:", error)
+      next(error)
+    }
+  }
+
+  public readNotification = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const notification = await this.notificationService.readAllNotifications(req.body._uId);
+      res.json(new ResponseData(notification, null, null));
+    } catch (error) {
+      console.log("🚀 ~ NotificationController ~ error:", error)
+      next(error)
+    }
+  }
 }

@@ -41,7 +41,6 @@ export class NotificationService {
             ],
           },
         },
-      
       ],
     }).sort({ _read: 1 });
 
@@ -100,5 +99,31 @@ export class NotificationService {
     };
 
     return result;
+  };
+
+  public readAllNotifications = async (userId: string) => {
+    const unreadNotifications = await Notification.find({
+      $and: [
+        { _uId: userId },
+        { _read: false },
+        {
+          _type: {
+            $nin: [
+              "ACTIVE_HOST",
+              "REGISTER_ADDRESS",
+              "CREATE_POST",
+              "NEW_REPORT_POST",
+              "UPDATE_ADDRESS",
+            ],
+          },
+        },
+      ],
+    });
+
+    unreadNotifications.forEach(async (notification) => {
+      await Notification.findByIdAndUpdate(notification._id, { _read: true });
+    });
+
+    return true;
   };
 }
