@@ -296,23 +296,27 @@ export class StatisticService {
           _email: 1,
           _phone: 1,
           _isHost: 1,
-          _address: "$identities._address",
+          //_address: "$identities._address",
           _loginType: 1,
-          _dob: "$identities._dob",
-          _home: "$identities._home",
-          _gender: "$identities._gender",
-          _nationality: "$identities._nationality",
-          _features: "$identities._features",
-          _issueDate: "$identities._issueDate",
-          _doe: "$identities._doe",
-          _issueLoc: "$identities._issueLoc",
-          _type: "$identities._type",
+          // _dob: "$identities._dob",
+          // _home: "$identities._home",
+          // _gender: "$identities._gender",
+          // _nationality: "$identities._nationality",
+          // _features: "$identities._features",
+          // _issueDate: "$identities._issueDate",
+          // _doe: "$identities._doe",
+          // _issueLoc: "$identities._issueLoc",
+          // _type: "$identities._type",
           _addressRental: 1,
           _totalReported: 1,
         },
       },
     ]);
     if (users.length <= 0) throw Errors.UserNotFound;
+
+    users.forEach((user) => {
+      user._addressRental = user._addressRental.length;
+    });
 
     return users;
   };
