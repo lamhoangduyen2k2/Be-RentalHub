@@ -16,6 +16,10 @@ statisRoute.get("/count-posts-month", authMiddleware.authorizedAdmin, statisticC
 statisRoute.get("/count-posts-year", authMiddleware.authorizedAdmin, statisticController.countPostsByYear);
 statisRoute.get("/count-posts-status", authMiddleware.authorizedAdmin, statisticController.countPostsByStatus);
 statisRoute.get("/get-host-data", authMiddleware.authorizedAdmin, statisticController.getHostData);
+statisRoute.get("/count-host-month", authMiddleware.authorizedAdmin, statisticController.countHostByMonth);
+statisRoute.get("/count-host-year", authMiddleware.authorizedAdmin, statisticController.countHostByYear);
 statisRoute.get("/get-inspector-data", authMiddleware.authorizedAdmin, statisticController.getInspectorData);
+statisRoute.get("/count-inspector-month", authMiddleware.authorizedAdmin, statisticController.countInspectorByMonth);
+statisRoute.get("/count-inspector-year", authMiddleware.authorizedAdmin, statisticController.countInspectorByYear);
 
 export default statisRoute;

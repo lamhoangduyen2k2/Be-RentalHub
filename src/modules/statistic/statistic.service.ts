@@ -179,7 +179,7 @@ export class StatisticService {
       const years = await Posts.aggregate([
         {
           $group: {
-            _id: { $year: "$createdAt"},
+            _id: { $year: "$createdAt" },
             value: { $sum: 1 },
           },
         },
@@ -224,7 +224,13 @@ export class StatisticService {
   };
 
   public countPostByStatus = async () => {
-    const status = ["Chờ duyệt", "Đang đăng", "Không được duyệt", "Đã gỡ", "Bị báo cáo"]
+    const status = [
+      "Chờ duyệt",
+      "Đang đăng",
+      "Không được duyệt",
+      "Đã gỡ",
+      "Bị báo cáo",
+    ];
     const countPosts = await Posts.aggregate([
       {
         $group: {
@@ -257,7 +263,7 @@ export class StatisticService {
     });
 
     return result;
-  }
+  };
 
   public getUserData = async () => {
     const users = await Users.find({
@@ -321,6 +327,111 @@ export class StatisticService {
     return users;
   };
 
+  public countHostByYear = async (year: number | string) => {
+    if (typeof year === "string") {
+      const years = await Users.aggregate([
+        {
+          $match: {
+            $and: [{ _active: true }, { _role: 0 }, { _isHost: true }],
+          },
+        },
+        {
+          $group: {
+            _id: { $year: "$createdAt" },
+            value: { $sum: 1 },
+          },
+        },
+        {
+          $sort: {
+            _id: 1,
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            name: { $toString: "$_id" },
+            value: 1,
+          },
+        },
+      ]);
+      return years;
+    } else {
+      if (year > new Date().getFullYear()) throw Errors.YearInvalid;
+      const years = await Users.aggregate([
+        {
+          $match: {
+            $and: [
+              { _active: true },
+              { _role: 0 },
+              {
+                $expr: {
+                  $eq: [{ $year: "$createdAt" }, year],
+                },
+              },
+            ],
+          },
+        },
+        {
+          $count: "value",
+        },
+        {
+          $project: {
+            _id: 0,
+            name: year.toString(),
+            value: 1,
+          },
+        },
+      ]);
+      if (years.length === 0) return { name: year, value: 0 };
+
+      return years[0];
+    }
+  };
+
+  public countHostByMonth = async (year: number) => {
+    if (year > new Date().getFullYear()) throw Errors.YearInvalid;
+    const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const countNewUsers = await Users.aggregate([
+      {
+        $match: {
+          $and: [
+            { _active: true },
+            { _role: 0 },
+            { _isHost: true },
+            {
+              $expr: {
+                $eq: [{ $year: "$createdAt" }, year],
+              },
+            },
+          ],
+        },
+      },
+      {
+        $group: {
+          _id: { $month: "$createdAt" },
+          value: { $sum: 1 },
+        },
+      },
+      {
+        $sort: {
+          _id: 1,
+        },
+      },
+    ]);
+
+    const result = months.map((month) => {
+      const monthData = countNewUsers.find(
+        (data: unknown) => data["_id"] === month
+      );
+      return {
+        name: month.toString(),
+        value: monthData ? monthData.value : 0,
+      };
+    });
+
+    return result;
+  };
+
   public getInspectorData = async () => {
     const inspectors = await Users.find({
       _role: 2,
@@ -328,5 +439,109 @@ export class StatisticService {
     if (inspectors.length <= 0) throw Errors.UserNotFound;
 
     return UserDataResponsesDTO.toResponse(inspectors);
+  };
+
+  public countInspectorByYear = async (year: number | string) => {
+    if (typeof year === "string") {
+      const years = await Users.aggregate([
+        {
+          $match: {
+            $and: [{ _active: true }, { _role: 2 }],
+          },
+        },
+        {
+          $group: {
+            _id: { $year: "$createdAt" },
+            value: { $sum: 1 },
+          },
+        },
+        {
+          $sort: {
+            _id: 1,
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            name: { $toString: "$_id" },
+            value: 1,
+          },
+        },
+      ]);
+      return years;
+    } else {
+      if (year > new Date().getFullYear()) throw Errors.YearInvalid;
+      const years = await Users.aggregate([
+        {
+          $match: {
+            $and: [
+              { _active: true },
+              { _role: 2 },
+              {
+                $expr: {
+                  $eq: [{ $year: "$createdAt" }, year],
+                },
+              },
+            ],
+          },
+        },
+        {
+          $count: "value",
+        },
+        {
+          $project: {
+            _id: 0,
+            name: year.toString(),
+            value: 1,
+          },
+        },
+      ]);
+      if (years.length === 0) return { name: year, value: 0 };
+
+      return years[0];
+    }
+  };
+
+  public countInspectorByMonth = async (year: number) => {
+    if (year > new Date().getFullYear()) throw Errors.YearInvalid;
+    const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const countNewUsers = await Users.aggregate([
+      {
+        $match: {
+          $and: [
+            { _active: true },
+            { _role: 2 },
+            {
+              $expr: {
+                $eq: [{ $year: "$createdAt" }, year],
+              },
+            },
+          ],
+        },
+      },
+      {
+        $group: {
+          _id: { $month: "$createdAt" },
+          value: { $sum: 1 },
+        },
+      },
+      {
+        $sort: {
+          _id: 1,
+        },
+      },
+    ]);
+
+    const result = months.map((month) => {
+      const monthData = countNewUsers.find(
+        (data: unknown) => data["_id"] === month
+      );
+      return {
+        name: month.toString(),
+        value: monthData ? monthData.value : 0,
+      };
+    });
+
+    return result;
   };
 }

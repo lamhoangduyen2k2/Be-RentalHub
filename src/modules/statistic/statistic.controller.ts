@@ -151,6 +151,36 @@ export class StatisticController {
         }
     }
 
+    public countHostByMonth = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) => {
+        try {
+            const year = isNaN(Number(req.query.year)) ? new Date().getFullYear() : Number(req.query.year);
+            const countHosts = await this.statisticService.countHostByMonth(year);
+            res.json(new ResponseData(countHosts, null, null));
+        } catch (error) {
+            console.log("🚀 ~ StatisticController ~ error:", error)
+            next(error);
+        }
+    }
+
+    public countHostByYear = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) => {
+        try {
+            const year = isNaN(Number(req.query.year)) ? req.query.year.toString() : Number(req.query.year);
+            const countHosts = await this.statisticService.countHostByYear(year);
+            res.json(new ResponseData(countHosts, null, null));
+        } catch (error) {
+            console.log("🚀 ~ StatisticController ~ error:", error)
+            next(error);
+        }
+    }
+
     public getInspectorData = async (
         req: Request,
         res: Response,
@@ -159,6 +189,36 @@ export class StatisticController {
         try {
             const inspectorData = await this.statisticService.getInspectorData();
             res.json(new ResponseData(inspectorData, null, null));
+        } catch (error) {
+            console.log("🚀 ~ StatisticController ~ error:", error)
+            next(error);
+        }
+    }
+
+    public countInspectorByMonth = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) => {
+        try {
+            const year = isNaN(Number(req.query.year)) ? new Date().getFullYear() : Number(req.query.year);
+            const countInspectors = await this.statisticService.countInspectorByMonth(year);
+            res.json(new ResponseData(countInspectors, null, null));
+        } catch (error) {
+            console.log("🚀 ~ StatisticController ~ error:", error)
+            next(error);
+        }
+    }
+
+    public countInspectorByYear = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) => {
+        try {
+            const year = isNaN(Number(req.query.year)) ? req.query.year.toString() : Number(req.query.year);
+            const countInspectors = await this.statisticService.countInspectorByYear(year);
+            res.json(new ResponseData(countInspectors, null, null));
         } catch (error) {
             console.log("🚀 ~ StatisticController ~ error:", error)
             next(error);
