@@ -24,7 +24,21 @@ export class NotificationService {
 
   public getNotificationsList = async (userId: string) => {
     const countNewNotifications = await Notification.countDocuments({
-      $and: [{ _uId: userId }, { _read: false }],
+      $and: [
+        { _uId: userId },
+        { _read: false },
+        {
+          _type: {
+            $nin: [
+              "ACTIVE_HOST",
+              "REGISTER_ADDRESS",
+              "CREATE_POST",
+              "NEW_REPORT_POST",
+              "UPDATE_ADDRESS",
+            ],
+          },
+        },
+      ],
     });
 
     const notifications = await Notification.find({
