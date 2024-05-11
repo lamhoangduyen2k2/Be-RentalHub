@@ -22,7 +22,7 @@ export class NotificationService {
     return newNotification;
   };
 
-  public getNotificationsList = async (userId: string) => {
+  public getNotificationsUnreadedList = async (userId: string) => {
     const countNewNotifications = await Notification.countDocuments({
       $and: [
         { _uId: userId },
@@ -44,6 +44,7 @@ export class NotificationService {
     const notifications = await Notification.find({
       $and: [
         { _uId: userId },
+        { _read: false },
         {
           _type: {
             $nin: [
@@ -56,7 +57,7 @@ export class NotificationService {
           },
         },
       ],
-    }).sort({ _read: 1 });
+    });
 
     const result = {
       notifications: GetNotificationsListDTO.toResponse(notifications),

@@ -10,19 +10,19 @@ const notifiController = Container.get(NotificationController);
 notifiRoute.get(
   "/",
   authMiddleware.authorizedUser,
-  notifiController.getNotificationsList
+  notifiController.getNotificationsUnreadedList
 );
 notifiRoute.get(
   "/get-notifi-inspector",
   authMiddleware.authorizedInspector,
   notifiController.getNotificationsInspector
 );
-notifiRoute.patch(
+notifiRoute.get(
   "/read-notification-id",
   authMiddleware.authorized,
   notifiController.getNotificationById
 );
-notifiRoute.patch(
+notifiRoute.get(
   "/read-all-notification",
   authMiddleware.authorized,
   notifiController.readNotification

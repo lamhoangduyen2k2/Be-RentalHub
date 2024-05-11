@@ -7,13 +7,13 @@ import { ResponseData } from "../../helpers/response";
 export class NotificationController {
   constructor(@Inject() private notificationService: NotificationService) {}
 
-  public getNotificationsList = async (
+  public getNotificationsUnreadedList = async (
     req: Request,
     res: Response,
     next: NextFunction
   ) => {
     try {
-      const notifications = await this.notificationService.getNotificationsList(
+      const notifications = await this.notificationService.getNotificationsUnreadedList(
         req.body._uId
       );
 
