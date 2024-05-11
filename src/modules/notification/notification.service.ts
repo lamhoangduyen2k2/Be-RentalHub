@@ -8,6 +8,7 @@ import mongoose from "mongoose";
 import { CreateNotificationInspectorDTO } from "./dtos/create-notification-inspector.dto";
 import { GetNotificationsInspectorDTO } from "./dtos/get-notificaion-inspector.dto";
 import { CreateNotificationRegisterAddressDTO } from "./dtos/create-notification-register-address.dto";
+import { Pagination } from "../../helpers/response";
 
 @Service()
 export class NotificationService {
@@ -22,7 +23,10 @@ export class NotificationService {
     return newNotification;
   };
 
-  public getNotificationsUnreadedList = async (userId: string) => {
+  public getNotificationsUnreadedList = async (
+    userId: string,
+    pagination: Pagination
+  ) => {
     const countNewNotifications = await Notification.countDocuments({
       $and: [
         { _uId: userId },
@@ -41,6 +45,9 @@ export class NotificationService {
       ],
     });
 
+    const totalPage = Math.ceil(countNewNotifications / pagination.limit);
+    if (pagination.page > totalPage) throw Errors.PageNotFound;
+
     const notifications = await Notification.find({
       $and: [
         { _uId: userId },
@@ -57,14 +64,74 @@ export class NotificationService {
           },
         },
       ],
-    });
+    })
+      .skip(pagination.offset)
+      .limit(pagination.limit);
+
+    if (notifications.length <= 0) throw Errors.NotificationNotFound;
 
     const result = {
       notifications: GetNotificationsListDTO.toResponse(notifications),
       totalNewNotification: countNewNotifications,
     };
 
-    return result;
+    return [
+      result,
+      { limit: pagination.limit, page: pagination.page, total: totalPage },
+    ];
+  };
+
+  public getNotificationsReadedList = async (
+    userId: string,
+    pagination: Pagination
+  ) => {
+    const countNewNotifications = await Notification.countDocuments({
+      $and: [
+        { _uId: userId },
+        { _read: true },
+        {
+          _type: {
+            $nin: [
+              "ACTIVE_HOST",
+              "REGISTER_ADDRESS",
+              "CREATE_POST",
+              "NEW_REPORT_POST",
+              "UPDATE_ADDRESS",
+            ],
+          },
+        },
+      ],
+    });
+
+    const totalPage = Math.ceil(countNewNotifications / pagination.limit);
+    if (pagination.page > totalPage) throw Errors.PageNotFound;
+
+    const notifications = await Notification.find({
+      $and: [
+        { _uId: userId },
+        { _read: true },
+        {
+          _type: {
+            $nin: [
+              "ACTIVE_HOST",
+              "REGISTER_ADDRESS",
+              "CREATE_POST",
+              "NEW_REPORT_POST",
+              "UPDATE_ADDRESS",
+            ],
+          },
+        },
+      ],
+    })
+      .skip(pagination.offset)
+      .limit(pagination.limit);
+
+    if (notifications.length <= 0) throw Errors.NotificationNotFound;
+
+    return [
+      GetNotificationsListDTO.toResponse(notifications),
+      { limit: pagination.limit, page: pagination.page, total: totalPage },
+    ];
   };
 
   public getNotificationById = async (notificationId: string) => {
@@ -86,7 +153,7 @@ export class NotificationService {
     return resultId;
   };
 
-  public getNotificationsInspector = async () => {
+  public getNotificationsUnreadedInspector = async (pagination: Pagination) => {
     const countNewNotifications = await Notification.countDocuments({
       $and: [
         {
@@ -104,16 +171,83 @@ export class NotificationService {
       ],
     });
 
+    const totalPage = Math.ceil(countNewNotifications / pagination.limit);
+    if (pagination.page > totalPage) throw Errors.PageNotFound;
+
     const notifications = await Notification.find({
-      _type: { $in: ["ACTIVE_HOST", "REGISTER_ADDRESS", "CREATE_POST"] },
-    });
+      $and: [
+        {
+          _type: {
+            $in: [
+              "ACTIVE_HOST",
+              "REGISTER_ADDRESS",
+              "CREATE_POST",
+              "NEW_REPORT_POST",
+              "UPDATE_ADDRESS",
+            ],
+          },
+        },
+        { _read: false },
+      ],
+    })
+      .skip(pagination.offset)
+      .limit(pagination.limit);
 
     const result = {
       notifications: GetNotificationsInspectorDTO.toResponse(notifications),
       totalNewNotification: countNewNotifications,
     };
 
-    return result;
+    return [
+      result,
+      { limit: pagination.limit, page: pagination.page, total: totalPage },
+    ];
+  };
+
+  public getNotificationsReadedInspector = async (pagination: Pagination) => {
+    const countNewNotifications = await Notification.countDocuments({
+      $and: [
+        {
+          _type: {
+            $in: [
+              "ACTIVE_HOST",
+              "REGISTER_ADDRESS",
+              "CREATE_POST",
+              "NEW_REPORT_POST",
+              "UPDATE_ADDRESS",
+            ],
+          },
+        },
+        { _read: true },
+      ],
+    });
+
+    const totalPage = Math.ceil(countNewNotifications / pagination.limit);
+    if (pagination.page > totalPage) throw Errors.PageNotFound;
+
+    const notifications = await Notification.find({
+      $and: [
+        {
+          _type: {
+            $in: [
+              "ACTIVE_HOST",
+              "REGISTER_ADDRESS",
+              "CREATE_POST",
+              "NEW_REPORT_POST",
+              "UPDATE_ADDRESS",
+            ],
+          },
+        },
+        { _read: true },
+      ],
+    })
+      .skip(pagination.offset)
+      .limit(pagination.limit);
+
+    return [
+      GetNotificationsInspectorDTO.toResponse(notifications),
+      { limit: pagination.limit, page: pagination.page, total: totalPage },
+    ];
   };
 
   public readAllNotifications = async (userId: string) => {

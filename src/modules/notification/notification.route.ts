@@ -13,9 +13,19 @@ notifiRoute.get(
   notifiController.getNotificationsUnreadedList
 );
 notifiRoute.get(
-  "/get-notifi-inspector",
+  "/get-noti-readed",
+  authMiddleware.authorizedUser,
+  notifiController.getNotificationsReadedList
+);
+notifiRoute.get(
+  "/get-notifi-unreaded-inspector",
   authMiddleware.authorizedInspector,
-  notifiController.getNotificationsInspector
+  notifiController.getNotificationsUnreadedInspector
+);
+notifiRoute.get(
+  "/get-notifi-readed-inspector",
+  authMiddleware.authorizedInspector,
+  notifiController.getNotificationsReadedInspector
 );
 notifiRoute.get(
   "/read-notification-id",

@@ -1,7 +1,7 @@
 import { Inject, Service } from "typedi";
 import { NotificationService } from "./notification.service";
 import { NextFunction, Request, Response } from "express";
-import { ResponseData } from "../../helpers/response";
+import { Pagination, ResponseData } from "../../helpers/response";
 
 @Service()
 export class NotificationController {
@@ -13,26 +13,64 @@ export class NotificationController {
     next: NextFunction
   ) => {
     try {
+      const pagination = Pagination.getPagination(req);
       const notifications = await this.notificationService.getNotificationsUnreadedList(
-        req.body._uId
+        req.body._uId,
+        pagination
       );
 
-      res.json(new ResponseData(notifications, null, null));
+      res.json(new ResponseData(notifications[0], null, notifications[1]));
     } catch (error) {
       console.log("🚀 ~ NotificationController ~ error:", error);
       next(error);
     }
   };
 
-  public getNotificationsInspector = async (
+  public getNotificationsReadedList = async (
     req: Request,
     res: Response,
     next: NextFunction
   ) => {
     try {
-      const notifications = await this.notificationService.getNotificationsInspector();
+      const pagination = Pagination.getPagination(req);
+      const notifications = await this.notificationService.getNotificationsReadedList(
+        req.body._uId,
+        pagination
+      );
 
-      res.json(new ResponseData(notifications, null, null));
+      res.json(new ResponseData(notifications[0], null, notifications[1]));
+    } catch (error) {
+      console.log("🚀 ~ NotificationController ~ error:", error);
+      next(error);
+    }
+  };
+
+  public getNotificationsUnreadedInspector = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const pagination = Pagination.getPagination(req);
+      const notifications = await this.notificationService.getNotificationsUnreadedInspector(pagination);
+
+      res.json(new ResponseData(notifications[0], null, notifications[1]));
+    } catch (error) {
+      console.log("🚀 ~ NotificationController ~ error:", error);
+      next(error);
+    }
+  }
+
+  public getNotificationsReadedInspector = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const pagination = Pagination.getPagination(req);
+      const notifications = await this.notificationService.getNotificationsReadedInspector(pagination);
+
+      res.json(new ResponseData(notifications[0], null, notifications[1]));
     } catch (error) {
       console.log("🚀 ~ NotificationController ~ error:", error);
       next(error);
@@ -48,7 +86,7 @@ export class NotificationController {
       const notiId = req.query.notiId.toString();
       const notification = await this.notificationService.getNotificationById(notiId);
 
-      res.json(new ResponseData(notification, null, null));
+      res.json(new ResponseData(notification && notiId, null, null));
     } catch (error) {
       console.log("🚀 ~ NotificationController ~ error:", error)
       next(error)
