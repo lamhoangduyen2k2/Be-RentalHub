@@ -34,3 +34,23 @@ export class Pagination {
     return { limit, page, offset };
   };
 }
+
+export class PaginationNotification {
+  offset: number;
+  page: number;
+  limit: number;
+
+  constructor(offset: number, page: number, limit: number) {
+    this.offset = offset;
+    this.page = page;
+    this.limit = limit;
+  }
+
+  static getPagination = (req: Request) => {
+    const limit = isNaN(Number(req.query.limit)) ? undefined : Number(req.query.limit);
+    const page = isNaN(Number(req.query.page)) ? undefined : Number(req.query.page);
+    const offset = (page - 1) * limit;
+
+    return { limit, page, offset };
+  };
+}

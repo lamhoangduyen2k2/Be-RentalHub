@@ -1,7 +1,7 @@
 import { Inject, Service } from "typedi";
 import { NotificationService } from "./notification.service";
 import { NextFunction, Request, Response } from "express";
-import { Pagination, ResponseData } from "../../helpers/response";
+import { PaginationNotification, ResponseData } from "../../helpers/response";
 
 @Service()
 export class NotificationController {
@@ -13,7 +13,7 @@ export class NotificationController {
     next: NextFunction
   ) => {
     try {
-      const pagination = Pagination.getPagination(req);
+      const pagination = PaginationNotification.getPagination(req);
       const notifications = await this.notificationService.getNotificationsUnreadedList(
         req.body._uId,
         pagination
@@ -32,7 +32,7 @@ export class NotificationController {
     next: NextFunction
   ) => {
     try {
-      const pagination = Pagination.getPagination(req);
+      const pagination = PaginationNotification.getPagination(req);
       const notifications = await this.notificationService.getNotificationsReadedList(
         req.body._uId,
         pagination
@@ -51,7 +51,7 @@ export class NotificationController {
     next: NextFunction
   ) => {
     try {
-      const pagination = Pagination.getPagination(req);
+      const pagination = PaginationNotification.getPagination(req);
       const notifications = await this.notificationService.getNotificationsUnreadedInspector(pagination);
 
       res.json(new ResponseData(notifications[0], null, notifications[1]));
@@ -67,7 +67,7 @@ export class NotificationController {
     next: NextFunction
   ) => {
     try {
-      const pagination = Pagination.getPagination(req);
+      const pagination = PaginationNotification.getPagination(req);
       const notifications = await this.notificationService.getNotificationsReadedInspector(pagination);
 
       res.json(new ResponseData(notifications[0], null, notifications[1]));

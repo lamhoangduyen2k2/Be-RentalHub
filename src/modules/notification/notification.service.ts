@@ -8,7 +8,7 @@ import mongoose from "mongoose";
 import { CreateNotificationInspectorDTO } from "./dtos/create-notification-inspector.dto";
 import { GetNotificationsInspectorDTO } from "./dtos/get-notificaion-inspector.dto";
 import { CreateNotificationRegisterAddressDTO } from "./dtos/create-notification-register-address.dto";
-import { Pagination } from "../../helpers/response";
+import { PaginationNotification } from "../../helpers/response";
 
 @Service()
 export class NotificationService {
@@ -25,7 +25,7 @@ export class NotificationService {
 
   public getNotificationsUnreadedList = async (
     userId: string,
-    pagination: Pagination
+    pagination: PaginationNotification
   ) => {
     const countNewNotifications = await Notification.countDocuments({
       $and: [
@@ -44,6 +44,11 @@ export class NotificationService {
         },
       ],
     });
+
+    if (!pagination.limit) {
+      pagination.limit = countNewNotifications;
+      pagination.page = 1;
+    }
 
     const totalPage = Math.ceil(countNewNotifications / pagination.limit);
     if (pagination.page > totalPage) throw Errors.PageNotFound;
@@ -83,7 +88,7 @@ export class NotificationService {
 
   public getNotificationsReadedList = async (
     userId: string,
-    pagination: Pagination
+    pagination: PaginationNotification
   ) => {
     const countNewNotifications = await Notification.countDocuments({
       $and: [
@@ -102,6 +107,11 @@ export class NotificationService {
         },
       ],
     });
+
+    if (!pagination.limit) {
+      pagination.limit = countNewNotifications;
+      pagination.page = 1;
+    }
 
     const totalPage = Math.ceil(countNewNotifications / pagination.limit);
     if (pagination.page > totalPage) throw Errors.PageNotFound;
@@ -153,7 +163,7 @@ export class NotificationService {
     return resultId;
   };
 
-  public getNotificationsUnreadedInspector = async (pagination: Pagination) => {
+  public getNotificationsUnreadedInspector = async (pagination: PaginationNotification) => {
     const countNewNotifications = await Notification.countDocuments({
       $and: [
         {
@@ -170,6 +180,11 @@ export class NotificationService {
         { _read: false },
       ],
     });
+
+    if (!pagination.limit) {
+      pagination.limit = countNewNotifications;
+      pagination.page = 1;
+    }
 
     const totalPage = Math.ceil(countNewNotifications / pagination.limit);
     if (pagination.page > totalPage) throw Errors.PageNotFound;
@@ -204,7 +219,7 @@ export class NotificationService {
     ];
   };
 
-  public getNotificationsReadedInspector = async (pagination: Pagination) => {
+  public getNotificationsReadedInspector = async (pagination: PaginationNotification) => {
     const countNewNotifications = await Notification.countDocuments({
       $and: [
         {
@@ -221,6 +236,11 @@ export class NotificationService {
         { _read: true },
       ],
     });
+
+    if (!pagination.limit) {
+      pagination.limit = countNewNotifications;
+      pagination.page = 1;
+    }
 
     const totalPage = Math.ceil(countNewNotifications / pagination.limit);
     if (pagination.page > totalPage) throw Errors.PageNotFound;
