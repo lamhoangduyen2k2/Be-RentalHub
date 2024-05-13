@@ -3,6 +3,7 @@ import Users from "../user/model/users.model";
 import { Errors } from "../../helpers/handle-errors";
 import Posts from "../posts/models/posts.model";
 import { UserDataResponsesDTO } from "./dto/users-data-response.dto";
+import UserBlocked from "../user/model/user-blocked.model";
 
 @Service()
 export class StatisticService {
@@ -273,6 +274,14 @@ export class StatisticService {
     return UserDataResponsesDTO.toResponse(users);
   };
 
+  public countAllHost = async () => {
+    const totalHost = await Users.countDocuments({
+      $and: [{ _active: true }, { _role: 0 }, { _isHost: true }],
+    });
+
+    return totalHost;
+  };
+
   public getHostData = async () => {
     const users = await Users.aggregate([
       {
@@ -432,6 +441,31 @@ export class StatisticService {
     return result;
   };
 
+  public countHostByStatus = async () => {
+    const status = ["Active", "Inactive"];
+
+    const totalActiveHost = await Users.countDocuments({
+      $and: [{ _active: true }, { _role: 0 }, { _isHost: true }],
+    });
+
+    const totalInactiveHost = await UserBlocked.countDocuments();
+
+    const result = [
+      { name: status[0], value: totalActiveHost },
+      { name: status[1], value: totalInactiveHost },
+    ];
+
+    return result;
+  };
+
+  public countAllInspector = async () => {
+    const totalInspector = await Users.countDocuments({
+      $and: [{ _active: true }, { _role: 2 }],
+    });
+
+    return totalInspector;
+  };
+
   public getInspectorData = async () => {
     const inspectors = await Users.find({
       _role: 2,
@@ -541,6 +575,56 @@ export class StatisticService {
         value: monthData ? monthData.value : 0,
       };
     });
+
+    return result;
+  };
+
+  public countInspectorByStatus = async () => {
+    const status = ["Active", "Inactive"];
+    const result = []
+
+    const countInspector = await Users.aggregate([
+      {
+        $match: {
+          _role: 2,
+        },
+      },
+      {
+        $group: {
+          _id: "$_active",
+          value: { $sum: 1 },
+        },
+      },
+      {
+        $sort: {
+          _id: -1,
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          name: "$_id",
+          value: 1,
+        },
+      },
+    ]);
+
+    status.forEach((item, index) => {
+      result.push({
+        name: item,
+        value: countInspector[index] ? countInspector[index].value : 0,
+      })
+    })
+
+    // const result = status.map((item, index) => {
+    //   const statusData = countInspector.find(
+    //     (data: unknown) => data[index].value ? data[index]["value"] : 0
+    //   );
+    //   return {
+    //     name: item,
+    //     value: statusData,
+    //   };
+    // });
 
     return result;
   };
