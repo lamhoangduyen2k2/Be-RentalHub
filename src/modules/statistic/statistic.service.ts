@@ -616,16 +616,6 @@ export class StatisticService {
       })
     })
 
-    // const result = status.map((item, index) => {
-    //   const statusData = countInspector.find(
-    //     (data: unknown) => data[index].value ? data[index]["value"] : 0
-    //   );
-    //   return {
-    //     name: item,
-    //     value: statusData,
-    //   };
-    // });
-
     return result;
   };
 }
