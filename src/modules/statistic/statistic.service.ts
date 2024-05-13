@@ -581,7 +581,7 @@ export class StatisticService {
 
   public countInspectorByStatus = async () => {
     const status = ["Active", "Inactive"];
-    const result = []
+    const result = [];
 
     const countInspector = await Users.aggregate([
       {
@@ -613,8 +613,8 @@ export class StatisticService {
       result.push({
         name: item,
         value: countInspector[index] ? countInspector[index].value : 0,
-      })
-    })
+      });
+    });
 
     return result;
   };
