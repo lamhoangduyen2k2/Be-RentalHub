@@ -21,6 +21,8 @@ import timezone from "dayjs/plugin/timezone";
 import statisRoute from "./modules/statistic/statistic.route";
 import "./modules/auth/passport";
 import authRoute from "./modules/auth/auth.route";
+import chatRoute from "./modules/chats/chat.route";
+import messageRoute from "./modules/messages/message.route";
 //import bodyParser from "body-parser";
 
 (async () => {
@@ -55,6 +57,8 @@ import authRoute from "./modules/auth/auth.route";
   app.use("/api/admin", adminRoute);
   app.use("/api/statistic", statisRoute);
   app.use("/api/auth", authRoute);
+  app.use("api/chat", chatRoute);
+  app.use("api/message", messageRoute);
 
   app.use(erroHandler);
 
