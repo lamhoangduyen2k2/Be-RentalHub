@@ -57,6 +57,7 @@
     "passport-google-oauth20": "^2.0.0",
     "react-router-dom": "^6.16.0",
     "reflect-metadata": "^0.1.13",
+    "socket.io": "^4.7.5",
     "twilio": "^5.0.1",
     "typedi": "^0.10.0",
     "validator": "^13.11.0"

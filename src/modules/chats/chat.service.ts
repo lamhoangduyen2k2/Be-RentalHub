@@ -1,5 +1,6 @@
 import { Service } from "typedi";
 import chatModel from "./chat.model";
+import { Errors } from "../../helpers/handle-errors";
 
 @Service()
 export class ChatService {
@@ -15,6 +16,8 @@ export class ChatService {
     const newChat = await chatModel.create({
       members: [firstId, secondId],
     });
+
+    if (!newChat) throw Errors.SaveToDatabaseFail;
 
     return newChat;
   };

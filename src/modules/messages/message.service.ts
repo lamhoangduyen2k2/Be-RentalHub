@@ -1,6 +1,7 @@
 import { Service } from "typedi";
 import messageModel from "./message.model";
 import mongoose from "mongoose";
+import chatModel from "../chats/chat.model";
 
 @Service()
 export class MessageService {
@@ -15,6 +16,18 @@ export class MessageService {
       senderId,
       text,
     });
+
+    //Return the last message
+    const lastMessge = await chatModel.findOneAndUpdate({
+      _id: new mongoose.Types.ObjectId(chatId),
+    }, {
+      lsmessage: text,
+      lssender: new mongoose.Types.ObjectId(senderId),
+    }, {
+      new: true,
+    });
+    console.log("🚀 ~ MessageService ~ lastMessge:", lastMessge)
+    
 
     return newMessage;
   };

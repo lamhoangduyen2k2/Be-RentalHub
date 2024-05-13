@@ -23,10 +23,16 @@ import "./modules/auth/passport";
 import authRoute from "./modules/auth/auth.route";
 import chatRoute from "./modules/chats/chat.route";
 import messageRoute from "./modules/messages/message.route";
+import http from "http";
+import { Server } from "socket.io";
 //import bodyParser from "body-parser";
 
 (async () => {
   const app = express();
+  const server = http.createServer(app);
+  const io = new Server(server, { cors: { origin: "http://localhost:4200" } });
+  let onlineUsers: { userId: string; socketId: string }[] = [];
+
   const port = 3000;
   dayjs.extend(utc);
   dayjs.extend(timezone);
@@ -57,12 +63,44 @@ import messageRoute from "./modules/messages/message.route";
   app.use("/api/admin", adminRoute);
   app.use("/api/statistic", statisRoute);
   app.use("/api/auth", authRoute);
-  app.use("api/chat", chatRoute);
-  app.use("api/message", messageRoute);
+  app.use("/api/chat", chatRoute);
+  app.use("/api/message", messageRoute);
+
+  io.on("connection", (socket) => {
+    console.log("New connection: ", socket.id);
+  
+    //listen to a connection
+    socket.on("addNewUser", (userId: string) => {
+      if (userId) {
+        !onlineUsers.some((user) => user.userId === userId) &&
+          onlineUsers.push({
+            userId,
+            socketId: socket.id,
+          });
+      }
+      io.emit("getOnlineUsers", onlineUsers);
+    });
+  
+    //add message
+    socket.on("sendMessage", (message) => {
+      const recipient = onlineUsers.find(
+        (user) => user.userId === message.recipientId
+      );
+  
+      if (recipient) {
+        io.to(recipient.socketId).emit("getMessage", message);
+      }
+    });
+  
+    socket.on("disconnect", () => {
+      onlineUsers = onlineUsers.filter((user) => user.socketId !== socket.id);
+      io.emit("getOnlineUsers", onlineUsers);
+    });
+  });
 
   app.use(erroHandler);
 
-  app.listen(port, () => {
+  server.listen(port, () => {
     return console.log(`Express is listening at http://localhost:${port}`);
   });
 })();

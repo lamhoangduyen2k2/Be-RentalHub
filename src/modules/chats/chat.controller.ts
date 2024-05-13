@@ -13,11 +13,9 @@ export class ChatController {
     next: NextFunction
   ) => {
     try {
-      const { firstId, secondId } = req.body;
-      const chat = await this.chatService.createChat(
-        firstId.toString(),
-        secondId.toString()
-      );
+      const firstId = req.body.firstId.toString();
+      const secondId = req.body.secondId.toString();
+      const chat = await this.chatService.createChat(firstId, secondId);
 
       res.json(new ResponseData(chat, null, null));
     } catch (error) {
@@ -32,8 +30,8 @@ export class ChatController {
     next: NextFunction
   ) => {
     try {
-      const { userId } = req.params;
-      const chats = await this.chatService.findUserChats(userId.toString());
+      const userId = req.query.userId ? req.query.userId.toString() : undefined;
+      const chats = await this.chatService.findUserChats(userId);
 
       res.json(new ResponseData(chats, null, null));
     } catch (error) {
@@ -44,11 +42,13 @@ export class ChatController {
 
   public findChat = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { firstId, secondId } = req.params;
-      const chat = await this.chatService.findChat(
-        firstId.toString(),
-        secondId.toString()
-      );
+      const firstId = req.query.firstId
+        ? req.query.firstId.toString()
+        : undefined;
+      const secondId = req.query.secondId
+        ? req.query.secondId.toString()
+        : undefined;
+      const chat = await this.chatService.findChat(firstId, secondId);
 
       res.json(new ResponseData(chat, null, null));
     } catch (error) {
