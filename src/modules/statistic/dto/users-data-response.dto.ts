@@ -24,7 +24,7 @@ export class UserDataResponsesDTO {
     @Expose()
     _phone: string;
   
-    @Expose()
+    @Exclude()
     _address: string;
   
     @Expose()

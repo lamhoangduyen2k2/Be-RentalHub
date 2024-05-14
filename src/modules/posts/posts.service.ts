@@ -1770,7 +1770,7 @@ export class PostsService {
       const user = await Users.findOne({ _id: reportPost._uIdReported });
       if (!user) throw Errors.UserNotFound;
 
-      if (user._totalReported >= 3) {
+      if (user._totalReported >= 2) {
         const userBlocked = await this.userService.blockUser(
           user._id.toString()
         );
