@@ -9,8 +9,8 @@ const statisticController = Container.get(StatisticController);
 
 statisRoute.get("/count-all-users", authMiddleware.authorizedAdmin, statisticController.countAllUsers);
 statisRoute.get("/get-recent-years", authMiddleware.authorizedAdmin, statisticController.getFiveRecentYear);
-// statisRoute.get("/count-users-month", authMiddleware.authorizedAdmin, statisticController.countNewUserByMonth);
-// statisRoute.get("/count-users-year", authMiddleware.authorizedAdmin, statisticController.countNewUserByYear);
+statisRoute.get("/count-users-month", authMiddleware.authorizedAdmin, statisticController.countNewUserByMonth);
+statisRoute.get("/count-users-year", authMiddleware.authorizedAdmin, statisticController.countNewUserByYear);
 statisRoute.get("/count-users-status", authMiddleware.authorizedAdmin, statisticController.countUserByStatus);
 statisRoute.get("/count-all-posts", authMiddleware.authorizedAdmin, statisticController.countAllPosts);
 statisRoute.get("/count-posts-month", authMiddleware.authorizedAdmin, statisticController.countPostsByMonth);
