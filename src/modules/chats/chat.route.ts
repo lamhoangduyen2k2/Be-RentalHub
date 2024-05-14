@@ -13,12 +13,12 @@ chatRoute.post(
   chatController.createChat
 );
 chatRoute.get(
-  "/find-user-chats/:userId",
+  "/find-user-chats",
   authMiddleware.authorizedUser,
   chatController.findUserChats
 );
 chatRoute.get(
-  "/find-chat/:firstId/:secondId",
+  "/find-chat",
   authMiddleware.authorizedUser,
   chatController.findChat
 );
