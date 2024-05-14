@@ -95,6 +95,8 @@ export class UserService {
     }
 
     const newUser = await UsersTermp.create({
+      _fname: userParam._fname,
+      _lname: userParam._lname,
       _email: userParam._email,
       _pw: userParam._pw,
       expiredAt: Date.now(),
@@ -303,7 +305,9 @@ export class UserService {
 
   public activeHost = async (userParam: UserHostedDTO) => {
     // Check user is Block Host
-    const userBlock = await UserBlocked.findOne({ $or: [{ _uId: userParam._uId }, { _phone: userParam._phone }]});
+    const userBlock = await UserBlocked.findOne({
+      $or: [{ _uId: userParam._uId }, { _phone: userParam._phone }],
+    });
     if (userBlock) throw Errors.UserIsBlocked;
 
     //Check phoneNumber
@@ -384,7 +388,9 @@ export class UserService {
     try {
       let result;
       // Check user is Block Host
-      const userBlock = await UserBlocked.findOne({ _uId: new mongoose.Types.ObjectId(userId) });
+      const userBlock = await UserBlocked.findOne({
+        _uId: new mongoose.Types.ObjectId(userId),
+      });
       if (userBlock) throw Errors.UserIsBlocked;
 
       const base64_front = image_front.buffer.toString("base64");
@@ -393,7 +399,9 @@ export class UserService {
       const data_front = await fetchIDRecognition(base64_front);
 
       // Check user is Block Host
-      const userBlockIdentity = await UserBlocked.findOne({ _idCard: data_front.id });
+      const userBlockIdentity = await UserBlocked.findOne({
+        _idCard: data_front.id,
+      });
       if (userBlockIdentity) throw Errors.UserIsBlocked;
       //Check identity card is duplicate
       const indentity = await Indentities.findOne({
@@ -1278,7 +1286,7 @@ export class UserService {
     if (status === 1) {
       const updateUser = await Users.findOneAndUpdate(
         { _id: new mongoose.Types.ObjectId(userIdentity._uId) },
-        { _isHost: true, _temptHostBlocked: false},
+        { _isHost: true, _temptHostBlocked: false },
         { new: true }
       );
 
@@ -1391,7 +1399,7 @@ export class UserService {
 
       return user;
     }
-  }
+  };
 
   public getUserBlockedByEmailOrId = async (keyword: string) => {
     const checkEmail = keyword.includes("@");
@@ -1407,7 +1415,7 @@ export class UserService {
 
       return user;
     }
-  }
+  };
 
   //Automaticly
   public increaseTotalReported = async (userId: string) => {

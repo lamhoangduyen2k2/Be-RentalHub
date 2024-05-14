@@ -30,11 +30,11 @@ routerUser.post(
   authMiddleware.checkResetToken,
   authController.resetTokenController
 );
-routerUser.post(
-  "/accounts/registor",
-  userMiddleWare.checkValidationCreateUser,
-  userController.registor
-);
+// routerUser.post(
+//   "/accounts/registor",
+//   userMiddleWare.checkValidationCreateUser,
+//   userController.registor
+// );
 routerUser.post(
   "/accounts/registor-user",
   userMiddleWare.checkValidationCreateUser,
