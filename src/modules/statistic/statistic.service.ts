@@ -28,22 +28,24 @@ export class StatisticService {
     return listYear;
   };
 
-  public countNewUserByMonth = async (year: number) => {
+  public countNewUserByMonth = async (year: number, host: boolean = false) => {
     if (year > new Date().getFullYear()) throw Errors.YearInvalid;
     const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    //Set condition for qưery
+    const condition = {
+      $and: [
+        { _active: true },
+        { _role: 0 },
+        { $expr: { $eq: [{ $year: "$createdAt" }, year] } },
+        { _isHost: false },
+      ],
+    };
+
+    if (host) condition.$and.splice(3, 1);
+
     const countNewUsers = await Users.aggregate([
       {
-        $match: {
-          $and: [
-            { _active: true },
-            { _role: 0 },
-            {
-              $expr: {
-                $eq: [{ $year: "$createdAt" }, year],
-              },
-            },
-          ],
-        },
+        $match: condition,
       },
       {
         $group: {
@@ -71,12 +73,21 @@ export class StatisticService {
     return result;
   };
 
-  public countNewUserByYear = async (year: number | string) => {
+  public countNewUserByYear = async (
+    year: number | string,
+    host: boolean = false
+  ) => {
     if (typeof year === "string") {
+      const condition = {
+        $and: [{ _active: true }, { _role: 0 }, { _isHost: false }],
+      };
+
+      if (host) condition.$and.splice(2, 1);
+
       const years = await Users.aggregate([
         {
           $match: {
-            $and: [{ _active: true }, { _role: 0 }],
+            $and: [{ _active: true }, { _role: 0 }, { _isHost: host }],
           },
         },
         {
@@ -101,6 +112,17 @@ export class StatisticService {
       return years;
     } else {
       if (year > new Date().getFullYear()) throw Errors.YearInvalid;
+      const condition = {
+        $and: [
+          { _active: true },
+          { _role: 0 },
+          { $expr: { $eq: [{ $year: "$createdAt" }, year] } },
+          { _isHost: false },
+        ],
+      };
+
+      if (host) condition.$and.splice(3, 1);
+
       const years = await Users.aggregate([
         {
           $match: {
@@ -130,6 +152,46 @@ export class StatisticService {
 
       return years[0];
     }
+  };
+
+  public countUserByStatus = async () => {
+    const status = ["Active", "Inactive"];
+    const result = [];
+
+    const countUsers = await Users.aggregate([
+      {
+        $match: {
+          $and: [{ _role: 0 }, { _isHost: false }],
+        },
+      },
+      {
+        $group: {
+          _id: "$_active",
+          value: { $sum: 1 },
+        },
+      },
+      {
+        $sort: {
+          _id: -1,
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          name: "$_id",
+          value: 1,
+        },
+      },
+    ]);
+
+    status.forEach((item, index) => {
+      result.push({
+        name: item,
+        value: countUsers[index] ? countUsers[index].value : 0,
+      });
+    });
+
+    return result;
   };
 
   public countAllPosts = async () => {
@@ -615,6 +677,66 @@ export class StatisticService {
         value: countInspector[index] ? countInspector[index].value : 0,
       });
     });
+
+    return result;
+  };
+
+  public countHostandUserByMonth = async (year: number) => {
+    const result = [
+      { name: "Hosts", series: [] },
+      { name: "Người dùng", series: [] },
+    ];
+
+    const totalHost = await this.countHostByMonth(year);
+    const totalUser = await this.countNewUserByMonth(year);
+
+    result[0].series = totalHost;
+    result[1].series = totalUser;
+
+    return result;
+  };
+
+  public countHostandUserByYear = async (year: number | string) => {
+    const result = [
+      { name: "Hosts", series: [] },
+      { name: "Người dùng", series: [] },
+    ];
+
+    const totalHost = await this.countHostByYear(year);
+    const totalUser = await this.countNewUserByYear(year);
+
+    result[0].series = totalHost;
+    result[1].series = totalUser;
+
+    return result;
+  };
+
+  public countEmployeeandUserByMonth = async (year: number) => {
+    const result = [
+      { name: "Nhân viên", series: [] },
+      { name: "Người dùng", series: [] },
+    ];
+
+    const totalInspector = await this.countInspectorByMonth(year);
+    const totalUser = await this.countNewUserByMonth(year, true);
+
+    result[0].series = totalInspector;
+    result[1].series = totalUser;
+
+    return result;
+  };
+
+  public countEmployeeandUserByYear = async (year: number | string) => {
+    const result = [
+      { name: "Nhân viên", series: [] },
+      { name: "Người dùng", series: [] },
+    ];
+
+    const totalInspector = await this.countInspectorByYear(year);
+    const totalUser = await this.countNewUserByYear(year, true);
+
+    result[0].series = totalInspector;
+    result[1].series = totalUser;
 
     return result;
   };
