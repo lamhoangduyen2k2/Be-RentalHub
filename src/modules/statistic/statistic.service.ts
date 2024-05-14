@@ -9,7 +9,7 @@ import UserBlocked from "../user/model/user-blocked.model";
 export class StatisticService {
   public CountAllUsers = async () => {
     const totalUser = await Users.countDocuments({
-      $and: [{ _active: true }, { _role: 0 }],
+      $and: [{ _active: true }, { _role: 0 }, { _isHost: false }],
     });
 
     return totalUser;
