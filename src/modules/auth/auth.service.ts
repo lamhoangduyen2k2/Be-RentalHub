@@ -6,7 +6,7 @@ import { verify } from "jsonwebtoken";
 import RefreshTokens from "../token/refresh.model";
 import { Service } from "typedi";
 import tokenService from "../token/token.service";
-import { UserResponsesDTO } from "../user/dtos/user-response.dto";
+import { UserResponsesDTO } from "../user/dtos/detail-user-response.dto";
 import { LoginGoogleRequestDTO } from "./dtos/login-google";
 
 @Service()
@@ -31,7 +31,7 @@ export class AuthService {
   };
 
   loginByGoogle = async (loginInfo: LoginGoogleRequestDTO) => {
-    console.log("🚀 ~ AuthService ~ loginByGoogle= ~ loginInfo:", loginInfo)
+    console.log("🚀 ~ AuthService ~ loginByGoogle= ~ loginInfo:", loginInfo);
     if (!loginInfo.email_verified) throw Errors.EmailNotVerified;
 
     let user = await Users.findOne({ _email: loginInfo.email });
@@ -55,7 +55,7 @@ export class AuthService {
     );
 
     return { ...UserResponsesDTO.toResponse(user), ...token };
-  }
+  };
 
   loginInspectorService = async (loginParam: LoginRequestDTO) => {
     const users = await Users.findOne({

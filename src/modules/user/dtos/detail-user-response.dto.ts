@@ -1,64 +1,55 @@
 import { Exclude, Expose, Transform, plainToClass } from "class-transformer";
 import { ObjectId } from "mongoose";
 
-export class UserNotDetailResponsesDTO {
+export class UserResponsesDTO {
   @Expose()
   @Transform((value) => value.obj._id.toString())
   _id: ObjectId;
-
+  
   @Expose()
   _email: string;
-
-  @Expose()
-  _name: string;
-
-  @Expose()
-  createdAt: Date;
-
-  @Expose()
-  updatedAt: Date;
 
   @Exclude()
   _pw: string;
 
-  @Exclude()
+  @Expose()
   _fname: string;
 
-  @Exclude()
+  @Expose()
   _lname: string;
 
-  @Exclude()
+  @Expose()
   _dob: string;
 
-  @Exclude()
+  @Expose()
   _phone: string;
 
-  @Exclude()
+  @Expose()
   _address: string;
 
   @Expose()
   _avatar: string;
 
-  @Exclude()
+  @Expose()
   _active: boolean;
 
-  @Exclude()
+  @Expose()
   _isHost: boolean;
 
-  @Exclude()
+  @Expose()
   _role: number;
 
-  @Exclude()
+  @Expose()
   _rating: number;
 
-  @Exclude()
+  @Expose()
   _addressRental: string[];
 
-  @Exclude()
+  @Expose()
   _temptHostBlocked: boolean | null;
 
   static toResponse = (data: unknown) => {
-    return plainToClass(UserNotDetailResponsesDTO, data, {
+    return plainToClass(UserResponsesDTO, data, {
       excludeExtraneousValues: true,
     });
   };

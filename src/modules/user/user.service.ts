@@ -8,7 +8,7 @@ import { generate } from "otp-generator";
 import { OTPService } from "../otp/otp.service";
 import OTP from "../otp/otp.model";
 import { UserHostedDTO } from "./dtos/user-active-host.dto";
-import { UserResponsesDTO } from "./dtos/user-response.dto";
+import { UserResponsesDTO } from "./dtos/detail-user-response.dto";
 import { UpdateUserDTO } from "./dtos/user-update.dto";
 import { ImageService } from "../image/image.service";
 import mongoose, { ObjectId, PipelineStage, mongo } from "mongoose";
@@ -34,6 +34,7 @@ import { CreateNotificationRegisterAddressDTO } from "../notification/dtos/creat
 import UserBlocked from "./model/user-blocked.model";
 import { CreateNotificationDTO } from "../notification/dtos/create-notification.dto";
 import { UpdateAddressDTO } from "./dtos/update-address.dto";
+import { UserNotDetailResponsesDTO } from "./dtos/user-response.dto";
 //require("esm-hook");
 //const fetch = require("node-fetch").default;
 // const http = require("http");
@@ -301,6 +302,21 @@ export class UserService {
     };
 
     return UserResponsesDTO.toResponse(newUser);
+  };
+
+  public getUserNotDetailById = async (uId: string) => {
+    const user = await Users.findOne({
+      $and: [{ _id: uId }, { _active: true }, { _role: 0 }],
+    });
+
+    if (!user) throw Errors.UserNotFound;
+
+    const newUser = {
+      ...user.toObject(),
+      _name: `${user._fname} ${user._lname}`,
+    };
+
+    return UserNotDetailResponsesDTO.toResponse(newUser);
   };
 
   public activeHost = async (userParam: UserHostedDTO) => {

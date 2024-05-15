@@ -258,6 +258,21 @@ export class UserController {
     }
   };
 
+  public getUserNotDetailById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const inforUser = await this.userService.getUserNotDetailById(
+        req.query.userId.toString()
+      );
+      res.json(new ResponseData(inforUser, null, null));
+    } catch (error) {
+      next(error);
+    }
+  };
+
   public getAddressByStatusUser = async (
     req: Request,
     res: Response,
