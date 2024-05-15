@@ -701,12 +701,25 @@ export class StatisticService {
       { name: "Hosts", series: [] },
       { name: "Người dùng", series: [] },
     ];
+    const currentYear = new Date().getFullYear();
 
     const totalHost = await this.countHostByYear(year);
     const totalUser = await this.countNewUserByYear(year);
 
-    result[0].series = totalHost;
-    result[1].series = totalUser;
+    for (let i = currentYear; i >= 2023; i--) {
+      const hostData = totalHost.find((data : unknown) => data["name"] === i.toString());
+      const userData = totalUser.find((data : unknown) => data["name"] === i.toString());
+
+      result[0].series.push({
+        name: i.toString(),
+        value: hostData ? hostData.value : 0,
+      });
+
+      result[1].series.push({
+        name: i.toString(),
+        value: userData ? userData.value : 0,
+      });
+    }
 
     return result;
   };
@@ -732,11 +745,25 @@ export class StatisticService {
       { name: "Người dùng", series: [] },
     ];
 
+    const currentYear = new Date().getFullYear();
+
     const totalInspector = await this.countInspectorByYear(year);
     const totalUser = await this.countNewUserByYear(year, true);
 
-    result[0].series = totalInspector;
-    result[1].series = totalUser;
+    for (let i = currentYear; i >= 2023; i--) {
+      const inspectorData = totalInspector.find((data : unknown) => data["name"] === i.toString());
+      const userData = totalUser.find((data : unknown) => data["name"] === i.toString());
+
+      result[0].series.push({
+        name: i.toString(),
+        value: inspectorData ? inspectorData.value : 0,
+      });
+
+      result[1].series.push({
+        name: i.toString(),
+        value: userData ? userData.value : 0,
+      });
+    }
 
     return result;
   };
