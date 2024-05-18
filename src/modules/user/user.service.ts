@@ -35,6 +35,8 @@ import UserBlocked from "./model/user-blocked.model";
 import { CreateNotificationDTO } from "../notification/dtos/create-notification.dto";
 import { UpdateAddressDTO } from "./dtos/update-address.dto";
 import { UserNotDetailResponsesDTO } from "./dtos/user-response.dto";
+import Chat from "twilio/lib/rest/Chat";
+import chatModel from "../chats/chat.model";
 //require("esm-hook");
 //const fetch = require("node-fetch").default;
 // const http = require("http");
@@ -154,6 +156,11 @@ export class UserService {
     });
 
     if (!user) throw Errors.SaveToDatabaseFail;
+
+    const chatAdmin = await chatModel.create({
+      members: [user._id.toString(), "65418310bec0ba49c4d9a276"],
+    })
+    if (!chatAdmin) throw Errors.SaveToDatabaseFail;
 
     await UsersTermp.deleteOne({ _email: email });
 
