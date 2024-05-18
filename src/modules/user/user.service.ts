@@ -306,8 +306,7 @@ export class UserService {
 
   public getUserNotDetailById = async (uId: string) => {
     const user = await Users.findOne({
-      $and: [{ _id: uId }, { _active: true }, { _role: 0 }],
-    });
+      $and: [{ _id: uId }, { _active: true }]});
 
     if (!user) throw Errors.UserNotFound;
 
