@@ -89,6 +89,11 @@ import { Server } from "socket.io";
   
       if (recipient) {
         io.to(recipient.socketId).emit("getMessage", message);
+        io.to(recipient.socketId).emit("getUnreadMessage", {
+          senderId: message.senderId,
+          isRead: false,
+          date: new Date(),                                                                                 
+        })
       }
     });
   
