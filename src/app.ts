@@ -42,11 +42,7 @@ import { Server } from "socket.io";
   app.use(express.urlencoded({ extended: false }));
   app.use(compression());
   app.use(helmet());
-  app.use(
-    cors({
-      origin: "http://localhost:4200",
-    })
-  );
+  app.use(cors());
   app.use(morgan("combined"));
   app.set("view engine", "ejs");
 
@@ -68,7 +64,7 @@ import { Server } from "socket.io";
 
   io.on("connection", (socket) => {
     console.log("New connection: ", socket.id);
-  
+
     //listen to a connection
     socket.on("addNewUser", (userId: string) => {
       if (userId) {
@@ -80,23 +76,23 @@ import { Server } from "socket.io";
       }
       io.emit("getOnlineUsers", onlineUsers);
     });
-  
+
     //add message
     socket.on("sendMessage", (message) => {
       const recipient = onlineUsers.find(
         (user) => user.userId === message.recipientId
       );
-  
+
       if (recipient) {
         io.to(recipient.socketId).emit("getMessage", message);
         io.to(recipient.socketId).emit("getUnreadMessage", {
           senderId: message.senderId,
           isRead: false,
-          date: new Date(),                                                                                 
-        })
+          date: new Date(),
+        });
       }
     });
-  
+
     socket.on("disconnect", () => {
       onlineUsers = onlineUsers.filter((user) => user.socketId !== socket.id);
       io.emit("getOnlineUsers", onlineUsers);
