@@ -30,7 +30,25 @@ import { Server } from "socket.io";
 (async () => {
   const app = express();
   const server = http.createServer(app);
-  const io = new Server(server, { cors: { origin: "http://localhost:4200" } });
+  //Config allow ports
+  const allowedOrigins = [
+    "http://localhost:4200",
+    "http://localhost:4201",
+    "http://localhost:4202",
+  ];
+  //Setup cors options
+  const corsOptions = {
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+  };
+  //Config socket.io
+  const io = new Server(server, { cors: corsOptions });
+  //List of online users
   let onlineUsers: { userId: string; socketId: string }[] = [];
 
   const port = 3000;
@@ -42,7 +60,7 @@ import { Server } from "socket.io";
   app.use(express.urlencoded({ extended: false }));
   app.use(compression());
   app.use(helmet());
-  app.use(cors());
+  app.use(cors(corsOptions));
   app.use(morgan("combined"));
   app.set("view engine", "ejs");
 
