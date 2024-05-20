@@ -50,6 +50,7 @@ import { Server } from "socket.io";
   const io = new Server(server, { cors: corsOptions });
   //List of online users
   let onlineUsers: { userId: string; socketId: string }[] = [];
+  let onlineInspectors: { userId: string; socketId: string }[] = [];
 
   const port = 3000;
   dayjs.extend(utc);
@@ -84,15 +85,24 @@ import { Server } from "socket.io";
     console.log("New connection: ", socket.id);
 
     //listen to a connection
-    socket.on("addNewUser", (userId: string) => {
-      if (userId) {
-        !onlineUsers.some((user) => user.userId === userId) &&
+    socket.on("addNewUser", (user) => {
+      if (user.role === 0) {
+        !onlineUsers.some((u) => u.userId === user.userId) &&
           onlineUsers.push({
-            userId,
+            userId: user.userId,
+            socketId: socket.id,
+          });
+      } else {
+        !onlineInspectors.some((u) => u.userId === user.userId) &&
+          onlineInspectors.push({
+            userId: user.userId,
             socketId: socket.id,
           });
       }
+      //Get users online list for customer
       io.emit("getOnlineUsers", onlineUsers);
+      //Get inspectors/admin online for inspector/admin
+      io.emit("getOnlineInspectors", onlineInspectors);
     });
 
     //add message
@@ -111,9 +121,31 @@ import { Server } from "socket.io";
       }
     });
 
+    //send notifications
+    socket.on("sendNotification", (notification) => {
+      if (notification.recipientRole === 2) {
+        // Send notification for all inspectors
+        onlineInspectors.forEach((inspector) => {
+          io.to(inspector.socketId).emit("getNotification", notification);
+        });
+      } else if (notification.recipientRole === 0) {
+        // Send notification for a specific user
+        const recipient = onlineUsers.find(
+          (user) => user.userId === notification.recipientId
+        );
+        if (recipient) {
+          io.to(recipient.socketId).emit("getNotification", notification);
+        }
+      }
+    });
+
     socket.on("disconnect", () => {
       onlineUsers = onlineUsers.filter((user) => user.socketId !== socket.id);
+      onlineInspectors = onlineInspectors.filter(
+        (user) => user.socketId !== socket.id
+      );
       io.emit("getOnlineUsers", onlineUsers);
+      io.emit("getOnlineInspectors", onlineInspectors);
     });
   });
 
