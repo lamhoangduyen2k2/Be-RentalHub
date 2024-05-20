@@ -102,7 +102,7 @@ import { Server } from "socket.io";
       //Get users online list for customer
       io.emit("getOnlineUsers", onlineUsers);
       //Get inspectors/admin online for inspector/admin
-      io.emit("getOnlineInspectors", onlineInspectors);
+      //io.emit("getOnlineInspectors", onlineInspectors);
     });
 
     //add message
@@ -145,7 +145,7 @@ import { Server } from "socket.io";
         (user) => user.socketId !== socket.id
       );
       io.emit("getOnlineUsers", onlineUsers);
-      io.emit("getOnlineInspectors", onlineInspectors);
+      //io.emit("getOnlineInspectors", onlineInspectors);
     });
   });
 
