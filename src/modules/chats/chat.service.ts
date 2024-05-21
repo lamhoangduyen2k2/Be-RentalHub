@@ -95,7 +95,6 @@ export class ChatService {
       const totalUnRead = totalUnReadMessagesChat.find((total) => {
         return total._id.toString() === chat._id.toString();
       });
-      console.log("🚀 ~ ChatService ~ totalUnRead ~ totalUnRead:", totalUnRead)
 
       return {
         ...chat.toObject(),
@@ -103,9 +102,11 @@ export class ChatService {
       };
     });
 
+    console.log("🚀 ~ ChatService ~ findUserChats ~ unReadEachChat", totalUnReadMessages[0])
+
     return {
       chats: unReadEachChat,
-      totalUnReadMessages: totalUnReadMessages[0],
+      totalUnReadMessages: totalUnReadMessages[0]["totalUnRead"] || 0,
     };
   };
 
