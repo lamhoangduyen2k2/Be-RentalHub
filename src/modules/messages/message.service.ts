@@ -36,10 +36,6 @@ export class MessageService {
   };
 
   public getMessages = async (chatId: string, userId: string) => {
-    const messages = await messageModel.find({
-      chatId: new mongoose.Types.ObjectId(chatId),
-    });
-
     await messageModel.updateMany(
       {
         $and: [
@@ -50,8 +46,12 @@ export class MessageService {
       },
       {
         isRead: true,
-      }, 
+      }
     );
+
+    const messages = await messageModel.find({
+      chatId: new mongoose.Types.ObjectId(chatId),
+    });
 
     return messages;
   };
