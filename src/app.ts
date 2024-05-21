@@ -115,7 +115,6 @@ import { Server } from "socket.io";
         io.to(recipient.socketId).emit("getMessage", message);
         io.to(recipient.socketId).emit("getUnreadMessage", {
           chatId: message.chatId,
-          senderId: message.senderId,
           isRead: false,
           date: new Date(),
         });
