@@ -227,7 +227,8 @@ export class PostsService {
     let isRented: boolean = false;
     let active: boolean = true;
 
-    if (postParam._status !== 1 && postParam._status !== 2) throw Errors.StatusInvalid;
+    if (postParam._status !== 1 && postParam._status !== 2)
+      throw Errors.StatusInvalid;
 
     await Posts.findById(postId)
       .then((result) => {
@@ -279,7 +280,6 @@ export class PostsService {
       });
       await this.notificationService.createNotification(notification);
     }
-
 
     return true;
   };
@@ -2132,19 +2132,33 @@ export class PostsService {
     return post[0];
   };
 
-  public getPostsByIdAndEmail = async (keyword: string) => {
+  public getPostsByIdAndEmail = async (keyword: string, status: number) => {
     const checkEmail = keyword.includes("@");
+    const condition = {$and: []};
 
     if (checkEmail) {
-      const post = await Posts.findOne({ _email: keyword });
+      const user = await Users.findOne({ _email: keyword });
+      if (!user) throw Errors.UserNotFound;
+
+      //Add condition to find post
+      condition.$and.push({ _uId: user?._id });
+
+      if (status !== -1) condition.$and.push({ _status: status });
+
+      const post = await Posts.findOne(condition);
       if (!post) throw Errors.PostNotFound;
 
       return post;
     } else {
-      const post = await Posts.findOne({ _id: new mongoose.Types.ObjectId(keyword) });
+      //Add condition to find post
+      condition.$and.push({ _id: new mongoose.Types.ObjectId(keyword) });
+
+      if (status !== -1) condition.$and.push({ _status: status });
+
+      const post = await Posts.findOne(condition);
       if (!post) throw Errors.PostNotFound;
 
       return post;
     }
-  }
+  };
 }
