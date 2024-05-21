@@ -34,7 +34,7 @@ export class MessageController {
   ) => {
     try {
       const chatId = req.query.chatId ? req.query.chatId.toString() : undefined;
-      const messages = await this.messageService.getMessages(chatId);
+      const messages = await this.messageService.getMessages(chatId, req.body._uId.toString());
 
       return res.json(new ResponseData(messages, null, null));
     } catch (error) {
