@@ -2131,4 +2131,20 @@ export class PostsService {
 
     return post[0];
   };
+
+  public getPostsByIdAndEmail = async (keyword: string) => {
+    const checkEmail = keyword.includes("@");
+
+    if (checkEmail) {
+      const post = await Posts.findOne({ _email: keyword });
+      if (!post) throw Errors.PostNotFound;
+
+      return post;
+    } else {
+      const post = await Posts.findOne({ _id: new mongoose.Types.ObjectId(keyword) });
+      if (!post) throw Errors.PostNotFound;
+
+      return post;
+    }
+  }
 }

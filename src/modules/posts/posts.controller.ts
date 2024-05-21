@@ -499,4 +499,23 @@ export class PostsController {
       next(error);
     }
   }
+
+  public getPostByIdOrEmail = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const keyword = req.query.keyword ? req.query.keyword.toString() : undefined;
+      const data = await this.postsService.getPostsByIdAndEmail(keyword);
+
+      res.json(new ResponseData(data, null, null));
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: posts.controller.ts:67 ~ PostsController ~ error:",
+        error
+      );
+      next(error);
+    }
+  }
 }

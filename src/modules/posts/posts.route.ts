@@ -140,5 +140,10 @@ route.get(
   authMiddleware.authorizedAdmin,
   postsController.getPostByIdAdmin
 );
+route.get(
+  "/admin-get-post-keyword",
+  authMiddleware.authorizedAdmin,
+  postsController.getPostByIdOrEmail
+)
 
 export default route;
