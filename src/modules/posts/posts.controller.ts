@@ -507,7 +507,8 @@ export class PostsController {
   ) => {
     try {
       const keyword = req.query.keyword ? req.query.keyword.toString() : undefined;
-      const data = await this.postsService.getPostsByIdAndEmail(keyword);
+      const status = isNaN(Number(req.query.status)) ? -1 : Number(req.query.status);
+      const data = await this.postsService.getPostsByIdAndEmail(keyword, status);
 
       res.json(new ResponseData(data, null, null));
     } catch (error) {
