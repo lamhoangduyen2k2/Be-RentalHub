@@ -2146,18 +2146,11 @@ export class PostsService {
 
       if (status !== -1) condition.$match.$and.push({ _status: status });
 
-      // const post = await Posts.findOne(condition);
-      // if (!post) throw Errors.PostNotFound;
-
     } else {
       //Add condition to find post
       condition.$match.$and.push({ _id: new mongoose.Types.ObjectId(keyword) });
 
       if (status !== -1) condition.$match.$and.push({ _status: status });
-
-      // const post = await Posts.findOne(condition);
-      // if (!post) throw Errors.PostNotFound;
-
     }
 
     const post = await Posts.aggregate([
