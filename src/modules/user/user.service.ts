@@ -48,10 +48,6 @@ const client = require("twilio")(
 
 @Service()
 export class UserService {
-  // otpService = Container.get(OTPService);
-  // imageService = Container.get(ImageService);
-  // notificationService = Container.get(NotificationService);
-
   constructor(
     @Inject() private imageService: ImageService,
     @Inject() private otpService: OTPService,

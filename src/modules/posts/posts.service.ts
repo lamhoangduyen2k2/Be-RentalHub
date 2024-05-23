@@ -24,10 +24,6 @@ import { UserService } from "../user/user.service";
 
 @Service()
 export class PostsService {
-  // imageService = Container.get(ImageService);
-  // notificationService = Container.get(NotificationService);
-  // userService = Container.get(UserService);
-
   constructor(
     @Inject() private imageService: ImageService,
     @Inject() private notificationService: NotificationService,
@@ -2134,7 +2130,7 @@ export class PostsService {
 
   public getPostsByIdAndEmail = async (keyword: string, status: number) => {
     const checkEmail = keyword.includes("@");
-    const condition : PipelineStage = {$match : { $and: [] }};
+    const condition: PipelineStage = { $match: { $and: [] } };
 
     //Create condition to find post
     if (checkEmail) {
@@ -2145,7 +2141,6 @@ export class PostsService {
       condition.$match.$and.push({ _uId: user?._id });
 
       if (status !== -1) condition.$match.$and.push({ _status: status });
-
     } else {
       //Add condition to find post
       condition.$match.$and.push({ _id: new mongoose.Types.ObjectId(keyword) });
@@ -2230,7 +2225,7 @@ export class PostsService {
           avatarAuthor: "$author._avatar",
         },
       },
-    ])
+    ]);
     if (post.length <= 0) throw Errors.PostNotFound;
 
     return post[0];
