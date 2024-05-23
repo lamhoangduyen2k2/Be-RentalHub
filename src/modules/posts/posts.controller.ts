@@ -184,7 +184,8 @@ export class PostsController {
       const post = await this.postsService.createNewPost(postInfo, files);
       res.json(new ResponseData(post, null, null));
     } catch (error) {
-      console.log(error);
+      console.log("🚀 ~ PostsController ~ error:", error)
+      //console.log(error);
       next(error);
     }
   };

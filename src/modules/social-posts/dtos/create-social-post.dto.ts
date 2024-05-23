@@ -1,9 +1,8 @@
 import { Expose, plainToClass } from "class-transformer";
 import { IsNotEmpty, IsString } from "class-validator";
 import { Request } from "express";
-import { ObjectId } from "mongoose";
 
-export class CreateSocialPostDto {
+export class CreateSocialPostDTO {
   @Expose()
   @IsNotEmpty()
   @IsString()
@@ -15,14 +14,11 @@ export class CreateSocialPostDto {
   _content: string;
 
   @Expose()
-  _images: string[];
-
-  @Expose()
-  @IsNotEmpty()
-  _uId: ObjectId;
+  _uId: string;
 
   static getFromReuqest = (req: Request) => {
-    return plainToClass(CreateSocialPostDto, req.body, {
+    console.log("🚀 ~ CreateSocialPostDTO ~ req:", req.body)
+    return plainToClass(CreateSocialPostDTO, req.body, {
       excludeExtraneousValues: true,
     });
   };

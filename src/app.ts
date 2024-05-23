@@ -25,6 +25,7 @@ import chatRoute from "./modules/chats/chat.route";
 import messageRoute from "./modules/messages/message.route";
 import http from "http";
 import { Server } from "socket.io";
+import socialRoute from "./modules/social-posts/social-posts.route";
 //import bodyParser from "body-parser";
 
 (async () => {
@@ -48,7 +49,7 @@ import { Server } from "socket.io";
   };
   //Config socket.io
   const io = new Server(server, { cors: corsOptions });
-  //List of online users
+  // //List of online users
   let onlineUsers: { userId: string; socketId: string }[] = [];
   let onlineInspectors: { userId: string; socketId: string }[] = [];
 
@@ -58,10 +59,10 @@ import { Server } from "socket.io";
   //dayjs.tz.setDefault("Asia/Ho_Chi_Minh");
 
   app.use(express.json());
-  app.use(express.urlencoded({ extended: false }));
+  app.use(express.urlencoded({ extended: true }));
   app.use(compression());
   app.use(helmet());
-  app.use(cors(corsOptions));
+  app.use(cors());
   app.use(morgan("combined"));
   app.set("view engine", "ejs");
 
@@ -80,6 +81,7 @@ import { Server } from "socket.io";
   app.use("/api/auth", authRoute);
   app.use("/api/chat", chatRoute);
   app.use("/api/message", messageRoute);
+  app.use("/api/social", socialRoute);
 
   io.on("connection", (socket) => {
     console.log("New connection: ", socket.id);

@@ -49,6 +49,7 @@ export const Errors = {
   ),
 
   FileNotFound: new ErrorModel("File not found!", "FILE_NOTFOUND", 404),
+  IdNotFound: new ErrorModel("Id not found!", "Id_NOTFOUND", 404),
 
   FnameNotFound: new ErrorModel("Firstname not found!", "FNAME_NOTFOUND", 404),
   FnameInvalid: new ErrorModel("Firstname invalid!", "FNAME_INVALID", 404),

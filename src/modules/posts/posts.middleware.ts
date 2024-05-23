@@ -26,6 +26,7 @@ export class PostsMiddleWare {
 
       next();
     } catch (error) {
+      console.log("🚀 ~ PostsMiddleWare ~ error:", error)
       const err = handleErrorOfValidation(error);
       next(err);
     }

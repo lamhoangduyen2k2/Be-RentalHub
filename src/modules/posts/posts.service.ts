@@ -93,7 +93,7 @@ export class PostsService {
     //Create notification for inspector
     const notification = CreateNotificationDTO.fromService({
       _title: "Có bài đăng mới cần kiểm duyệt",
-      _content: `Bài đăng ${newPosts._id} cần kiểm duyệt`,
+      _message: `Bài đăng ${newPosts._id} cần kiểm duyệt`,
       _type: "CREATE_POST",
       _uId: user._id,
       _postId: newPosts._id,
@@ -209,7 +209,7 @@ export class PostsService {
     //Create notification for inspector
     const notification = CreateNotificationDTO.fromService({
       _title: "Có bài đăng mới cần kiểm duyệt",
-      _content: `Bài đăng ${postUdated._id} cần kiểm duyệt`,
+      _message: `Bài đăng ${postUdated._id} cần kiểm duyệt`,
       _type: "CREATE_POST",
       _uId: postUdated._uId,
       _postId: postUdated._id,

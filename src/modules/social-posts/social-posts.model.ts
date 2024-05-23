@@ -12,7 +12,7 @@ const socialPostsSchema = new mongoose.Schema({
         required: [true, "Content is required"],
     },
     _images: {
-        type: [String],
+        type: String,
         trim: true,
         default: null,
     },
@@ -20,9 +20,17 @@ const socialPostsSchema = new mongoose.Schema({
         type: Schema.Types.ObjectId,
         ref: Users,
     },
+    _totalComment: {
+        type: Number,
+        default: 0,
+    },
+    _totalLike: {
+        type: Number,
+        default: 0,
+    },
     _status: {
         type: Number,
-        default: 0, //O: draft, 1: public, 2: reject, 3: block by owner
+        default: 0, //O: public, 1: block, 2: resported
     },
     _inspectId: {
         type: Schema.Types.ObjectId,

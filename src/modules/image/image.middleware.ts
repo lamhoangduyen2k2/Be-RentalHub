@@ -30,9 +30,11 @@ export class ImageMiddleWare {
     next: NextFunction
   ) => {
     try {
-      const file = req.file as Express.Multer.File;
+      const file = req?.file as Express.Multer.File;
+      console.log("🚀 ~ ImageMiddleWare ~ file:", file)
+      console.log("🚀 ~ ImageMiddleWare ~ file:", req.body)
 
-      if (file.size > 10485760) throw Errors.FileSizeExceedLimit;
+      if (file?.size > 10485760) throw Errors.FileSizeExceedLimit;
 
       next();
     } catch (error) {
