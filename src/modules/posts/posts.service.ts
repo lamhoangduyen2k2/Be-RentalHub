@@ -423,16 +423,16 @@ export class PostsService {
           _inspectId: 1,
           _status: 1,
           roomId: "$room._id",
-          roomAddress: {
-            $concat: [
-              "$room._street",
-              ", Quận ",
-              "$room._district",
-              ", ",
-              "$room._city",
-            ],
-          },
-          roomAdd: "$room._address",
+          // roomAddress: {
+          //   $concat: [
+          //     "$room._street",
+          //     ", Quận ",
+          //     "$room._district",
+          //     ", ",
+          //     "$room._city",
+          //   ],
+          // },
+          roomAddress: "$room._address",
           roomServices: "$room._services",
           roomUtilities: "$room._utilities",
           roomArea: "$room._area",
@@ -561,16 +561,16 @@ export class PostsService {
           _inspectId: 1,
           _status: 1,
           roomId: "$room._id",
-          roomAddress: {
-            $concat: [
-              "$room._street",
-              ", Quận ",
-              "$room._district",
-              ", ",
-              "$room._city",
-            ],
-          },
-          roomAdd: "$room._address",
+          // roomAddress: {
+          //   $concat: [
+          //     "$room._street",
+          //     ", Quận ",
+          //     "$room._district",
+          //     ", ",
+          //     "$room._city",
+          //   ],
+          // },
+          roomAddress: "$room._address",
           roomStreet: "$room._street",
           roomDistrict: "$room._district",
           roomCity: "$room._city",
@@ -657,16 +657,16 @@ export class PostsService {
           _inspectId: 1,
           _status: 1,
           roomId: "$room._id",
-          roomAddress: {
-            $concat: [
-              "$room._street",
-              ", Quận ",
-              "$room._district",
-              ", ",
-              "$room._city",
-            ],
-          },
-          roomAdd: "$room._address",
+          // roomAddress: {
+          //   $concat: [
+          //     "$room._street",
+          //     ", Quận ",
+          //     "$room._district",
+          //     ", ",
+          //     "$room._city",
+          //   ],
+          // },
+          roomAddress: "$room._address",
           roomStreet: "$room._street",
           roomDistrict: "$room._district",
           roomCity: "$room._city",
@@ -737,16 +737,16 @@ export class PostsService {
           _inspectId: 1,
           _status: 1,
           roomId: "$room._id",
-          roomAddress: {
-            $concat: [
-              "$room._street",
-              ", Quận ",
-              "$room._district",
-              ", ",
-              "$room._city",
-            ],
-          },
-          roomAdd: "$room._address",
+          // roomAddress: {
+          //   $concat: [
+          //     "$room._street",
+          //     ", Quận ",
+          //     "$room._district",
+          //     ", ",
+          //     "$room._city",
+          //   ],
+          // },
+          roomAddress: "$room._address",
           roomServices: "$room._services",
           roomUtilities: "$room._utilities",
           roomArea: "$room._area",
@@ -820,16 +820,16 @@ export class PostsService {
           _inspectId: 1,
           _status: 1,
           roomId: "$room._id",
-          roomAddress: {
-            $concat: [
-              "$room._street",
-              ", Quận ",
-              "$room._district",
-              ", ",
-              "$room._city",
-            ],
-          },
-          roomAdd: "$room._address",
+          // roomAddress: {
+          //   $concat: [
+          //     "$room._street",
+          //     ", Quận ",
+          //     "$room._district",
+          //     ", ",
+          //     "$room._city",
+          //   ],
+          // },
+          roomAddress: "$room._address",
           roomServices: "$room._services",
           roomUtilities: "$room._utilities",
           roomArea: "$room._area",
@@ -919,16 +919,16 @@ export class PostsService {
           _inspectId: 1,
           _status: 1,
           roomId: "$room._id",
-          roomAddress: {
-            $concat: [
-              "$room._street",
-              ", Quận ",
-              "$room._district",
-              ", ",
-              "$room._city",
-            ],
-          },
-          roomAdd: "$room._address",
+          // roomAddress: {
+          //   $concat: [
+          //     "$room._street",
+          //     ", Quận ",
+          //     "$room._district",
+          //     ", ",
+          //     "$room._city",
+          //   ],
+          // },
+          roomAddress: "$room._address",
           roomServices: "$room._services",
           roomUtilities: "$room._utilities",
           roomArea: "$room._area",
@@ -1159,16 +1159,16 @@ export class PostsService {
           _inspectId: 1,
           _status: 1,
           roomId: "$room._id",
-          roomAddress: {
-            $concat: [
-              "$room._street",
-              ", Quận ",
-              "$room._district",
-              ", ",
-              "$room._city",
-            ],
-          },
-          roomAdd: "$room._address",
+          // roomAddress: {
+          //   $concat: [
+          //     "$room._street",
+          //     ", Quận ",
+          //     "$room._district",
+          //     ", ",
+          //     "$room._city",
+          //   ],
+          // },
+          roomAddress: "$room._address",
           roomServices: "$room._services",
           roomUtilities: "$room._utilities",
           roomArea: "$room._area",
@@ -1247,16 +1247,16 @@ export class PostsService {
           _inspectId: 1,
           _status: 1,
           roomId: "$room._id",
-          roomAddress: {
-            $concat: [
-              "$room._street",
-              ", Quận ",
-              "$room._district",
-              ", ",
-              "$room._city",
-            ],
-          },
-          roomAdd: "$room._address",
+          // roomAddress: {
+          //   $concat: [
+          //     "$room._street",
+          //     ", Quận ",
+          //     "$room._district",
+          //     ", ",
+          //     "$room._city",
+          //   ],
+          // },
+          roomAddress: "$room._address",
           roomServices: "$room._services",
           roomUtilities: "$room._utilities",
           roomArea: "$room._area",
@@ -1412,16 +1412,16 @@ export class PostsService {
           _status: "$post_info._status",
           updatedAt: "$post_info.updatedAt",
           roomId: "$room_info._id",
-          roomAddress: {
-            $concat: [
-              "$room_info._street",
-              ", ",
-              "$room_info._district",
-              ", ",
-              "$room_info._city",
-            ],
-          },
-          roomAdd: "$room._address",
+          // roomAddress: {
+          //   $concat: [
+          //     "$room_info._street",
+          //     ", ",
+          //     "$room_info._district",
+          //     ", ",
+          //     "$room_info._city",
+          //   ],
+          // },
+          roomAddress: "$room._address",
           roomServices: "$room_info._services",
           roomUtilities: "$room_info._utilities",
           roomArea: "$room_info._area",
@@ -1588,16 +1588,16 @@ export class PostsService {
           _status: "$post_info._status",
           updatedAt: "$post_info.updatedAt",
           roomId: "$room_info._id",
-          roomAddress: {
-            $concat: [
-              "$room_info._street",
-              ", ",
-              "$room_info._district",
-              ", ",
-              "$room_info._city",
-            ],
-          },
-          roomAdd: "$room._address",
+          // roomAddress: {
+          //   $concat: [
+          //     "$room_info._street",
+          //     ", ",
+          //     "$room_info._district",
+          //     ", ",
+          //     "$room_info._city",
+          //   ],
+          // },
+          roomAddress: "$room._address",
           roomServices: "$room_info._services",
           roomUtilities: "$room_info._utilities",
           roomArea: "$room_info._area",
@@ -1706,16 +1706,16 @@ export class PostsService {
           _status: "$post_info._status",
           updatedAt: "$post_info.updatedAt",
           roomId: "$room_info._id",
-          roomAddress: {
-            $concat: [
-              "$room_info._street",
-              ", ",
-              "$room_info._district",
-              ", ",
-              "$room_info._city",
-            ],
-          },
-          roomAdd: "$room._address",
+          // roomAddress: {
+          //   $concat: [
+          //     "$room_info._street",
+          //     ", ",
+          //     "$room_info._district",
+          //     ", ",
+          //     "$room_info._city",
+          //   ],
+          // },
+          roomAddress: "$room._address",
           roomServices: "$room_info._services",
           roomUtilities: "$room_info._utilities",
           roomArea: "$room_info._area",
@@ -1871,16 +1871,16 @@ export class PostsService {
           _status: "$post_info._status",
           updatedAt: "$post_info.updatedAt",
           roomId: "$room_info._id",
-          roomAddress: {
-            $concat: [
-              "$room_info._street",
-              ", ",
-              "$room_info._district",
-              ", ",
-              "$room_info._city",
-            ],
-          },
-          roomAdd: "$room._address",
+          // roomAddress: {
+          //   $concat: [
+          //     "$room_info._street",
+          //     ", ",
+          //     "$room_info._district",
+          //     ", ",
+          //     "$room_info._city",
+          //   ],
+          // },
+          roomAddress: "$room._address",
           roomServices: "$room_info._services",
           roomUtilities: "$room_info._utilities",
           roomArea: "$room_info._area",
@@ -1980,16 +1980,16 @@ export class PostsService {
           _inspectId: 1,
           _status: 1,
           roomId: "$room._id",
-          roomAddress: {
-            $concat: [
-              "$room._street",
-              ", Quận ",
-              "$room._district",
-              ", ",
-              "$room._city",
-            ],
-          },
-          roomAdd: "$room._address",
+          // roomAddress: {
+          //   $concat: [
+          //     "$room._street",
+          //     ", Quận ",
+          //     "$room._district",
+          //     ", ",
+          //     "$room._city",
+          //   ],
+          // },
+          roomAddress: "$room._address",
           roomStreet: "$room._street",
           roomDistrict: "$room._district",
           roomCity: "$room._city",
@@ -2091,16 +2091,16 @@ export class PostsService {
           _inspectId: 1,
           _status: 1,
           roomId: "$room._id",
-          roomAddress: {
-            $concat: [
-              "$room._street",
-              ", Quận ",
-              "$room._district",
-              ", ",
-              "$room._city",
-            ],
-          },
-          roomAdd: "$room._address",
+          // roomAddress: {
+          //   $concat: [
+          //     "$room._street",
+          //     ", Quận ",
+          //     "$room._district",
+          //     ", ",
+          //     "$room._city",
+          //   ],
+          // },
+          roomAddress: "$room._address",
           roomStreet: "$room._street",
           roomDistrict: "$room._district",
           roomCity: "$room._city",
@@ -2134,31 +2134,112 @@ export class PostsService {
 
   public getPostsByIdAndEmail = async (keyword: string, status: number) => {
     const checkEmail = keyword.includes("@");
-    const condition = {$and: []};
+    const condition : PipelineStage = {$match : { $and: [] }};
 
+    //Create condition to find post
     if (checkEmail) {
       const user = await Users.findOne({ _email: keyword });
       if (!user) throw Errors.UserNotFound;
 
       //Add condition to find post
-      condition.$and.push({ _uId: user?._id });
+      condition.$match.$and.push({ _uId: user?._id });
 
-      if (status !== -1) condition.$and.push({ _status: status });
+      if (status !== -1) condition.$match.$and.push({ _status: status });
 
-      const post = await Posts.findOne(condition);
-      if (!post) throw Errors.PostNotFound;
+      // const post = await Posts.findOne(condition);
+      // if (!post) throw Errors.PostNotFound;
 
-      return post;
     } else {
       //Add condition to find post
-      condition.$and.push({ _id: new mongoose.Types.ObjectId(keyword) });
+      condition.$match.$and.push({ _id: new mongoose.Types.ObjectId(keyword) });
 
-      if (status !== -1) condition.$and.push({ _status: status });
+      if (status !== -1) condition.$match.$and.push({ _status: status });
 
-      const post = await Posts.findOne(condition);
-      if (!post) throw Errors.PostNotFound;
+      // const post = await Posts.findOne(condition);
+      // if (!post) throw Errors.PostNotFound;
 
-      return post;
     }
+
+    const post = await Posts.aggregate([
+      {
+        $lookup: {
+          from: "rooms",
+          localField: "_rooms",
+          foreignField: "_id",
+          as: "room",
+        },
+      },
+      { $unwind: "$room" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_uId",
+          foreignField: "_id",
+          as: "author",
+        },
+      },
+      { $unwind: "$author" },
+      {
+        $lookup: {
+          from: "tags",
+          localField: "_tags",
+          foreignField: "_id",
+          let: { id_tags: "$_tags" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $in: ["$_id", "$$id_tags"] },
+              },
+            },
+          ],
+          as: "tags",
+        },
+      },
+      condition,
+      {
+        $project: {
+          _id: 1,
+          _title: 1,
+          _content: 1,
+          _desc: 1,
+          updatedAt: 1,
+          _tags: "$tags",
+          _videos: 1,
+          _images: 1,
+          _inspectId: 1,
+          _status: 1,
+          roomId: "$room._id",
+          // roomAddress: {
+          //   $concat: [
+          //     "$room._street",
+          //     ", Quận ",
+          //     "$room._district",
+          //     ", ",
+          //     "$room._city",
+          //   ],
+          // },
+          roomAddress: "$room._address",
+          roomStreet: "$room._street",
+          roomDistrict: "$room._district",
+          roomCity: "$room._city",
+          roomServices: "$room._services",
+          roomUtilities: "$room._utilities",
+          roomArea: "$room._area",
+          roomPrice: "$room._price",
+          roomElectricPrice: "$room._electricPrice",
+          roomWaterPrice: "$room._waterPrice",
+          roomIsRented: "$room._isRented",
+          authorId: "$author._id",
+          authorFName: "$author._fname",
+          authorLName: "$author._lname",
+          phoneNumber: "$author._phone",
+          addressAuthor: "$author._address",
+          avatarAuthor: "$author._avatar",
+        },
+      },
+    ])
+    if (post.length <= 0) throw Errors.PostNotFound;
+
+    return post[0];
   };
 }
