@@ -9,13 +9,13 @@ const messageController = Container.get(MessageController);
 
 messageRoute.post(
   "/create-message",
-  authMiddleware.authorizedUser,
+  authMiddleware.authorized,
   messageController.createMessage
 );
 
 messageRoute.get(
   "/get-messages",
-  authMiddleware.authorizedUser,
+  authMiddleware.authorized,
   messageController.getMessages
 );
 
