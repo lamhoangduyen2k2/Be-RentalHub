@@ -52,6 +52,10 @@ import socialRoute from "./modules/social-posts/social-posts.route";
   // //List of online users
   let onlineUsers: { userId: string; socketId: string }[] = [];
   let onlineInspectors: { userId: string; socketId: string }[] = [];
+  const onlineAdmins = {
+    userId: "65418310bec0ba49c4d9a276",
+    socketId: "",
+  };
 
   const port = 3000;
   dayjs.extend(utc);
@@ -88,13 +92,29 @@ import socialRoute from "./modules/social-posts/social-posts.route";
 
     //listen to a connection
     socket.on("addNewUser", (user) => {
-      if (user.role === 0) {
+      if (user.userId === onlineAdmins.userId) {
+        //Add admin to online of Users
+        !onlineUsers.some((u) => u.userId === user.userId) &&
+          onlineUsers.push({
+            userId: user.userId,
+            socketId: socket.id,
+          });
+
+        //Add admin to online of Inspectors
+        !onlineInspectors.some((u) => u.userId === user.userId) &&
+          onlineInspectors.push({
+            userId: user.userId,
+            socketId: socket.id,
+          });
+      } else if (user.role === 0) {
         !onlineUsers.some((u) => u.userId === user.userId) &&
           onlineUsers.push({
             userId: user.userId,
             socketId: socket.id,
           });
       } else {
+        if (user.userId === onlineAdmins.userId)
+          onlineAdmins.socketId = socket.id;
         !onlineInspectors.some((u) => u.userId === user.userId) &&
           onlineInspectors.push({
             userId: user.userId,
@@ -103,8 +123,8 @@ import socialRoute from "./modules/social-posts/social-posts.route";
       }
       //Get users online list for customer
       io.emit("getOnlineUsers", onlineUsers);
-      //Get inspectors/admin online for inspector/admin
-      //io.emit("getOnlineInspectors", onlineInspectors);
+      //Get admin online for user
+      //io.emit("getOnlineAdmin", onlineAdmins);
     });
 
     //add message

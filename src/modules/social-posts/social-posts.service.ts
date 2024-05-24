@@ -205,5 +205,6 @@ export class SocialPostsService {
     return blockedPost;
   };
 
-  //Report social post
+  //Like/Unlike social post
+  
 }
