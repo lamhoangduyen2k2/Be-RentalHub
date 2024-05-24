@@ -35,6 +35,13 @@ export class ReactionService {
     }, { new: true, upsert: true });
 
     //update total like of social post
-    // const updatedSocialPost = await SocialPosts.findOneAndUpdate()
+    const updatedSocial = await SocialPosts.findOneAndUpdate({
+        $and: [{ _id: new mongoose.Types.ObjectId(postId) }, { _status: 0 }],
+    }, {
+        _totalLike: newReaction._like ? socialPost._totalLike + 1 : socialPost._totalLike - 1,
+    }, { new: true });
+    if (!updatedSocial) throw Errors.SaveToDatabaseFail;
+
+    return updatedSocial;
   };
 }

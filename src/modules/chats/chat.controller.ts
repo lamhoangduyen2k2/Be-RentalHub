@@ -2,6 +2,8 @@ import { Inject, Service } from "typedi";
 import { ChatService } from "./chat.service";
 import { NextFunction, Request, Response } from "express";
 import { ResponseData } from "../../helpers/response";
+// import Users from "../user/model/users.model";
+// import chatModel from "./chat.model";
 
 @Service()
 export class ChatController {
@@ -56,4 +58,29 @@ export class ChatController {
       next(error);
     }
   };
+
+  // public createChatWithAdmin = async (
+  //   req: Request,
+  //   res: Response,
+  //   next: NextFunction
+  // ) => {
+  //   try {
+  //     const user = await Users.find({
+  //       _role: 0
+  //     })
+
+  //     user.forEach(async (element) => {
+  //       await chatModel.create({
+  //         members: [element._id.toString(), "65418310bec0ba49c4d9a276"],
+  //       })
+
+  //     });
+
+  //     res.json(new ResponseData(true, null, null));
+  //   } catch (error) {
+  //     console.log("🚀 ~ ChatController ~ createChatWithAdmin= ~ error:", error);
+  //     next(error);
+  //   }
+  // }
+  
 }

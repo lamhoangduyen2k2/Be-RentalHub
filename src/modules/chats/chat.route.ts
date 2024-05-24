@@ -14,13 +14,18 @@ chatRoute.post(
 );
 chatRoute.get(
   "/find-user-chats",
-  authMiddleware.authorizedUser,
+  authMiddleware.authorized,
   chatController.findUserChats
 );
 chatRoute.get(
   "/find-chat",
-  authMiddleware.authorizedUser,
+  authMiddleware.authorized,
   chatController.findChat
 );
+// chatRoute.post(
+//   "/create-chat-with-admin",
+//   authMiddleware.authorizedUser,
+//   chatController.createChatWithAdmin
+// );
 
 export default chatRoute;

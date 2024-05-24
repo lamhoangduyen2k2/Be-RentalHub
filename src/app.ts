@@ -86,6 +86,7 @@ import socialRoute from "./modules/social-posts/social-posts.route";
   app.use("/api/chat", chatRoute);
   app.use("/api/message", messageRoute);
   app.use("/api/social", socialRoute);
+  app.use("/api/reaction", socialRoute);
 
   io.on("connection", (socket) => {
     console.log("New connection: ", socket.id);
