@@ -90,7 +90,6 @@ export class ChatService {
         },
       },
     ]);
-    console.log("🚀 ~ ChatService ~ findUserChats= ~ totalUnReadMessagesChat:", totalUnReadMessagesChat)
 
     const unReadEachChat = chats.map((chat) => {
       const totalUnRead = totalUnReadMessagesChat.find((total) => {

@@ -126,7 +126,7 @@ routerUser.get(
 );
 routerUser.get(
   "/find",
-  authMiddleware.authorizedUser,
+  authMiddleware.authorized,
   userController.getUserNotDetailById
 );
 routerUser.get(
