@@ -1962,7 +1962,12 @@ export class PostsService {
           as: "inspector",
         },
       },
-      { $unwind: "$inspector" },
+      { 
+        $unwind: {
+          path: "$inspector",
+          preserveNullAndEmptyArrays: true // Giữ lại các bài post không có inspector
+        }
+      },
       {
         $project: {
           _id: 1,
