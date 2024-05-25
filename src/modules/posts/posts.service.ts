@@ -1013,6 +1013,210 @@ export class PostsService {
     ];
   };
 
+  public searchPostByStatusForHost = async (
+    uId: string,
+    postId: string,
+    status: number
+  ) => {
+    //Check status
+    if (status > 4 || status <= -1) throw Errors.StatusInvalid;
+
+    // Check status to create condition and totalPages
+    if (status === 4) {
+      //if search reported post
+      const result = await Posts.aggregate([
+        {
+          $match: {
+            $and: [
+              { _uId: new mongoose.Types.ObjectId(uId) },
+              { _status: status },
+              { _id: new mongoose.Types.ObjectId(postId) },
+            ],
+          },
+        },
+        {
+          $lookup: {
+            from: "rooms",
+            localField: "_rooms",
+            foreignField: "_id",
+            as: "room",
+          },
+        },
+        { $unwind: "$room" },
+        {
+          $lookup: {
+            from: "users",
+            localField: "_uId",
+            foreignField: "_id",
+            as: "author",
+          },
+        },
+        { $unwind: "$author" },
+        {
+          $lookup: {
+            from: "tags",
+            localField: "_tags",
+            foreignField: "_id",
+            let: { id_tags: "$_tags" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: { $in: ["$_id", "$$id_tags"] },
+                },
+              },
+            ],
+            as: "tags",
+          },
+        },
+        {
+          $lookup: {
+            from: "reportedposts",
+            localField: "_id",
+            foreignField: "_postId",
+            as: "reported",
+          },
+        },
+        { $unwind: "$reported" },
+        {
+          $project: {
+            _id: 1,
+            _title: 1,
+            _content: 1,
+            _desc: 1,
+            updatedAt: 1,
+            _tags: "$tags",
+            _videos: 1,
+            _images: 1,
+            _inspectId: 1,
+            _status: 1,
+            roomId: "$room._id",
+            roomAddress: "$room._address",
+            roomStreet: "$room._street",
+            roomDistrict: "$room._district",
+            roomCity: "$room._city",
+            roomServices: "$room._services",
+            roomUtilities: "$room._utilities",
+            roomArea: "$room._area",
+            roomPrice: "$room._price",
+            roomElectricPrice: "$room._electricPrice",
+            roomWaterPrice: "$room._waterPrice",
+            roomIsRented: "$room._isRented",
+            authorId: "$author._id",
+            authorFName: "$author._fname",
+            authorLName: "$author._lname",
+            phoneNumber: "$author._phone",
+            addressAuthor: "$author._address",
+            avatarAuthor: "$author._avatar",
+            reason: {
+              $reduce: {
+                input: "$reported._content",
+                initialValue: "",
+                in: {
+                  $concat: [
+                    "$$value",
+                    {
+                      $cond: {
+                        if: { $eq: ["$$value", ""] },
+                        then: "",
+                        else: ", ",
+                      },
+                    },
+                    "$$this",
+                  ],
+                },
+              },
+            },
+          },
+        },
+      ]);
+
+      if (!result[0]) throw Errors.PostNotFound;
+      return result[0];
+    } else {
+      const result = await Posts.aggregate([
+        {
+          $match: {
+            $and: [
+              { _uId: new mongoose.Types.ObjectId(uId) },
+              { _status: status },
+              { _id: new mongoose.Types.ObjectId(postId) },
+            ],
+          },
+        },
+        {
+          $lookup: {
+            from: "rooms",
+            localField: "_rooms",
+            foreignField: "_id",
+            as: "room",
+          },
+        },
+        { $unwind: "$room" },
+        {
+          $lookup: {
+            from: "users",
+            localField: "_uId",
+            foreignField: "_id",
+            as: "author",
+          },
+        },
+        { $unwind: "$author" },
+        {
+          $lookup: {
+            from: "tags",
+            localField: "_tags",
+            foreignField: "_id",
+            let: { id_tags: "$_tags" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: { $in: ["$_id", "$$id_tags"] },
+                },
+              },
+            ],
+            as: "tags",
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            _title: 1,
+            _content: 1,
+            _desc: 1,
+            updatedAt: 1,
+            _tags: "$tags",
+            _videos: 1,
+            _images: 1,
+            _inspectId: 1,
+            _status: 1,
+            roomId: "$room._id",
+            roomAddress: "$room._address",
+            roomStreet: "$room._street",
+            roomDistrict: "$room._district",
+            roomCity: "$room._city",
+            roomServices: "$room._services",
+            roomUtilities: "$room._utilities",
+            roomArea: "$room._area",
+            roomPrice: "$room._price",
+            roomElectricPrice: "$room._electricPrice",
+            roomWaterPrice: "$room._waterPrice",
+            roomIsRented: "$room._isRented",
+            authorId: "$author._id",
+            authorFName: "$author._fname",
+            authorLName: "$author._lname",
+            phoneNumber: "$author._phone",
+            addressAuthor: "$author._address",
+            avatarAuthor: "$author._avatar",
+          },
+        },
+      ]);
+
+      if (!result[0]) throw Errors.PostNotFound;
+      return result[0];
+    }
+
+  };
+
   public getPostByInspector = async (
     pagination: Pagination,
     status: number
@@ -1962,11 +2166,11 @@ export class PostsService {
           as: "inspector",
         },
       },
-      { 
+      {
         $unwind: {
           path: "$inspector",
-          preserveNullAndEmptyArrays: true // Giữ lại các bài post không có inspector
-        }
+          preserveNullAndEmptyArrays: true, // Giữ lại các bài post không có inspector
+        },
       },
       {
         $project: {

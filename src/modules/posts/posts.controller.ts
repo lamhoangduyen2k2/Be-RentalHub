@@ -184,7 +184,7 @@ export class PostsController {
       const post = await this.postsService.createNewPost(postInfo, files);
       res.json(new ResponseData(post, null, null));
     } catch (error) {
-      console.log("🚀 ~ PostsController ~ error:", error)
+      console.log("🚀 ~ PostsController ~ error:", error);
       //console.log(error);
       next(error);
     }
@@ -396,6 +396,33 @@ export class PostsController {
     }
   };
 
+  public searchPostByStatusForHost = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const status = isNaN(Number(req.query.status))
+        ? -1
+        : Number(req.query.status);
+      const uId = req.body._uId.toString();
+      const postId = req.query.postId ? req.query.postId.toString() : undefined;
+      const data = await this.postsService.searchPostByStatusForHost(
+        uId,
+        postId,
+        status
+      );
+
+      res.json(new ResponseData(data, null, null));
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: posts.controller.ts:117 ~ PostsController ~ error:",
+        error
+      );
+      next(error);
+    }
+  };
+
   public getReportPostByPostId = async (
     req: Request,
     res: Response,
@@ -499,7 +526,7 @@ export class PostsController {
       );
       next(error);
     }
-  }
+  };
 
   public getPostByIdOrEmail = async (
     req: Request,
@@ -507,9 +534,16 @@ export class PostsController {
     next: NextFunction
   ) => {
     try {
-      const keyword = req.query.keyword ? req.query.keyword.toString() : undefined;
-      const status = isNaN(Number(req.query.status)) ? -1 : Number(req.query.status);
-      const data = await this.postsService.getPostsByIdAndEmail(keyword, status);
+      const keyword = req.query.keyword
+        ? req.query.keyword.toString()
+        : undefined;
+      const status = isNaN(Number(req.query.status))
+        ? -1
+        : Number(req.query.status);
+      const data = await this.postsService.getPostsByIdAndEmail(
+        keyword,
+        status
+      );
 
       res.json(new ResponseData(data, null, null));
     } catch (error) {
@@ -519,5 +553,5 @@ export class PostsController {
       );
       next(error);
     }
-  }
+  };
 }

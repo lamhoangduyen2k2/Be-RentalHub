@@ -61,6 +61,11 @@ route.get(
   authMiddleware.authorizedUser,
   postsController.getReportedPostByUser
 );
+route.get(
+  "/search-post-by-id",
+  authMiddleware.authorizedUser,
+  postsController.searchPostByStatusForHost
+);
 
 route.post(
   "/create-post",
@@ -123,6 +128,11 @@ route.get(
   authMiddleware.authorizedInspector,
   postsController.getPostsByStatusInspectorController
 );
+route.get(
+  "/inspector-get-post-keyword",
+  authMiddleware.authorizedInspector,
+  postsController.getPostByIdOrEmail
+)
 route.patch(
   "/sensor-post/:postId",
   authMiddleware.authorizedInspector,
