@@ -59,6 +59,18 @@ adminRoute.get(
 );
 
 adminRoute.get(
+  "/get-host-keyword",
+  authMiddleware.authorizedAdmin,
+  userController.getHostByEmailOrId
+);
+
+adminRoute.get(
+  "/get-employee-keyword",
+  authMiddleware.authorizedAdmin,
+  userController.getEmployeeByEmailOrId
+);
+
+adminRoute.get(
   "/get-user-blocked-keyword",
   authMiddleware.authorizedAdmin,
   userController.getUserBlockedByEmailOrId

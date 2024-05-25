@@ -155,7 +155,7 @@ export class UserService {
 
     const chatAdmin = await chatModel.create({
       members: [user._id.toString(), "65418310bec0ba49c4d9a276"],
-    })
+    });
     if (!chatAdmin) throw Errors.SaveToDatabaseFail;
 
     await UsersTermp.deleteOne({ _email: email });
@@ -309,7 +309,8 @@ export class UserService {
 
   public getUserNotDetailById = async (uId: string) => {
     const user = await Users.findOne({
-      $and: [{ _id: uId }, { _active: true }]});
+      $and: [{ _id: uId }, { _active: true }],
+    });
 
     if (!user) throw Errors.UserNotFound;
 
@@ -1407,12 +1408,72 @@ export class UserService {
     const checkEmail = keyword.includes("@");
 
     if (checkEmail) {
-      const user = await Users.findOne({ _email: keyword });
+      const user = await Users.findOne({
+        $and: [
+          { _email: keyword },
+          { _role: 0 },
+          { _isHost: false },
+          { _temptHostBlocked: false },
+        ],
+      });
       if (!user) throw Errors.UserNotFound;
 
       return user;
     } else {
-      const user = await Users.findOne({ _id: keyword });
+      const user = await Users.findOne({
+        $and: [
+          { _id: new mongoose.Types.ObjectId(keyword) },
+          { _role: 0 },
+          { _isHost: false },
+          { _temptHostBlocked: false },
+        ],
+      });
+      if (!user) throw Errors.UserNotFound;
+
+      return user;
+    }
+  };
+
+  public getHostByEmailOrId = async (keyword: string) => {
+    const checkEmail = keyword.includes("@");
+
+    if (checkEmail) {
+      const user = await Users.findOne({
+        $or: [
+          { $and: [{ _email: keyword }, { _role: 0 }, { _isHost: true }] },
+          { $and: [{ _email: keyword }, { _role: 0 }, { _temptHostBlocked: true }] },
+        ]
+      });
+      if (!user) throw Errors.UserNotFound;
+
+      return user;
+    } else {
+      const user = await Users.findOne({
+        $or: [
+          { $and: [{ _id: new mongoose.Types.ObjectId(keyword) }, { _role: 0 }, { _isHost: true }] },
+          { $and: [{ _id: new mongoose.Types.ObjectId(keyword) }, { _role: 0 }, { _temptHostBlocked: true }] },
+        ]
+      });
+      if (!user) throw Errors.UserNotFound;
+
+      return user;
+    }
+  };
+
+  public getEmployeeByEmailOrId = async (keyword: string) => {
+    const checkEmail = keyword.includes("@");
+
+    if (checkEmail) {
+      const user = await Users.findOne({
+        $and: [{ _email: keyword }, { _role: 2 }],
+      });
+      if (!user) throw Errors.UserNotFound;
+
+      return user;
+    } else {
+      const user = await Users.findOne({
+        $and: [{ _email: new mongoose.Types.ObjectId(keyword) }, { _role: 2 }],
+      });
       if (!user) throw Errors.UserNotFound;
 
       return user;

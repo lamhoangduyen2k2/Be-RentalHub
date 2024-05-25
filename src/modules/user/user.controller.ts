@@ -663,7 +663,39 @@ export class UserController {
   ) => {
     try {
       const inforUser = await this.userService.getUserByEmailOrId(
-        req.query.keyword.toString()
+        req.query.keyword.toString().trim()
+      );
+      res.json(new ResponseData(inforUser, null, null));
+    } catch (error) {
+      console.log("🚀 ~ UserController ~ error:", error)
+      next(error);
+    }
+  };
+
+  public getHostByEmailOrId = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const inforUser = await this.userService.getHostByEmailOrId(
+        req.query.keyword.toString().trim()
+      );
+      res.json(new ResponseData(inforUser, null, null));
+    } catch (error) {
+      console.log("🚀 ~ UserController ~ error:", error)
+      next(error);
+    }
+  };
+
+  public getEmployeeByEmailOrId = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const inforUser = await this.userService.getEmployeeByEmailOrId(
+        req.query.keyword.toString().trim()
       );
       res.json(new ResponseData(inforUser, null, null));
     } catch (error) {
