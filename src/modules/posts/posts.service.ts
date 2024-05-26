@@ -1214,7 +1214,6 @@ export class PostsService {
       if (!result[0]) throw Errors.PostNotFound;
       return result[0];
     }
-
   };
 
   public getPostByInspector = async (
@@ -2337,7 +2336,11 @@ export class PostsService {
     return post[0];
   };
 
-  public getPostsByIdAndEmail = async (keyword: string, status: number) => {
+  public getPostsByIdAndEmail = async (
+    keyword: string,
+    status: number,
+    pagination: Pagination
+  ) => {
     const checkEmail = keyword.includes("@");
     const condition: PipelineStage = { $match: { $and: [] } };
 
@@ -2356,6 +2359,12 @@ export class PostsService {
 
       if (status !== -1) condition.$match.$and.push({ _status: status });
     }
+
+    const count = await Posts.countDocuments(condition.$match);
+    if (count <= 0) throw Errors.PostNotFound;
+
+    const totalPages = Math.ceil(count / pagination.limit);
+    if (pagination.page > totalPages) throw Errors.PageNotFound;
 
     const post = await Posts.aggregate([
       {
@@ -2406,15 +2415,6 @@ export class PostsService {
           _inspectId: 1,
           _status: 1,
           roomId: "$room._id",
-          // roomAddress: {
-          //   $concat: [
-          //     "$room._street",
-          //     ", Quận ",
-          //     "$room._district",
-          //     ", ",
-          //     "$room._city",
-          //   ],
-          // },
           roomAddress: "$room._address",
           roomStreet: "$room._street",
           roomDistrict: "$room._district",
@@ -2434,9 +2434,14 @@ export class PostsService {
           avatarAuthor: "$author._avatar",
         },
       },
-    ]);
+    ])
+      .skip(pagination.offset)
+      .limit(pagination.limit);
     if (post.length <= 0) throw Errors.PostNotFound;
 
-    return post[0];
+    return [
+      post,
+      { page: pagination.page, limit: pagination.limit, total: totalPages },
+    ];
   };
 }

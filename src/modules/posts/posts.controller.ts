@@ -540,12 +540,14 @@ export class PostsController {
       const status = isNaN(Number(req.query.status))
         ? -1
         : Number(req.query.status);
+      const pagination = Pagination.getPagination(req);
       const data = await this.postsService.getPostsByIdAndEmail(
         keyword,
-        status
+        status,
+        pagination
       );
 
-      res.json(new ResponseData(data, null, null));
+      res.json(new ResponseData(data[0], null, data[1]));
     } catch (error) {
       console.log(
         "🚀 ~ file: posts.controller.ts:67 ~ PostsController ~ error:",

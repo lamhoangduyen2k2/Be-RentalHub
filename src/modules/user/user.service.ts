@@ -1404,7 +1404,7 @@ export class UserService {
     return updateAddress;
   };
 
-  public getUserByEmailOrId = async (keyword: string) => {
+  public getUserByEmailOrId = async (keyword: string, isActive: boolean) => {
     const checkEmail = keyword.includes("@");
 
     if (checkEmail) {
@@ -1414,6 +1414,7 @@ export class UserService {
           { _role: 0 },
           { _isHost: false },
           { _temptHostBlocked: false },
+          { _active: isActive },
         ],
       });
       if (!user) throw Errors.UserNotFound;
@@ -1426,6 +1427,7 @@ export class UserService {
           { _role: 0 },
           { _isHost: false },
           { _temptHostBlocked: false },
+          { _active: isActive },
         ],
       });
       if (!user) throw Errors.UserNotFound;
@@ -1434,14 +1436,14 @@ export class UserService {
     }
   };
 
-  public getHostByEmailOrId = async (keyword: string) => {
+  public getHostByEmailOrId = async (keyword: string, isActive: boolean) => {
     const checkEmail = keyword.includes("@");
 
     if (checkEmail) {
       const user = await Users.findOne({
         $or: [
-          { $and: [{ _email: keyword }, { _role: 0 }, { _isHost: true }] },
-          { $and: [{ _email: keyword }, { _role: 0 }, { _temptHostBlocked: true }] },
+          { $and: [{ _email: keyword }, { _role: 0 }, { _isHost: true }, { _active: isActive}] },
+          { $and: [{ _email: keyword }, { _role: 0 }, { _temptHostBlocked: true }, { _active: isActive}] },
         ]
       });
       if (!user) throw Errors.UserNotFound;
@@ -1460,19 +1462,19 @@ export class UserService {
     }
   };
 
-  public getEmployeeByEmailOrId = async (keyword: string) => {
+  public getEmployeeByEmailOrId = async (keyword: string, isActive: boolean) => {
     const checkEmail = keyword.includes("@");
 
     if (checkEmail) {
       const user = await Users.findOne({
-        $and: [{ _email: keyword }, { _role: 2 }],
+        $and: [{ _email: keyword }, { _role: 2 }, { _active: isActive }],
       });
       if (!user) throw Errors.UserNotFound;
 
       return user;
     } else {
       const user = await Users.findOne({
-        $and: [{ _email: new mongoose.Types.ObjectId(keyword) }, { _role: 2 }],
+        $and: [{ _email: new mongoose.Types.ObjectId(keyword) }, { _role: 2 }, { _active: isActive }],
       });
       if (!user) throw Errors.UserNotFound;
 
@@ -1495,6 +1497,13 @@ export class UserService {
       return user;
     }
   };
+
+  //For Admin and Inspector
+  // public searchIdentity = async (keyword: string, sensor: boolean) => {
+  //   //Check keyword is email or idCard
+  //   const checkEmail = keyword.includes("@");
+  //   let userIdentity = {};
+  // }
 
   //Automaticly
   public increaseTotalReported = async (userId: string) => {
