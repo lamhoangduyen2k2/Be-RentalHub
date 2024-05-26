@@ -1440,25 +1440,93 @@ export class UserService {
     const checkEmail = keyword.includes("@");
 
     if (checkEmail) {
-      const user = await Users.findOne({
-        $or: [
-          { $and: [{ _email: keyword }, { _role: 0 }, { _isHost: true }, { _active: isActive}] },
-          { $and: [{ _email: keyword }, { _role: 0 }, { _temptHostBlocked: true }, { _active: isActive}] },
-        ]
-      });
-      if (!user) throw Errors.UserNotFound;
+      const user = await Users.aggregate([
+        {
+          $match: {
+            $or: [
+              { $and: [{ _email: keyword }, { _role: 0 }, { _isHost: true }, { _active: isActive}] },
+              { $and: [{ _email: keyword }, { _role: 0 }, { _temptHostBlocked: true }, { _active: isActive}] },
+            ]
+          }
+        },
+        {
+          $lookup: {
+            from: "address-rentals",
+            localField: "_id",
+            foreignField: "_uId",
+            as: "address"
+          }
+        },
+        { $unwind: {
+          path: "$address",
+          preserveNullAndEmptyArrays: true
+          }
+        },
+        {
+          $project: {
+            _id: 1,
+            _name: {
+              $concat: ["$_lname", " ", "$_fname"]
+            },
+            _email: 1,
+            _avatar: 1,
+            _phone: 1,
+            _isHost: 1,
+            _role: 1,
+            _address: {
+              $ifNull: ["$address._address", null]
+            }
+          }
+        },
+      ])
+      if (!user[0]) throw Errors.UserNotFound;
 
-      return user;
+      return user[0];
     } else {
-      const user = await Users.findOne({
-        $or: [
-          { $and: [{ _id: new mongoose.Types.ObjectId(keyword) }, { _role: 0 }, { _isHost: true }] },
-          { $and: [{ _id: new mongoose.Types.ObjectId(keyword) }, { _role: 0 }, { _temptHostBlocked: true }] },
+      const user = await Users.aggregate(
+        [
+          {
+            $match: {
+              $or: [
+                { $and: [{ _id: new mongoose.Types.ObjectId(keyword) }, { _role: 0 }, { _isHost: true }] },
+                { $and: [{ _id: new mongoose.Types.ObjectId(keyword) }, { _role: 0 }, { _temptHostBlocked: true }] },
+              ]
+            }
+          },
+          {
+            $lookup: {
+              from: "address-rentals",
+              localField: "_id",
+              foreignField: "_uId",
+              as: "address"
+            }
+          },
+          { $unwind: {
+            path: "$address",
+            preserveNullAndEmptyArrays: true
+            }
+          },
+          {
+            $project: {
+              _id: 1,
+              _name: {
+                $concat: ["$_lname", " ", "$_fname"]
+              },
+              _email: 1,
+              _avatar: 1,
+              _phone: 1,
+              _isHost: 1,
+              _role: 1,
+              _address: {
+                $ifNull: ["$address._address", null]
+              }
+            }
+          },
         ]
-      });
-      if (!user) throw Errors.UserNotFound;
+      )
+      if (!user[0]) throw Errors.UserNotFound;
 
-      return user;
+      return user[0];
     }
   };
 
@@ -1503,6 +1571,7 @@ export class UserService {
   //   //Check keyword is email or idCard
   //   const checkEmail = keyword.includes("@");
   //   let userIdentity = {};
+    
   // }
 
   //Automaticly
