@@ -1413,7 +1413,6 @@ export class UserService {
           { _email: keyword },
           { _role: 0 },
           { _isHost: false },
-          { _temptHostBlocked: false },
         ],
       });
       if (!user) throw Errors.UserNotFound;
@@ -1425,7 +1424,6 @@ export class UserService {
           { _id: new mongoose.Types.ObjectId(keyword) },
           { _role: 0 },
           { _isHost: false },
-          { _temptHostBlocked: false },
         ],
       });
       if (!user) throw Errors.UserNotFound;
@@ -1540,7 +1538,7 @@ export class UserService {
       return user;
     } else {
       const user = await Users.findOne({
-        $and: [{ _email: new mongoose.Types.ObjectId(keyword) }, { _role: 2 }],
+        $and: [{ _id: new mongoose.Types.ObjectId(keyword) }, { _role: 2 }],
       });
       if (!user) throw Errors.UserNotFound;
 
