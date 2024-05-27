@@ -720,6 +720,26 @@ export class UserController {
     }
   };
 
+  //Admin and Inspector
+  public searchIdenity = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const numberCard = req.query.numberCard.toString().trim();
+      const sensor = /true/i.test(req.query.sensor.toString()) ? true : false;
+      const identity = await this.userService.searchIdentity(
+        numberCard,
+        sensor
+      );
+      res.json(new ResponseData(identity, null, null));
+    } catch (error) {
+      console.log("🚀 ~ UserController ~ error:", error)
+      next(error);
+    }
+  }
+
   
 
   // public sendSMS = async (req: Request, res: Response, next: NextFunction) => {

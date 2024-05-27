@@ -61,6 +61,11 @@ inspectorRoute.get(
   authMiddleware.authorizedInspector,
   userController.getActiveHostByIdInspector
 );
+inspectorRoute.get(
+  "/search-identity",
+  authMiddleware.authorizedInspector,
+  userController.searchIdenity
+);
 inspectorRoute.patch(
   "/sensor-active-host",
   authMiddleware.authorizedInspector,

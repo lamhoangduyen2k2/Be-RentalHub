@@ -76,6 +76,12 @@ adminRoute.get(
   userController.getUserBlockedByEmailOrId
 );
 
+adminRoute.get(
+  "/search-identity",
+  authMiddleware.authorizedAdmin,
+  userController.searchIdenity
+);
+
 //POST API
 adminRoute.post(
   "/login-admin",

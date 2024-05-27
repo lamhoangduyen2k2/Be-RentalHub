@@ -1563,16 +1563,16 @@ export class UserService {
   };
 
   //For Admin and Inspector
-  // public searchIdentity = async (keyword: string, sensor: boolean) => {
-  //   //Check keyword is email or idCard
-  //   const checkEmail = keyword.includes("@");
-  //   let userIdentity = {};
-  //   if (checkEmail) {
-  //     userIdentity = await Indentities.findOne({ $and: [{ _email: keyword }, { _verified : sensor }] });
-  //   } else {
-  //     const identity = await 
-  //   }
-  // }
+  public searchIdentity = async (numberCard: string, sensor: boolean) => {
+    //Check keyword is email or idCard
+    const identity = await Indentities.findOne({
+      $and: [{ _idCard: numberCard }, { _verified: sensor }],
+    })
+
+    if (!identity) throw Errors.UserIdentityNotFound;
+
+    return identity;
+  }
 
   //Automaticly
   public increaseTotalReported = async (userId: string) => {
