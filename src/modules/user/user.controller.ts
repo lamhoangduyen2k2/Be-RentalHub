@@ -11,7 +11,6 @@ import { UpdateInspectorPassDTO } from "./dtos/inspector-update-pass.dto";
 import { UpdateInspectorPasswordDTO } from "./dtos/update-password-inspector.dto";
 import { SensorIdenityDTO } from "./dtos/sensor-identity.dto";
 import { UpdateAddressDTO } from "./dtos/update-address.dto";
-import { isBoolean } from "class-validator";
 
 @Service()
 export class UserController {
@@ -663,10 +662,8 @@ export class UserController {
     next: NextFunction
   ) => {
     try {
-      const isActive = isBoolean(req.query.active) ? Boolean(req.query.active) : null;
       const inforUser = await this.userService.getUserByEmailOrId(
         req.query.keyword.toString().trim(),
-        isActive
       );
       res.json(new ResponseData(inforUser, null, null));
     } catch (error) {
@@ -681,10 +678,8 @@ export class UserController {
     next: NextFunction
   ) => {
     try {
-      const isActive = isBoolean(req.query.active) ? Boolean(req.query.active) : null;
       const inforUser = await this.userService.getHostByEmailOrId(
         req.query.keyword.toString().trim(),
-        isActive
       );
       res.json(new ResponseData(inforUser, null, null));
     } catch (error) {
@@ -699,10 +694,8 @@ export class UserController {
     next: NextFunction
   ) => {
     try {
-      const isActive = isBoolean(req.query.active) ? Boolean(req.query.active) : null;
       const inforUser = await this.userService.getEmployeeByEmailOrId(
         req.query.keyword.toString().trim(),
-        isActive
       );
       res.json(new ResponseData(inforUser, null, null));
     } catch (error) {

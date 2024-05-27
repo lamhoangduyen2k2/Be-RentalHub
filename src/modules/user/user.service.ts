@@ -1404,7 +1404,7 @@ export class UserService {
     return updateAddress;
   };
 
-  public getUserByEmailOrId = async (keyword: string, isActive: boolean) => {
+  public getUserByEmailOrId = async (keyword: string) => {
     const checkEmail = keyword.includes("@");
 
     if (checkEmail) {
@@ -1414,7 +1414,6 @@ export class UserService {
           { _role: 0 },
           { _isHost: false },
           { _temptHostBlocked: false },
-          { _active: isActive },
         ],
       });
       if (!user) throw Errors.UserNotFound;
@@ -1427,7 +1426,6 @@ export class UserService {
           { _role: 0 },
           { _isHost: false },
           { _temptHostBlocked: false },
-          { _active: isActive },
         ],
       });
       if (!user) throw Errors.UserNotFound;
@@ -1436,7 +1434,7 @@ export class UserService {
     }
   };
 
-  public getHostByEmailOrId = async (keyword: string, isActive: boolean) => {
+  public getHostByEmailOrId = async (keyword: string) => {
     const checkEmail = keyword.includes("@");
 
     if (checkEmail) {
@@ -1444,8 +1442,8 @@ export class UserService {
         {
           $match: {
             $or: [
-              { $and: [{ _email: keyword }, { _role: 0 }, { _isHost: true }, { _active: isActive}] },
-              { $and: [{ _email: keyword }, { _role: 0 }, { _temptHostBlocked: true }, { _active: isActive}] },
+              { $and: [{ _email: keyword }, { _role: 0 }, { _isHost: true }] },
+              { $and: [{ _email: keyword }, { _role: 0 }, { _temptHostBlocked: true }] },
             ]
           }
         },
@@ -1530,19 +1528,19 @@ export class UserService {
     }
   };
 
-  public getEmployeeByEmailOrId = async (keyword: string, isActive: boolean) => {
+  public getEmployeeByEmailOrId = async (keyword: string) => {
     const checkEmail = keyword.includes("@");
 
     if (checkEmail) {
       const user = await Users.findOne({
-        $and: [{ _email: keyword }, { _role: 2 }, { _active: isActive }],
+        $and: [{ _email: keyword }, { _role: 2 }],
       });
       if (!user) throw Errors.UserNotFound;
 
       return user;
     } else {
       const user = await Users.findOne({
-        $and: [{ _email: new mongoose.Types.ObjectId(keyword) }, { _role: 2 }, { _active: isActive }],
+        $and: [{ _email: new mongoose.Types.ObjectId(keyword) }, { _role: 2 }],
       });
       if (!user) throw Errors.UserNotFound;
 
@@ -1571,7 +1569,11 @@ export class UserService {
   //   //Check keyword is email or idCard
   //   const checkEmail = keyword.includes("@");
   //   let userIdentity = {};
-    
+  //   if (checkEmail) {
+  //     userIdentity = await Indentities.findOne({ $and: [{ _email: keyword }, { _verified : sensor }] });
+  //   } else {
+  //     const identity = await 
+  //   }
   // }
 
   //Automaticly
