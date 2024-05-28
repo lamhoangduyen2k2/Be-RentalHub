@@ -24,20 +24,61 @@ export class AuthController {
     }
   };
 
-  public loginByGoogleController = async (
-    req: BodyResquest<LoginGoogleRequestDTO>,
+  // public loginByGoogleController = async (
+  //   req: BodyResquest<LoginGoogleRequestDTO>,
+  //   res: Response,
+  //   next: NextFunction
+  // ) => {
+  //   try {
+  //     const loginInfo = LoginGoogleRequestDTO.fromRequest(req);
+  //     const user = await this.authSerivce.loginByGoogle(loginInfo);
+
+  //     res.json(new ResponseData(user, null, null));
+  //   } catch (error) {
+  //     next(error);
+  //   }
+  // };
+
+  public checkRegisterByGoogle = async (
+    req: Request,
     res: Response,
     next: NextFunction
   ) => {
     try {
-      const loginInfo = LoginGoogleRequestDTO.fromRequest(req);
-      const user = await this.authSerivce.loginByGoogle(loginInfo);
+      const user = {
+        email: req.user["_json"].email,
+        given_name: req.user["_json"].given_name,
+        family_name: req.user["_json"].family_name,
+        picture: req.user["_json"].picture,
+        email_verified: req.user["_json"].email_verified,
+        type_login: req.user["provider"],
+      };
+      const userInfo = LoginGoogleRequestDTO.fromRequest(user);
+      const token =  await this.authSerivce.checkRegisterByGoogle(userInfo);
+      res.cookie('jwt', token, { httpOnly: true, secure: false })
+      console.log("🚀 ~ AuthController ~ token:", req.cookies.jwt)
+      res.redirect('http://localhost:4200');
+    } catch (error) {
+      console.log("🚀 ~ AuthController ~ error:", error)
+      next(error);
+    }
+  }
+
+  public loginByGoogle = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const token = req.cookies.jwt;
+      const user = await this.authSerivce.loginByGoogle(token);
 
       res.json(new ResponseData(user, null, null));
     } catch (error) {
+      console.log("🚀 ~ AuthController ~ error:", error)
       next(error);
     }
-  };
+  }
 
   public loginInspectorController = async (
     req: BodyResquest<LoginRequestDTO>,

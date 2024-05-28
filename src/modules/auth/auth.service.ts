@@ -8,6 +8,7 @@ import { Service } from "typedi";
 import tokenService from "../token/token.service";
 import { UserResponsesDTO } from "../user/dtos/detail-user-response.dto";
 import { LoginGoogleRequestDTO } from "./dtos/login-google";
+import jwt from "jsonwebtoken";
 
 @Service()
 export class AuthService {
@@ -30,8 +31,7 @@ export class AuthService {
     return { ...UserResponsesDTO.toResponse(users), ...token };
   };
 
-  loginByGoogle = async (loginInfo: LoginGoogleRequestDTO) => {
-    console.log("🚀 ~ AuthService ~ loginByGoogle= ~ loginInfo:", loginInfo);
+  checkRegisterByGoogle = async (loginInfo: LoginGoogleRequestDTO) => {
     if (!loginInfo.email_verified) throw Errors.EmailNotVerified;
 
     let user = await Users.findOne({ _email: loginInfo.email });
@@ -46,16 +46,34 @@ export class AuthService {
         _loginType: loginInfo.type_login,
       });
     }
-
     if (!user) throw Errors.SaveToDatabaseFail;
 
-    const token = await tokenService.createTokenByLogin(
+    const token = jwt.sign({ email: user._email}, process.env.SECRET_KEY, { expiresIn: '1h' })
+
+    return token;
+  };
+
+  loginByGoogle = async (token: string) => {
+    ///Check token is existed
+    if (!token) throw Errors.Unauthorized;
+
+    //Decode token
+    const payload = jwt.verify(token, process.env.SECRET_KEY);
+
+    //Find user by email
+    const user = await Users.findOne({
+      $and: [{ _email: payload["email"] }, { _loginType: "google" }],
+    });
+    if (!user) throw Errors.UserNotFound;
+
+    //Create token
+    const tokenLogin = await tokenService.createTokenByLogin(
       user._id.toString(),
       3600
     );
 
-    return { ...UserResponsesDTO.toResponse(user), ...token };
-  };
+    return { ...UserResponsesDTO.toResponse(user), ...tokenLogin};
+  }
 
   loginInspectorService = async (loginParam: LoginRequestDTO) => {
     const users = await Users.findOne({

@@ -26,6 +26,7 @@ import messageRoute from "./modules/messages/message.route";
 import http from "http";
 import { Server } from "socket.io";
 import socialRoute from "./modules/social-posts/social-posts.route";
+import cookieParser from "cookie-parser";
 //import bodyParser from "body-parser";
 
 (async () => {
@@ -68,6 +69,7 @@ import socialRoute from "./modules/social-posts/social-posts.route";
   app.use(helmet());
   app.use(cors());
   app.use(morgan("combined"));
+  app.use(cookieParser());
   app.set("view engine", "ejs");
 
   await DBconnect();

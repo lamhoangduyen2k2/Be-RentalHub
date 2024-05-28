@@ -1,5 +1,4 @@
 import { Expose, plainToClass } from "class-transformer";
-import { Request } from "express";
 
 export class LoginGoogleRequestDTO {
     @Expose()
@@ -19,8 +18,8 @@ export class LoginGoogleRequestDTO {
 
     @Expose()
     type_login: string;
-    static fromRequest = (req: Request) => {
-      return plainToClass(LoginGoogleRequestDTO, req.body, {
+    static fromRequest = (data: unknown) => {
+      return plainToClass(LoginGoogleRequestDTO, data, {
         excludeExtraneousValues: true,
       });
     };

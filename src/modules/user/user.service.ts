@@ -1409,11 +1409,7 @@ export class UserService {
 
     if (checkEmail) {
       const user = await Users.findOne({
-        $and: [
-          { _email: keyword },
-          { _role: 0 },
-          { _isHost: false },
-        ],
+        $and: [{ _email: keyword }, { _role: 0 }, { _isHost: false }],
       });
       if (!user) throw Errors.UserNotFound;
 
@@ -1441,28 +1437,35 @@ export class UserService {
           $match: {
             $or: [
               { $and: [{ _email: keyword }, { _role: 0 }, { _isHost: true }] },
-              { $and: [{ _email: keyword }, { _role: 0 }, { _temptHostBlocked: true }] },
-            ]
-          }
+              {
+                $and: [
+                  { _email: keyword },
+                  { _role: 0 },
+                  { _temptHostBlocked: true },
+                ],
+              },
+            ],
+          },
         },
         {
           $lookup: {
             from: "address-rentals",
             localField: "_id",
             foreignField: "_uId",
-            as: "address"
-          }
+            as: "address",
+          },
         },
-        { $unwind: {
-          path: "$address",
-          preserveNullAndEmptyArrays: true
-          }
+        {
+          $unwind: {
+            path: "$address",
+            preserveNullAndEmptyArrays: true,
+          },
         },
         {
           $project: {
             _id: 1,
             _name: {
-              $concat: ["$_lname", " ", "$_fname"]
+              $concat: ["$_lname", " ", "$_fname"],
             },
             _email: 1,
             _avatar: 1,
@@ -1470,56 +1473,67 @@ export class UserService {
             _isHost: 1,
             _role: 1,
             _address: {
-              $ifNull: ["$address._address", null]
-            }
-          }
+              $ifNull: ["$address._address", null],
+            },
+          },
         },
-      ])
+      ]);
       if (!user[0]) throw Errors.UserNotFound;
 
       return user[0];
     } else {
-      const user = await Users.aggregate(
-        [
-          {
-            $match: {
-              $or: [
-                { $and: [{ _id: new mongoose.Types.ObjectId(keyword) }, { _role: 0 }, { _isHost: true }] },
-                { $and: [{ _id: new mongoose.Types.ObjectId(keyword) }, { _role: 0 }, { _temptHostBlocked: true }] },
-              ]
-            }
-          },
-          {
-            $lookup: {
-              from: "address-rentals",
-              localField: "_id",
-              foreignField: "_uId",
-              as: "address"
-            }
-          },
-          { $unwind: {
-            path: "$address",
-            preserveNullAndEmptyArrays: true
-            }
-          },
-          {
-            $project: {
-              _id: 1,
-              _name: {
-                $concat: ["$_lname", " ", "$_fname"]
+      const user = await Users.aggregate([
+        {
+          $match: {
+            $or: [
+              {
+                $and: [
+                  { _id: new mongoose.Types.ObjectId(keyword) },
+                  { _role: 0 },
+                  { _isHost: true },
+                ],
               },
-              _email: 1,
-              _avatar: 1,
-              _phone: 1,
-              _isHost: 1,
-              _role: 1,
-              _address: {
-                $ifNull: ["$address._address", null]
-              }
-            }
+              {
+                $and: [
+                  { _id: new mongoose.Types.ObjectId(keyword) },
+                  { _role: 0 },
+                  { _temptHostBlocked: true },
+                ],
+              },
+            ],
           },
-        ]
-      )
+        },
+        {
+          $lookup: {
+            from: "address-rentals",
+            localField: "_id",
+            foreignField: "_uId",
+            as: "address",
+          },
+        },
+        {
+          $unwind: {
+            path: "$address",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            _name: {
+              $concat: ["$_lname", " ", "$_fname"],
+            },
+            _email: 1,
+            _avatar: 1,
+            _phone: 1,
+            _isHost: 1,
+            _role: 1,
+            _address: {
+              $ifNull: ["$address._address", null],
+            },
+          },
+        },
+      ]);
       if (!user[0]) throw Errors.UserNotFound;
 
       return user[0];
@@ -1567,12 +1581,12 @@ export class UserService {
     //Check keyword is email or idCard
     const identity = await Indentities.findOne({
       $and: [{ _idCard: numberCard }, { _verified: sensor }],
-    })
+    });
 
     if (!identity) throw Errors.UserIdentityNotFound;
 
     return identity;
-  }
+  };
 
   //Automaticly
   public increaseTotalReported = async (userId: string) => {
