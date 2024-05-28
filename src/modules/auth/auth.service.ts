@@ -9,6 +9,7 @@ import tokenService from "../token/token.service";
 import { UserResponsesDTO } from "../user/dtos/detail-user-response.dto";
 import { LoginGoogleRequestDTO } from "./dtos/login-google";
 import jwt from "jsonwebtoken";
+import chatModel from "../chats/chat.model";
 
 @Service()
 export class AuthService {
@@ -45,6 +46,11 @@ export class AuthService {
         _avatar: loginInfo.picture,
         _loginType: loginInfo.type_login,
       });
+
+      const chatAdmin = await chatModel.create({
+        members: [user._id.toString(), "65418310bec0ba49c4d9a276"],
+      });
+      if (!chatAdmin) throw Errors.SaveToDatabaseFail;
     }
     if (!user) throw Errors.SaveToDatabaseFail;
 
@@ -72,7 +78,7 @@ export class AuthService {
       3600
     );
 
-    return user;
+    return { ...UserResponsesDTO.toResponse(user), ...tokenLogin};
   }
 
   loginInspectorService = async (loginParam: LoginRequestDTO) => {

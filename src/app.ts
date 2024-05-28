@@ -47,6 +47,7 @@ import cookieParser from "cookie-parser";
         callback(new Error("Not allowed by CORS"));
       }
     },
+    credentials: true,
   };
   //Config socket.io
   const io = new Server(server, { cors: corsOptions });
