@@ -33,6 +33,6 @@ authRoute.get(
 authRoute.get(
   "/google/callback", passport.authenticate('google', { session: false}), authController.checkRegisterByGoogle);
 
-authRoute.post("/login-google", authController.loginByGoogle)
+authRoute.get("/login-google", authController.loginByGoogle)
 
 export default authRoute;
