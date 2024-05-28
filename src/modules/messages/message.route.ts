@@ -19,4 +19,10 @@ messageRoute.get(
   messageController.getMessages
 );
 
+messageRoute.get(
+  "/get-messages-pagination",
+  authMiddleware.authorized,
+  messageController.getMessagesPagination
+);
+
 export default messageRoute;

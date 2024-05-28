@@ -2,6 +2,8 @@ import { Service } from "typedi";
 import messageModel from "./message.model";
 import mongoose from "mongoose";
 import chatModel from "../chats/chat.model";
+import { Pagination } from "../../helpers/response";
+import { Errors } from "../../helpers/handle-errors";
 
 @Service()
 export class MessageService {
@@ -54,5 +56,46 @@ export class MessageService {
     });
 
     return messages;
+  };
+
+  public getMessagesPagination = async (
+    chatId: string,
+    userId: string,
+    pagination: Pagination
+  ) => {
+    await messageModel.updateMany(
+      {
+        $and: [
+          { chatId: new mongoose.Types.ObjectId(chatId) },
+          { isRead: false },
+          { senderId: { $ne: new mongoose.Types.ObjectId(userId) } },
+        ],
+      },
+      {
+        isRead: true,
+      }
+    );
+
+    //Count total messages
+    const totalMessages = await messageModel.countDocuments({
+      chatId: new mongoose.Types.ObjectId(chatId),
+    });
+    if (totalMessages <= 0) throw Errors.MessagesNotFound;
+
+    //Caculate total pages
+    const totalPages = Math.ceil(totalMessages / pagination.limit);
+    if (pagination.page > totalPages) throw Errors.PageNotFound;
+
+    const messages = await messageModel
+      .find({
+        chatId: new mongoose.Types.ObjectId(chatId),
+      })
+      .sort({ createdAt: -1 })
+      .skip(pagination.offset)
+      .limit(pagination.limit);
+
+    if (messages.length <= 0) throw Errors.MessagesNotFound;
+
+    return [messages, { page: pagination.page, limit: pagination.limit, total: totalPages }];
   };
 }

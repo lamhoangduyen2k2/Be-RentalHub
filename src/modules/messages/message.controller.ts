@@ -1,7 +1,7 @@
 import { Inject, Service } from "typedi";
 import { MessageService } from "./message.service";
 import { NextFunction, Request, Response } from "express";
-import { ResponseData } from "../../helpers/response";
+import { Pagination, ResponseData } from "../../helpers/response";
 
 @Service()
 export class MessageController {
@@ -37,6 +37,23 @@ export class MessageController {
       const messages = await this.messageService.getMessages(chatId, req.body._uId.toString());
 
       return res.json(new ResponseData(messages, null, null));
+    } catch (error) {
+      console.log("🚀 ~ MessageController ~ getMessages= ~ error:", error);
+      next(error);
+    }
+  };
+
+  public getMessagesPagination = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const pagination = Pagination.getPagination(req);
+      const chatId = req.query.chatId ? req.query.chatId.toString() : undefined;
+      const messages = await this.messageService.getMessagesPagination(chatId, req.body._uId.toString(), pagination);
+
+      return res.json(new ResponseData(messages[0], null, messages[1]));
     } catch (error) {
       console.log("🚀 ~ MessageController ~ getMessages= ~ error:", error);
       next(error);
