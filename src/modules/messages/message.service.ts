@@ -96,6 +96,9 @@ export class MessageService {
 
     if (messages.length <= 0) throw Errors.MessagesNotFound;
 
-    return [messages, { page: pagination.page, limit: pagination.limit, total: totalPages }];
+    return [
+      messages,
+      { page: pagination.page, limit: pagination.limit, total: totalPages },
+    ];
   };
 }
