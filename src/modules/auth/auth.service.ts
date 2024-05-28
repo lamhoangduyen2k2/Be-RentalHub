@@ -72,7 +72,7 @@ export class AuthService {
       3600
     );
 
-    return { ...UserResponsesDTO.toResponse(user), ...tokenLogin};
+    return user;
   }
 
   loginInspectorService = async (loginParam: LoginRequestDTO) => {
