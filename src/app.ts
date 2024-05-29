@@ -60,12 +60,14 @@ import cookieParser from "cookie-parser";
   //   userId: "65418310bec0ba49c4d9a276",
   //   socketId: "",
   // };
-  const io = initSocket(server, corsOptions);
 
   const port = 3000;
   dayjs.extend(utc);
   dayjs.extend(timezone);
   //dayjs.tz.setDefault("Asia/Ho_Chi_Minh");
+
+  //Init socket
+  const io = initSocket(server, corsOptions);
 
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));

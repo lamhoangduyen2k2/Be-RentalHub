@@ -1,4 +1,6 @@
-import { Server } from "socket.io";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Server, Socket } from "socket.io";
+import { Server as HttpServer} from "http";
 
 // //List of online users
 let onlineUsers: { userId: string; socketId: string }[] = [];
@@ -8,11 +10,12 @@ const onlineAdmins = {
   socketId: "",
 };
 
-let io;
-export const initSocket = (server, corsOptions) => {
-  io = new Server(server, { cors: { origin: corsOptions } });
+let io : Server;
+export const initSocket = (server: HttpServer, corsOptions: any) : Server => {
+  
+  io = new Server(server, { cors: corsOptions });
 
-  io.on("connection", (socket) => {
+  io.on("connection", (socket: Socket) => {
     console.log("New connection: ", socket.id);
 
     //listen to a connection
@@ -48,6 +51,7 @@ export const initSocket = (server, corsOptions) => {
       }
       //Get users online list for customer
       io.emit("getOnlineUsers", onlineUsers);
+      console.log("🚀 ~ socket.on ~ onlineUsers:", onlineUsers)
       //Get admin online for user
       //io.emit("getOnlineAdmin", onlineAdmins);
     });
@@ -99,7 +103,7 @@ export const initSocket = (server, corsOptions) => {
   return io;
 };
 
-export const getIo = () => {
+export const getIo = () : Server => {
   if (!io) {
     throw new Error("Socket.io not initialized");
   }
