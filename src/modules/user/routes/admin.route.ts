@@ -82,6 +82,12 @@ adminRoute.get(
   userController.searchIdenity
 );
 
+adminRoute.get(
+  "/search-address",
+  authMiddleware.authorizedAdmin,
+  userController.searchAddress
+);
+
 //POST API
 adminRoute.post(
   "/login-admin",

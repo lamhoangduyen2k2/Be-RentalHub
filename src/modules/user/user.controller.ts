@@ -740,7 +740,22 @@ export class UserController {
     }
   }
 
-  
+  public searchAddress = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const keyword = req.query.keyword.toString().trim();
+      const active = /true/i.test(req.query.active.toString()) ? true : false;
+      const pagination = Pagination.getPagination(req);
+      const addressInfo = await this.userService.searchAddress(keyword, active, pagination);
+      res.json(new ResponseData(addressInfo[0], null, addressInfo[1]));
+    } catch (error) {
+      console.log("🚀 ~ UserController ~ error:", error)
+      next(error);
+    }
+  }
 
   // public sendSMS = async (req: Request, res: Response, next: NextFunction) => {
   //   try {

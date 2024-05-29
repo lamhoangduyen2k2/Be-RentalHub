@@ -1588,6 +1588,98 @@ export class UserService {
     return identity;
   };
 
+  public searchAddress = async (
+    keyword: string,
+    active: boolean,
+    pagination: Pagination
+  ) => {
+    //Check keyword is email
+    const checkEmail = keyword.includes("@");
+    if (checkEmail) {
+      const user = await Users.findOne({
+        $or: [
+          { $and: [{ _email: keyword }, { _role: 0 }, { _isHost: true }] },
+          {
+            $and: [
+              { _email: keyword },
+              { _role: 0 },
+              { _temptHostBlocked: true },
+            ],
+          },
+        ],
+      });
+      if (!user) throw Errors.UserNotFound;
+
+      //count total address
+      const count = await addressRental.countDocuments({
+        $and: [{ _uId: user._id }, { _active: active }],
+      });
+      if (count <= 0) throw Errors.AddressRentakNotFound;
+
+      //Caculate total page
+      const totalPages = Math.ceil(count / pagination.limit);
+      if (pagination.page > totalPages) throw Errors.PageNotFound;
+
+      //find address of host
+      const addresses = await addressRental
+        .find({
+          $and: [{ _uId: user._id }, { _active: active }],
+        })
+        .skip(pagination.offset)
+        .limit(pagination.limit);
+      if (addresses.length <= 0) throw Errors.AddressRentakNotFound;
+
+      return [
+        addresses,
+        { page: pagination.page, limit: pagination.limit, total: totalPages },
+      ];
+    } else {
+      const totalAddresses = await addressRental.countDocuments({
+        $or: [
+          {
+            $and: [
+              { _uId: new mongoose.Types.ObjectId(keyword) },
+              { _active: active },
+            ],
+          },
+          {
+            $and: [
+              { _id: new mongoose.Types.ObjectId(keyword) },
+              { _active: active },
+            ],
+          },
+        ],
+      });
+      if (totalAddresses <= 0) throw Errors.AddressRentakNotFound;
+
+      const totalPages = Math.ceil(totalAddresses / pagination.limit);
+      if (pagination.page > totalPages) throw Errors.PageNotFound;
+
+      const address = await addressRental.find({
+        $or: [
+          {
+            $and: [
+              { _uId: new mongoose.Types.ObjectId(keyword) },
+              { _active: active },
+            ],
+          },
+          {
+            $and: [
+              { _id: new mongoose.Types.ObjectId(keyword) },
+              { _active: active },
+            ],
+          },
+        ],
+      }).skip(pagination.offset).limit(pagination.limit);
+      if (address.length <= 0) throw Errors.AddressRentakNotFound;
+
+      return [
+        address,
+        { page: pagination.page, limit: pagination.limit, total: totalPages },
+      ];
+    }
+  };
+
   //Automaticly
   public increaseTotalReported = async (userId: string) => {
     const user = await Users.findOne({ _id: userId });
