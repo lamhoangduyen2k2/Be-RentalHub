@@ -17,19 +17,6 @@ authRoute.get(
   })
 );
 
-// authRoute.get(
-//   "/google/callback",
-//   authMiddleware.googleCallback,
-//   authController.loginByGoogleController
-// );
-
-// authRoute.get(
-//   "/google/callback", passport.authenticate('google', { session: false}), (req: Request, res: Response) => {
-//     const token = jwt.sign({ email: req.user["_json"].email}, process.env.SECRET_KEY, { expiresIn: '1h' })
-//     res.cookie('jwt', token, { httpOnly: true, secure: false })
-//     res.redirect('http://localhost:4200');
-//   });
-
 authRoute.get(
   "/google/callback", passport.authenticate('google', { session: false, failureRedirect: "/api/auth/google"}), authController.checkRegisterByGoogle);
 
