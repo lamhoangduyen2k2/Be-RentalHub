@@ -289,7 +289,7 @@ export class UserController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   public getAddressByIdUser = async (
     req: Request,
@@ -313,11 +313,13 @@ export class UserController {
     next: NextFunction
   ) => {
     try {
-      const status = isNaN(Number(req.body.status)) ? -1 : Number(req.body.status);
+      const status = isNaN(Number(req.body.status))
+        ? -1
+        : Number(req.body.status);
       const updatedAddress = await this.userService.manageSatusOfAddressUser(
         status,
         req.body._uId,
-        req.body.addressId,
+        req.body.addressId
       );
       res.json(new ResponseData(updatedAddress, null, null));
     } catch (error) {
@@ -333,13 +335,16 @@ export class UserController {
     try {
       const addressInfo = UpdateAddressDTO.fromRequest(req);
       const cef = req.files as Express.Multer.File[];
-      const updatedAddress = await this.userService.updateAddress(cef, addressInfo);
+      const updatedAddress = await this.userService.updateAddress(
+        cef,
+        addressInfo
+      );
       res.json(new ResponseData(updatedAddress, null, null));
     } catch (error) {
-      console.log("🚀 ~ UserController ~ error:", error)
+      console.log("🚀 ~ UserController ~ error:", error);
       next(error);
     }
-  }
+  };
 
   public getIdentityUser = async (
     req: Request,
@@ -466,7 +471,7 @@ export class UserController {
       );
       res.json(new ResponseData(addressRequest, null, null));
     } catch (error) {
-      console.log("🚀 ~ UserController ~ error:", error)
+      console.log("🚀 ~ UserController ~ error:", error);
       next(error);
     }
   };
@@ -488,7 +493,7 @@ export class UserController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   //Admin
   public createInspector = async (
@@ -654,7 +659,7 @@ export class UserController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   public getUserByEmailOrId = async (
     req: Request,
@@ -663,11 +668,11 @@ export class UserController {
   ) => {
     try {
       const inforUser = await this.userService.getUserByEmailOrId(
-        req.query.keyword.toString().trim(),
+        req.query.keyword.toString().trim()
       );
       res.json(new ResponseData(inforUser, null, null));
     } catch (error) {
-      console.log("🚀 ~ UserController ~ error:", error)
+      console.log("🚀 ~ UserController ~ error:", error);
       next(error);
     }
   };
@@ -679,11 +684,11 @@ export class UserController {
   ) => {
     try {
       const inforUser = await this.userService.getHostByEmailOrId(
-        req.query.keyword.toString().trim(),
+        req.query.keyword.toString().trim()
       );
       res.json(new ResponseData(inforUser, null, null));
     } catch (error) {
-      console.log("🚀 ~ UserController ~ error:", error)
+      console.log("🚀 ~ UserController ~ error:", error);
       next(error);
     }
   };
@@ -695,11 +700,11 @@ export class UserController {
   ) => {
     try {
       const inforUser = await this.userService.getEmployeeByEmailOrId(
-        req.query.keyword.toString().trim(),
+        req.query.keyword.toString().trim()
       );
       res.json(new ResponseData(inforUser, null, null));
     } catch (error) {
-      console.log("🚀 ~ UserController ~ error:", error)
+      console.log("🚀 ~ UserController ~ error:", error);
       next(error);
     }
   };
@@ -715,7 +720,7 @@ export class UserController {
       );
       res.json(new ResponseData(inforUser, null, null));
     } catch (error) {
-      console.log("🚀 ~ UserController ~ error:", error)
+      console.log("🚀 ~ UserController ~ error:", error);
       next(error);
     }
   };
@@ -735,10 +740,10 @@ export class UserController {
       );
       res.json(new ResponseData(identity, null, null));
     } catch (error) {
-      console.log("🚀 ~ UserController ~ error:", error)
+      console.log("🚀 ~ UserController ~ error:", error);
       next(error);
     }
-  }
+  };
 
   public searchAddress = async (
     req: Request,
@@ -749,13 +754,17 @@ export class UserController {
       const keyword = req.query.keyword.toString().trim();
       const active = /true/i.test(req.query.active.toString()) ? true : false;
       const pagination = Pagination.getPagination(req);
-      const addressInfo = await this.userService.searchAddress(keyword, active, pagination);
+      const addressInfo = await this.userService.searchAddress(
+        keyword,
+        active,
+        pagination
+      );
       res.json(new ResponseData(addressInfo[0], null, addressInfo[1]));
     } catch (error) {
-      console.log("🚀 ~ UserController ~ error:", error)
+      console.log("🚀 ~ UserController ~ error:", error);
       next(error);
     }
-  }
+  };
 
   // public sendSMS = async (req: Request, res: Response, next: NextFunction) => {
   //   try {
