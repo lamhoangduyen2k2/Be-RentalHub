@@ -1619,15 +1619,47 @@ export class UserService {
       //Caculate total page
       const totalPages = Math.ceil(count / pagination.limit);
       if (pagination.page > totalPages) throw Errors.PageNotFound;
-
-      //find address of host
+      //Find address of host
       const addresses = await addressRental
-        .find({
-          $and: [{ _uId: user._id }, { _active: active }],
-        })
+        .aggregate([
+          { $match: { $and: [{ _uId: user._id }, { _active: active }] } },
+          {
+            $lookup: {
+              from: "users",
+              localField: "_uId",
+              foreignField: "_id",
+              as: "host",
+            },
+          },
+          { $unwind: "$host" },
+          {
+            $project: {
+              _id: 1,
+              _uId: 1,
+              _address: 1,
+              _totalRoom: 1,
+              _imgLicense: 1,
+              _status: 1,
+              _active: 1,
+              _inspectorId: 1,
+              _reason: 1,
+              createdAt: 1,
+              updatedAt: 1,
+              _hostName: {
+                $concat: ["$host._fname", " ", "$host._lname"],
+              },
+            },
+          },
+        ])
         .skip(pagination.offset)
         .limit(pagination.limit);
+
       if (addresses.length <= 0) throw Errors.AddressRentakNotFound;
+
+      addresses.forEach((address) => {
+        address._localCreatedAt = convertUTCtoLocal(address.createdAt);
+        delete address.createdAt;
+      });
 
       return [
         addresses,
@@ -1654,27 +1686,71 @@ export class UserService {
 
       const totalPages = Math.ceil(totalAddresses / pagination.limit);
       if (pagination.page > totalPages) throw Errors.PageNotFound;
+      //find address of host
+      const addresses = await addressRental
+        .aggregate([
+          {
+            $match: {
+              $or: [
+                {
+                  $and: [
+                    { _uId: new mongoose.Types.ObjectId(keyword) },
+                    { _active: active },
+                  ],
+                },
+                {
+                  $and: [
+                    { _id: new mongoose.Types.ObjectId(keyword) },
+                    { _active: active },
+                  ],
+                },
+              ],
+            },
+          },
+          {
+            $lookup: {
+              from: "users",
+              localField: "_uId",
+              foreignField: "_id",
+              as: "host",
+            },
+          },
+          { $unwind: "$host" },
+          {
+            $project: {
+              _id: 1,
+              _uId: 1,
+              _address: 1,
+              _totalRoom: 1,
+              _imgLicense: 1,
+              _status: 1,
+              _active: 1,
+              _inspectorId: 1,
+              _reason: 1,
+              createdAt: 1,
+              updatedAt: 1,
+              _hostName: {
+                $concat: ["$host._fname", " ", "$host._lname"],
+              },
+              _hostEmail: "$host._email",
+            },
+          },
+        ])
+        .skip(pagination.offset)
+        .limit(pagination.limit);
+      if (addresses.length <= 0) throw Errors.AddressRentakNotFound;
 
-      const address = await addressRental.find({
-        $or: [
-          {
-            $and: [
-              { _uId: new mongoose.Types.ObjectId(keyword) },
-              { _active: active },
-            ],
-          },
-          {
-            $and: [
-              { _id: new mongoose.Types.ObjectId(keyword) },
-              { _active: active },
-            ],
-          },
-        ],
-      }).skip(pagination.offset).limit(pagination.limit);
-      if (address.length <= 0) throw Errors.AddressRentakNotFound;
+      addresses.forEach((address) => {
+        address._localCreatedAt = convertUTCtoLocal(address.createdAt);
+        delete address.createdAt;
+      });
+      console.log(
+        "🚀 ~ UserService ~ addresses.forEach ~ addresses:",
+        addresses
+      );
 
       return [
-        address,
+        addresses,
         { page: pagination.page, limit: pagination.limit, total: totalPages },
       ];
     }
