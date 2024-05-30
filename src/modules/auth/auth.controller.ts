@@ -56,7 +56,6 @@ export class AuthController {
       const userInfo = LoginGoogleRequestDTO.fromRequest(user);
       const token =  await this.authSerivce.checkRegisterByGoogle(userInfo);
       res.cookie('jwt', token, { httpOnly: true, secure: false })
-      console.log("🚀 ~ AuthController ~ token:", req.cookies.jwt)
       res.redirect('http://localhost:4200');
     } catch (error) {
       console.log("🚀 ~ AuthController ~ error:", error)

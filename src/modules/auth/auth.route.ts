@@ -31,8 +31,8 @@ authRoute.get(
 //   });
 
 authRoute.get(
-  "/google/callback", passport.authenticate('google', { session: false}), authController.checkRegisterByGoogle);
+  "/google/callback", passport.authenticate('google', { session: false, failureRedirect: "/api/auth/google"}), authController.checkRegisterByGoogle);
 
-authRoute.get("/login-google", authController.loginByGoogle)
+authRoute.get ("/login-google", authController.loginByGoogle)
 
 export default authRoute;
