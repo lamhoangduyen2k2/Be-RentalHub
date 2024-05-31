@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import Container, { Inject, Service } from "typedi";
+import { Inject, Service } from "typedi";
 import { CreateUserRequestDTO, SendMailDTO } from "./dtos/user-create.dto";
 import Users from "./model/users.model";
 import { Errors } from "../../helpers/handle-errors";
@@ -22,8 +22,8 @@ import { UpdateInspectorPassDTO } from "./dtos/inspector-update-pass.dto";
 import { UpdateInspectorPasswordDTO } from "./dtos/update-password-inspector.dto";
 import { convertUTCtoLocal } from "../../helpers/ultil";
 import FormData from "form-data";
-import fs from "fs";
-import { Multer } from "multer";
+// import fs from "fs";
+// import { Multer } from "multer";
 import { fetchIDRecognition } from "../../helpers/request";
 import Indentities from "./model/users-identity.model";
 import { NotificationService } from "../notification/notification.service";
@@ -37,6 +37,7 @@ import { UpdateAddressDTO } from "./dtos/update-address.dto";
 import { UserNotDetailResponsesDTO } from "./dtos/user-response.dto";
 import Chat from "twilio/lib/rest/Chat";
 import chatModel from "../chats/chat.model";
+import { eventEmitter, getIo } from "../socket/socket";
 //require("esm-hook");
 //const fetch = require("node-fetch").default;
 // const http = require("http");
@@ -504,6 +505,9 @@ export class UserService {
 
       if (!newNotification) throw Errors.SaveToDatabaseFail;
 
+      //Emit event "sendNotification" for inspector
+      eventEmitter.emit("sendNotification", {...newNotification, recipientRole: 2});
+
       return result;
     } catch (error) {
       console.log("🚀 ~ UserService ~ error:", error);
@@ -596,6 +600,9 @@ export class UserService {
       notification
     );
     if (!newNotification) throw Errors.SaveToDatabaseFail;
+
+    //Emit event "sendNotification" for inspector
+    eventEmitter.emit("sendNotification", {...newNotification, recipientRole: 2});
 
     return addressUser;
   };
@@ -754,6 +761,9 @@ export class UserService {
       notification
     );
     if (!newNotification) throw Errors.SaveToDatabaseFail;
+
+    //Emit event "sendNotification" for inspector
+    eventEmitter.emit("sendNotification", {...newNotification, recipientRole: 2});
 
     return updatedAddress;
   };
@@ -1001,6 +1011,8 @@ export class UserService {
     );
 
     if (!newNotification) throw Errors.SaveToDatabaseFail;
+    //Emit event "sendNotification" for inspector
+    eventEmitter.emit("sendNotification", {...newNotification, recipientRole: 0, recipientId: userIdentity._uId});
 
     return updateIdentity;
   };
@@ -1143,6 +1155,9 @@ export class UserService {
     );
 
     if (!newNotification) throw Errors.SaveToDatabaseFail;
+
+    //Emit event "sendNotification" for inspector
+    eventEmitter.emit("sendNotification", {...newNotification, recipientRole: 0, recipientId: addressRequest._uId});
 
     return updateAddress;
   };
@@ -1326,6 +1341,9 @@ export class UserService {
 
     if (!newNotification) throw Errors.SaveToDatabaseFail;
 
+    //Emit event "sendNotification" for inspector
+    eventEmitter.emit("sendNotification", {...newNotification, recipientRole: 0, recipientId: userIdentity._uId});
+
     return updateIdentity;
   };
 
@@ -1400,6 +1418,9 @@ export class UserService {
     );
 
     if (!newNotification) throw Errors.SaveToDatabaseFail;
+
+    //Emit event "sendNotification" for inspector
+    eventEmitter.emit("sendNotification", {...newNotification, recipientRole: 0, recipientId: addressRequest._uId});
 
     return updateAddress;
   };
@@ -1809,6 +1830,9 @@ export class UserService {
       notification
     );
     if (!newNotification) throw Errors.SaveToDatabaseFail;
+
+    //Emit event "sendNotification" for inspector
+    eventEmitter.emit("sendNotification", {...newNotification, recipientRole: 0, recipientId: userId});
 
     return userBlock;
   };

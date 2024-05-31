@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Server, Socket } from "socket.io";
 import { Server as HttpServer} from "http";
+import event from "events";
 
 // //List of online users
 let onlineUsers: { userId: string; socketId: string }[] = [];
@@ -11,6 +12,8 @@ const onlineAdmins = {
 };
 
 let io : Server;
+export const eventEmitter = new event.EventEmitter();
+
 export const initSocket = (server: HttpServer, corsOptions: any) : Server => {
   
   io = new Server(server, { cors: corsOptions });
@@ -73,7 +76,8 @@ export const initSocket = (server: HttpServer, corsOptions: any) : Server => {
     });
 
     //send notifications
-    socket.on("sendNotification", (notification) => {
+    eventEmitter.on("sendNotification", (notification) => {
+      console.log("🚀 ~ socket.on ~ notification:", notification)
       if (notification.recipientRole === 2) {
         // Send notification for all inspectors
         onlineInspectors.forEach((inspector) => {

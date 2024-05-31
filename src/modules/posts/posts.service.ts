@@ -21,6 +21,7 @@ import { NotificationService } from "../notification/notification.service";
 import { CreateNotificationDTO } from "../notification/dtos/create-notification.dto";
 import addressRental from "../user/model/user-address.model";
 import { UserService } from "../user/user.service";
+import { eventEmitter } from "../socket/socket";
 
 @Service()
 export class PostsService {
@@ -95,9 +96,12 @@ export class PostsService {
       _postId: newPosts._id,
     });
 
-    await this.notificationService.createNotification(notification);
+    const newNotification = await this.notificationService.createNotification(notification);
 
     const newInfo = { ...newRoom.toObject(), ...newPosts.toObject() };
+
+    //Emit event for internal server
+    eventEmitter.emit("sendNotification", {...newNotification, recipientRole: 2});
 
     return PostResponseDTO.toResponse(newInfo);
   };
@@ -211,7 +215,9 @@ export class PostsService {
       _postId: postUdated._id,
     });
 
-    await this.notificationService.createNotification(notification);
+    const newNotification = await this.notificationService.createNotification(notification);
+    //Emit event "sendNotification" for internal server
+    eventEmitter.emit("sendNotification", {...newNotification, recipientRole: 2});
 
     return PostResponseDTO.toResponse({
       ...postUdated.toObject(),
@@ -222,6 +228,7 @@ export class PostsService {
   public sensorPost = async (postParam: PostSensorDTO, postId: string) => {
     let isRented: boolean = false;
     let active: boolean = true;
+    let notification: CreateNotificationDTO;
 
     if (postParam._status !== 1 && postParam._status !== 2)
       throw Errors.StatusInvalid;
@@ -258,25 +265,31 @@ export class PostsService {
 
     //Create notification for user
     if (postParam._status === 1) {
-      const notification = CreateNotificationDTO.fromService({
+      notification = CreateNotificationDTO.fromService({
         _title: "Bài đăng của bạn đã được duyệt",
         _message: `Bài đăng ${updatedPost._id} đã được duyệt`,
         _type: "CREATE_POST_SUCCESS",
         _uId: updatedPost._uId,
         _postId: updatedPost._id,
       });
-      await this.notificationService.createNotification(notification);
     } else {
-      const notification = CreateNotificationDTO.fromService({
+      notification = CreateNotificationDTO.fromService({
         _title: "Bài đăng của bạn đã bị từ chối",
         _message: `Bài đăng ${updatedPost._id} đã bị từ chối`,
         _type: "CREATE_POST_FAIL",
         _uId: updatedPost._uId,
         _postId: updatedPost._id,
       });
-      await this.notificationService.createNotification(notification);
     }
+    const newNotification = await this.notificationService.createNotification(notification);
+    if (!newNotification) throw Errors.SaveToDatabaseFail;
 
+    //Emit event for internal server
+    eventEmitter.emit("sendNotification", {
+      ...newNotification,
+      recipientRole: 0,
+      recipientId: updatedPost._uId.toString(),
+    });
     return true;
   };
 
@@ -1712,7 +1725,10 @@ export class PostsService {
       _message: `Người dùng mang Id ${report._uId} đã báo cáo bài viết mang Id ${report._postId} với nội dung: ${report._content}`,
       _type: "NEW_REPORT_POST",
     });
-    await this.notificationService.createNotification(notification);
+    const newNotification = await this.notificationService.createNotification(notification);
+
+    //Emit event "sendNotification" for internal server
+    eventEmitter.emit("sendNotification", {...newNotification, recipientRole: 2});
 
     return newReport;
   };
@@ -1994,6 +2010,9 @@ export class PostsService {
         notification
       );
       if (!newNotification) throw Errors.SaveToDatabaseFail;
+
+      //Emit event "sendNotification" for internal server
+      eventEmitter.emit("sendNotification", {...newNotification, recipientRole: 0, recipientId: reportPost._uIdReported});
 
       return sensorReport;
     }

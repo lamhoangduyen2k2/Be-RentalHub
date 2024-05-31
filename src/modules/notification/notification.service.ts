@@ -18,7 +18,7 @@ export class NotificationService {
       | CreateNotificationInspectorDTO
       | CreateNotificationRegisterAddressDTO
   ) => {
-    const newNotification = Notification.create(data);
+    const newNotification = await Notification.create(data);
     if (!newNotification) throw Errors.SaveToDatabaseFail;
     return newNotification;
   };
