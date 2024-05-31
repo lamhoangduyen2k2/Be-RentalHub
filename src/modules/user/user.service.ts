@@ -11,7 +11,12 @@ import { UserHostedDTO } from "./dtos/user-active-host.dto";
 import { UserResponsesDTO } from "./dtos/detail-user-response.dto";
 import { UpdateUserDTO } from "./dtos/user-update.dto";
 import { ImageService } from "../image/image.service";
-import mongoose, { ObjectId, PipelineStage, mongo } from "mongoose";
+import mongoose, {
+  ClientSession,
+  ObjectId,
+  PipelineStage,
+  mongo,
+} from "mongoose";
 import { UserUpdateEmailOrPassDTO } from "./dtos/user-update-email-pass.dto";
 import { compare } from "bcrypt";
 import RefreshTokens from "../token/refresh.model";
@@ -76,10 +81,14 @@ export class UserService {
     return UserResponsesDTO.toResponse(newUser);
   };
 
-  public registorUser = async (userParam: CreateUserRequestDTO) => {
+  public registorUser = async (
+    userParam: CreateUserRequestDTO,
+    session: ClientSession
+  ) => {
+    console.log("🚀 ~ UserService ~ userParam:", userParam)
     const user = await Users.findOne({
       _email: userParam._email,
-    });
+    }).session(session);
 
     if (user) throw Errors.Duplicate;
 
@@ -88,24 +97,28 @@ export class UserService {
 
     const termpUser = await UsersTermp.findOne({
       _email: userParam._email,
-    });
+    }).session(session);
 
     if (termpUser) {
-      await UsersTermp.deleteOne({ _email: userParam._email });
+      await UsersTermp.deleteOne({ _email: userParam._email }, { session });
     }
 
-    const newUser = await UsersTermp.create({
-      _fname: userParam._fname,
-      _lname: userParam._lname,
-      _email: userParam._email,
-      _pw: userParam._pw,
-      expiredAt: Date.now(),
-    });
+    const newUser = await UsersTermp.create(
+      [{
+        _fname: userParam._fname,
+        _lname: userParam._lname,
+        _email: userParam._email,
+        _pw: userParam._pw,
+        expiredAt: Date.now(),
+      }],
+      { session }
+    );
 
-    if (!newUser) throw Errors.SaveToDatabaseFail;
+    if (newUser.length <= 0) throw Errors.SaveToDatabaseFail;
+    console.log("🚀 ~ UserService ~ newUser:", newUser)
 
     //Kiểm tra OTP có bị trùng không
-    const Otp = await OTP.findOne({ _email: newUser._email });
+    const Otp = await OTP.findOne({ _email: newUser[0]._email }).session(session);
     if (Otp) throw Errors.OtpDuplicate;
 
     //Create otp
@@ -118,7 +131,7 @@ export class UserService {
 
     //Create payload for sendEmail
     const payload: SendMailDTO = {
-      email: newUser._email,
+      email: newUser[0]._email,
       subject: "Confirmation mail ✔",
       text: "You have successfully registered",
       html: `<b>Congratulations, you have successfully registered. Your code is ${otp}</b>`,
@@ -126,41 +139,46 @@ export class UserService {
     await this.otpService.sendEmail(payload);
 
     //Save this otp to database
-    const newOTP = await OTP.create({
-      _email: newUser._email,
+    const newOTP = await OTP.create([{
+      _email: newUser[0]._email,
       _otp: otp,
       expiredAt: Date.now(),
-    });
-    if (!newOTP) throw Errors.SaveToDatabaseFail;
+    }], { session });
+    if (newOTP.length <= 0) throw Errors.SaveToDatabaseFail;
 
-    return UserResponsesDTO.toResponse(newUser);
+    await session.commitTransaction();
+    //session.endSession();
+    return UserResponsesDTO.toResponse(newUser[0]);
   };
 
-  public verifyRegistor = async (email: string, otp: string) => {
+  public verifyRegistor = async (email: string, otp: string, session: ClientSession) => {
     const checkOTP = await OTP.findOne({
       $and: [{ _email: email }, { _otp: otp }],
-    });
+    }).session(session);
 
     if (!checkOTP) throw Errors.ExpiredOtp;
 
-    const newUser = await UsersTermp.findOne({ _email: email });
+    const newUser = await UsersTermp.findOne({ _email: email }).session(session);
 
     if (!newUser) throw Errors.UserNotFound;
 
-    const user = await Users.create({
+    const user = await Users.create([{
+      _fname: newUser._fname,
+      _lname: newUser._lname,
       _email: newUser._email,
       _pw: newUser._pw,
-    });
+    }], { session });
 
     if (!user) throw Errors.SaveToDatabaseFail;
 
     const chatAdmin = await chatModel.create({
-      members: [user._id.toString(), "65418310bec0ba49c4d9a276"],
+      members: [user[0]._id.toString(), "65418310bec0ba49c4d9a276"],
     });
     if (!chatAdmin) throw Errors.SaveToDatabaseFail;
 
-    await UsersTermp.deleteOne({ _email: email });
+    await UsersTermp.deleteOne({ _email: email }, { session });
 
+    await session.commitTransaction();
     return UserResponsesDTO.toResponse(user);
   };
 
@@ -506,7 +524,10 @@ export class UserService {
       if (!newNotification) throw Errors.SaveToDatabaseFail;
 
       //Emit event "sendNotification" for inspector
-      eventEmitter.emit("sendNotification", {...newNotification, recipientRole: 2});
+      eventEmitter.emit("sendNotification", {
+        ...newNotification,
+        recipientRole: 2,
+      });
 
       return result;
     } catch (error) {
@@ -602,7 +623,10 @@ export class UserService {
     if (!newNotification) throw Errors.SaveToDatabaseFail;
 
     //Emit event "sendNotification" for inspector
-    eventEmitter.emit("sendNotification", {...newNotification, recipientRole: 2});
+    eventEmitter.emit("sendNotification", {
+      ...newNotification,
+      recipientRole: 2,
+    });
 
     return addressUser;
   };
@@ -763,7 +787,10 @@ export class UserService {
     if (!newNotification) throw Errors.SaveToDatabaseFail;
 
     //Emit event "sendNotification" for inspector
-    eventEmitter.emit("sendNotification", {...newNotification, recipientRole: 2});
+    eventEmitter.emit("sendNotification", {
+      ...newNotification,
+      recipientRole: 2,
+    });
 
     return updatedAddress;
   };
@@ -1012,7 +1039,11 @@ export class UserService {
 
     if (!newNotification) throw Errors.SaveToDatabaseFail;
     //Emit event "sendNotification" for inspector
-    eventEmitter.emit("sendNotification", {...newNotification, recipientRole: 0, recipientId: userIdentity._uId});
+    eventEmitter.emit("sendNotification", {
+      ...newNotification,
+      recipientRole: 0,
+      recipientId: userIdentity._uId,
+    });
 
     return updateIdentity;
   };
@@ -1157,7 +1188,11 @@ export class UserService {
     if (!newNotification) throw Errors.SaveToDatabaseFail;
 
     //Emit event "sendNotification" for inspector
-    eventEmitter.emit("sendNotification", {...newNotification, recipientRole: 0, recipientId: addressRequest._uId});
+    eventEmitter.emit("sendNotification", {
+      ...newNotification,
+      recipientRole: 0,
+      recipientId: addressRequest._uId,
+    });
 
     return updateAddress;
   };
@@ -1342,7 +1377,11 @@ export class UserService {
     if (!newNotification) throw Errors.SaveToDatabaseFail;
 
     //Emit event "sendNotification" for inspector
-    eventEmitter.emit("sendNotification", {...newNotification, recipientRole: 0, recipientId: userIdentity._uId});
+    eventEmitter.emit("sendNotification", {
+      ...newNotification,
+      recipientRole: 0,
+      recipientId: userIdentity._uId,
+    });
 
     return updateIdentity;
   };
@@ -1420,7 +1459,11 @@ export class UserService {
     if (!newNotification) throw Errors.SaveToDatabaseFail;
 
     //Emit event "sendNotification" for inspector
-    eventEmitter.emit("sendNotification", {...newNotification, recipientRole: 0, recipientId: addressRequest._uId});
+    eventEmitter.emit("sendNotification", {
+      ...newNotification,
+      recipientRole: 0,
+      recipientId: addressRequest._uId,
+    });
 
     return updateAddress;
   };
@@ -1832,7 +1875,11 @@ export class UserService {
     if (!newNotification) throw Errors.SaveToDatabaseFail;
 
     //Emit event "sendNotification" for inspector
-    eventEmitter.emit("sendNotification", {...newNotification, recipientRole: 0, recipientId: userId});
+    eventEmitter.emit("sendNotification", {
+      ...newNotification,
+      recipientRole: 0,
+      recipientId: userId,
+    });
 
     return userBlock;
   };

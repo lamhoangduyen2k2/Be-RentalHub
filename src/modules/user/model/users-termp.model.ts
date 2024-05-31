@@ -2,6 +2,14 @@ import mongoose from "mongoose";
 import { genSalt, hash } from "bcrypt";
 
 const userSTermpSchema = new mongoose.Schema({
+  _fname: {
+    type: String,
+    required: [true, "First name is required"],
+  },
+  _lname: {
+    type: String,
+    required: [true, "Last name is required"],
+  },
   _email: {
     type: String,
     required: [true, "Email is required"],

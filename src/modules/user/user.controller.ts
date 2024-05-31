@@ -11,6 +11,7 @@ import { UpdateInspectorPassDTO } from "./dtos/inspector-update-pass.dto";
 import { UpdateInspectorPasswordDTO } from "./dtos/update-password-inspector.dto";
 import { SensorIdenityDTO } from "./dtos/sensor-identity.dto";
 import { UpdateAddressDTO } from "./dtos/update-address.dto";
+import { startSession } from "mongoose";
 
 @Service()
 export class UserController {
@@ -38,14 +39,19 @@ export class UserController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const infoUser = CreateUserRequestDTO.fromRequest(req);
-      const newUser = await this.userService.registorUser(infoUser);
+      session.startTransaction();
+      const newUser = await this.userService.registorUser(infoUser, session);
 
       res.json(new ResponseData(newUser, null, null));
     } catch (error) {
-      console.log(error);
+      await session.abortTransaction();
+      console.log("🚀 ~ UserController ~ error:", error);
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
@@ -54,16 +60,22 @@ export class UserController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
+      session.startTransaction();
       const newUser = await this.userService.verifyRegistor(
         req.body._email,
-        req.body.otp
+        req.body.otp,
+        session
       );
 
       res.json(new ResponseData(newUser, null, null));
     } catch (error) {
+      await session.abortTransaction();
       console.log(error);
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
