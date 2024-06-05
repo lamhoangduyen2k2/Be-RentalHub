@@ -2,6 +2,7 @@ import { Inject, Service } from "typedi";
 import { ChatService } from "./chat.service";
 import { NextFunction, Request, Response } from "express";
 import { ResponseData } from "../../helpers/response";
+import { startSession } from "mongoose";
 // import Users from "../user/model/users.model";
 // import chatModel from "./chat.model";
 
@@ -14,15 +15,20 @@ export class ChatController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const firstId = req.body.firstId.toString();
       const secondId = req.body.secondId.toString();
-      const chat = await this.chatService.createChat(firstId, secondId);
+      session.startTransaction();
+      const chat = await this.chatService.createChat(firstId, secondId, session);
 
       res.json(new ResponseData(chat, null, null));
     } catch (error) {
+      await session.abortTransaction();
       console.log("🚀 ~ ChatController ~ createChat= ~ error:", error);
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 

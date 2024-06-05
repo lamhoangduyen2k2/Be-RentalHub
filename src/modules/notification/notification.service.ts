@@ -4,7 +4,7 @@ import Notification from "./notification.model";
 import { Errors } from "../../helpers/handle-errors";
 import { CreateNotificationDTO } from "./dtos/create-notification.dto";
 import { GetNotificationsListDTO } from "./dtos/get-notification.dto";
-import mongoose from "mongoose";
+import mongoose, { ClientSession } from "mongoose";
 import { CreateNotificationInspectorDTO } from "./dtos/create-notification-inspector.dto";
 import { GetNotificationsInspectorDTO } from "./dtos/get-notificaion-inspector.dto";
 import { CreateNotificationRegisterAddressDTO } from "./dtos/create-notification-register-address.dto";
@@ -16,10 +16,12 @@ export class NotificationService {
     data:
       | CreateNotificationDTO
       | CreateNotificationInspectorDTO
-      | CreateNotificationRegisterAddressDTO
+      | CreateNotificationRegisterAddressDTO,
+    session: ClientSession
   ) => {
-    const newNotification = await Notification.create(data);
-    if (!newNotification) throw Errors.SaveToDatabaseFail;
+    const newNotification = await Notification.create([data], { session });
+    if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
+
     return newNotification;
   };
 

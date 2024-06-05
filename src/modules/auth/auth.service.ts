@@ -10,13 +10,14 @@ import { UserResponsesDTO } from "../user/dtos/detail-user-response.dto";
 import { LoginGoogleRequestDTO } from "./dtos/login-google";
 import jwt from "jsonwebtoken";
 import chatModel from "../chats/chat.model";
+import { ClientSession } from "mongoose";
 
 @Service()
 export class AuthService {
-  loginService = async (loginParam: LoginRequestDTO) => {
+  loginService = async (loginParam: LoginRequestDTO, session: ClientSession) => {
     const users = await Users.findOne({
       $and: [{ _email: loginParam._email }, { _active: true }, { _role: 0 }],
-    });
+    }).session(session);
 
     if (!users) throw Errors.UserNotFound;
 
@@ -26,40 +27,53 @@ export class AuthService {
 
     const token = await tokenService.createTokenByLogin(
       users._id.toString(),
-      3600
+      3600,
+      session
     );
 
+    await session.commitTransaction();
     return { ...UserResponsesDTO.toResponse(users), ...token };
   };
 
-  checkRegisterByGoogle = async (loginInfo: LoginGoogleRequestDTO) => {
+  checkRegisterByGoogle = async (loginInfo: LoginGoogleRequestDTO, session: ClientSession) => {
     if (!loginInfo.email_verified) throw Errors.EmailNotVerified;
 
-    let user = await Users.findOne({ _email: loginInfo.email });
+    let user = await Users.findOne({ _email: loginInfo.email }).session(session);
     if (user && user._loginType !== "google") throw Errors.Duplicate;
 
     if (!user) {
-      user = await Users.create({
+      const newUser = await Users.create([{
         _email: loginInfo.email,
         _fname: loginInfo.family_name,
         _lname: loginInfo.given_name,
         _avatar: loginInfo.picture,
         _loginType: loginInfo.type_login,
-      });
+      }], { session });
+      // const newUser = await Users.create({
+      //   _email: loginInfo.email,
+      //   _fname: loginInfo.family_name,
+      //   _lname: loginInfo.given_name,
+      //   _avatar: loginInfo.picture,
+      //   _loginType: loginInfo.type_login,
+      // });
+      if (newUser.length <= 0) throw Errors.SaveToDatabaseFail;
 
-      const chatAdmin = await chatModel.create({
+      user = newUser[0];
+
+      const chatAdmin = await chatModel.create([{
         members: [user._id.toString(), "65418310bec0ba49c4d9a276"],
-      });
-      if (!chatAdmin) throw Errors.SaveToDatabaseFail;
+      }], { session });
+      if (chatAdmin.length <= 0) throw Errors.SaveToDatabaseFail;
     }
     if (!user) throw Errors.SaveToDatabaseFail;
 
     const token = jwt.sign({ email: user._email}, process.env.SECRET_KEY, { expiresIn: '1h' })
 
+    await session.commitTransaction();
     return token;
   };
 
-  loginByGoogle = async (token: string) => {
+  loginByGoogle = async (token: string, session: ClientSession) => {
     ///Check token is existed
     if (!token) throw Errors.Unauthorized;
 
@@ -69,22 +83,24 @@ export class AuthService {
     //Find user by email
     const user = await Users.findOne({
       $and: [{ _email: payload["email"] }, { _loginType: "google" }],
-    });
+    }).session(session);
     if (!user) throw Errors.UserNotFound;
 
     //Create token
     const tokenLogin = await tokenService.createTokenByLogin(
       user._id.toString(),
-      3600
+      3600,
+      session
     );
 
+    await session.commitTransaction();
     return { ...UserResponsesDTO.toResponse(user), ...tokenLogin};
   }
 
-  loginInspectorService = async (loginParam: LoginRequestDTO) => {
+  loginInspectorService = async (loginParam: LoginRequestDTO, session: ClientSession) => {
     const users = await Users.findOne({
       $and: [{ _email: loginParam._email }, { _active: true }, { _role: 2 }],
-    });
+    }).session(session);
 
     if (!users) throw Errors.UserNotFound;
 
@@ -94,16 +110,18 @@ export class AuthService {
 
     const token = await tokenService.createTokenByLogin(
       users._id.toString(),
-      3600
+      3600,
+      session
     );
 
+    await session.commitTransaction();
     return { ...UserResponsesDTO.toResponse(users), ...token };
   };
 
-  loginAdminService = async (loginParam: LoginRequestDTO) => {
+  loginAdminService = async (loginParam: LoginRequestDTO, session: ClientSession) => {
     const users = await Users.findOne({
       $and: [{ _email: loginParam._email }, { _active: true }, { _role: 1 }],
-    });
+    }).session(session);
 
     if (!users) throw Errors.UserNotFound;
 
@@ -113,17 +131,20 @@ export class AuthService {
 
     const token = await tokenService.createTokenByLogin(
       users._id.toString(),
-      3600
+      3600,
+      session
     );
 
+    await session.commitTransaction();
     return { ...UserResponsesDTO.toResponse(users), ...token };
   };
 
-  logoutService = async (userId: string, refreshToken: string) => {
+  logoutService = async (userId: string, refreshToken: string, session: ClientSession) => {
     await RefreshTokens.deleteOne({
       $and: [{ _uId: userId }, { _refreshToken: refreshToken }],
-    });
+    }).session(session);
 
+    await session.commitTransaction();
     return { message: "Logout Successfully" };
   };
 

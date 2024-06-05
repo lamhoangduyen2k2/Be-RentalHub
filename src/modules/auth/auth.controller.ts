@@ -5,6 +5,7 @@ import { LoginRequestDTO } from "./dtos/auth-login.dto";
 import { ResponseData } from "../../helpers/response";
 import { Inject, Service } from "typedi";
 import { LoginGoogleRequestDTO } from "./dtos/login-google";
+import { startSession } from "mongoose";
 
 @Service()
 export class AuthController {
@@ -15,35 +16,27 @@ export class AuthController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
-      const user = await this.authSerivce.loginService(req.body);
+      session.startTransaction();
+      const user = await this.authSerivce.loginService(req.body, session);
 
       res.json(new ResponseData(user, null, null));
     } catch (error) {
+      await session.abortTransaction();
+      console.log("🚀 ~ AuthController ~ error:", error)
       next(error);
+    } finally {
+      session.endSession();
     }
   };
-
-  // public loginByGoogleController = async (
-  //   req: BodyResquest<LoginGoogleRequestDTO>,
-  //   res: Response,
-  //   next: NextFunction
-  // ) => {
-  //   try {
-  //     const loginInfo = LoginGoogleRequestDTO.fromRequest(req);
-  //     const user = await this.authSerivce.loginByGoogle(loginInfo);
-
-  //     res.json(new ResponseData(user, null, null));
-  //   } catch (error) {
-  //     next(error);
-  //   }
-  // };
 
   public checkRegisterByGoogle = async (
     req: Request,
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const user = {
         email: req.user["_json"].email,
@@ -53,13 +46,19 @@ export class AuthController {
         email_verified: req.user["_json"].email_verified,
         type_login: req.user["provider"],
       };
+      console.log("🚀 ~ AuthController ~ user:", user)
       const userInfo = LoginGoogleRequestDTO.fromRequest(user);
-      const token =  await this.authSerivce.checkRegisterByGoogle(userInfo);
+      session.startTransaction();
+      const token =  await this.authSerivce.checkRegisterByGoogle(userInfo, session);
+      console.log("🚀 ~ AuthController ~ token:", token)
       res.cookie('jwt', token, { httpOnly: true, secure: false })
       res.redirect('http://localhost:4200');
     } catch (error) {
+       await session.abortTransaction();
       console.log("🚀 ~ AuthController ~ error:", error)
       next(error);
+    } finally {
+      session.endSession();
     }
   }
 
@@ -68,14 +67,22 @@ export class AuthController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
-      const token = req.cookies.jwt;
-      const user = await this.authSerivce.loginByGoogle(token);
+      const token = await req.cookies.jwt;
+      console.log("🚀 ~ AuthController.loginByGoogle ~ token:", token)
+      session.startTransaction();
+      const user = await this.authSerivce.loginByGoogle(token, session);
+      console.log("🚀 ~ AuthController.loginByGoogle ~ user:", user)
 
       res.json(new ResponseData(user, null, null));
     } catch (error) {
+      await session.abortTransaction();
       console.log("🚀 ~ AuthController ~ error:", error)
       next(error);
+    } 
+    finally {
+      session.endSession();
     }
   }
 
@@ -84,12 +91,18 @@ export class AuthController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
-      const user = await this.authSerivce.loginInspectorService(req.body);
+      session.startTransaction();
+      const user = await this.authSerivce.loginInspectorService(req.body, session);
 
       res.json(new ResponseData(user, null, null));
     } catch (error) {
+      await session.abortTransaction();
+      console.log("🚀 ~ AuthController ~ error:", error)
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
@@ -98,12 +111,18 @@ export class AuthController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
-      const user = await this.authSerivce.loginAdminService(req.body);
+      session.startTransaction();
+      const user = await this.authSerivce.loginAdminService(req.body, session);
 
       res.json(new ResponseData(user, null, null));
     } catch (error) {
+      await session.abortTransaction();
+      console.log("🚀 ~ AuthController ~ error:", error)
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
@@ -112,15 +131,22 @@ export class AuthController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
+      session.startTransaction();
       const message = await this.authSerivce.logoutService(
         req.body.userId,
-        req.body.refreshToken
+        req.body.refreshToken,
+        session
       );
 
       res.json(new ResponseData(message, null, null));
     } catch (error) {
+      await session.abortTransaction();
+      console.log("🚀 ~ AuthController ~ error:", error)
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 

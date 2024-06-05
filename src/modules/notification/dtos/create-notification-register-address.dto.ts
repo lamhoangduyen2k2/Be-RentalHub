@@ -7,7 +7,7 @@ export class CreateNotificationRegisterAddressDTO {
     _uId: mongoose.Types.ObjectId;
 
     @Expose()
-    @Transform((value) => value.obj._uId.toString())
+    @Transform((value) => value.obj._addressId.toString())
     _addressId: mongoose.Types.ObjectId;
   
     @Expose()

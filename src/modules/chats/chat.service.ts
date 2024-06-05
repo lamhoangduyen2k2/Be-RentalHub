@@ -1,26 +1,27 @@
 import { Service } from "typedi";
 import chatModel from "./chat.model";
 import { Errors } from "../../helpers/handle-errors";
-import mongoose from "mongoose";
+import mongoose, { ClientSession } from "mongoose";
 
 @Service()
 export class ChatService {
-  public createChat = async (firstId: string, secondId: string) => {
+  public createChat = async (firstId: string, secondId: string, session: ClientSession) => {
     // Check chat is already exist
     const chat = await chatModel.findOne({
       members: { $all: [firstId, secondId] },
-    });
+    }).session(session);
 
     if (chat) return chat;
 
     // Create new chat
-    const newChat = await chatModel.create({
+    const newChat = await chatModel.create([{
       members: [firstId, secondId],
-    });
+    }], { session });
 
-    if (!newChat) throw Errors.SaveToDatabaseFail;
+    if (newChat.length<= 0) throw Errors.SaveToDatabaseFail;
 
-    return newChat;
+    await session.commitTransaction();
+    return newChat[0];
   };
 
   public findUserChats = async (userId: string) => {

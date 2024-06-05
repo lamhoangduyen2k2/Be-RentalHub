@@ -5,7 +5,6 @@ const addressRentalSchema = new mongoose.Schema(
     _uId: {
       type: Schema.Types.ObjectId,
       required: [true, "User ID is required"],
-      unique: true,
     },
     _address: {
       type: String,

@@ -12,6 +12,7 @@ import { UpdateInspectorPasswordDTO } from "./dtos/update-password-inspector.dto
 import { SensorIdenityDTO } from "./dtos/sensor-identity.dto";
 import { UpdateAddressDTO } from "./dtos/update-address.dto";
 import { startSession } from "mongoose";
+import { CreateAddressDTO } from "./dtos/create-address.dto";
 
 @Service()
 export class UserController {
@@ -39,7 +40,7 @@ export class UserController {
     res: Response,
     next: NextFunction
   ) => {
-    const session = await startSession();
+    const session = await startSession( { defaultTransactionOptions: { readConcern: { level: "majority" }, writeConcern: { w: "majority" } } });
     try {
       const infoUser = CreateUserRequestDTO.fromRequest(req);
       session.startTransaction();
@@ -72,7 +73,7 @@ export class UserController {
       res.json(new ResponseData(newUser, null, null));
     } catch (error) {
       await session.abortTransaction();
-      console.log(error);
+      console.log("🚀 ~ UserController ~ error:", error);
       next(error);
     } finally {
       session.endSession();
@@ -92,7 +93,7 @@ export class UserController {
 
       res.json(new ResponseData(email, null, null));
     } catch (error) {
-      console.log(error);
+      console.log("🚀 ~ UserController ~ error:", error);
       next(error);
     }
   };
@@ -102,18 +103,24 @@ export class UserController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
+      session.startTransaction();
       const email = await this.userService.resetPassword(
         req.params.id,
         req.params.token,
         req.body._pw,
-        req.body._pwconfirm
+        req.body._pwconfirm,
+        session
       );
 
       res.json(new ResponseData(email, null, null));
     } catch (error) {
-      console.log(error);
+      await session.abortTransaction();
+      console.log("🚀 ~ UserController ~ error:", error)
       next(error);
+    } finally { 
+      session.endSession();
     }
   };
 
@@ -122,14 +129,19 @@ export class UserController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const inforUser = UpdateUserDTO.fromRequest(req);
-      const updatedUser = await this.userService.updateUser(inforUser);
+      session.startTransaction();
+      const updatedUser = await this.userService.updateUser(inforUser, session);
 
       res.json(new ResponseData(updatedUser, null, null));
     } catch (error) {
-      console.log(error);
+      await session.abortTransaction();
+      console.log("🚀 ~ UserController ~ error:", error)
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
@@ -138,17 +150,23 @@ export class UserController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const file = req.file as Express.Multer.File;
+      session.startTransaction();
       const updatedUser = await this.userService.updateAvatar(
         file,
-        req.body._uId
+        req.body._uId,
+        session
       );
 
       res.json(new ResponseData(updatedUser, null, null));
     } catch (error) {
-      console.log(error);
+      await session.abortTransaction();
+      console.log("🚀 ~ UserController ~ error:", error)
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
@@ -157,17 +175,22 @@ export class UserController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const userInfo = UserUpdateEmailOrPassDTO.fromRequest(req);
-      const newEmail = await this.userService.updateEmail(userInfo);
+      session.startTransaction();
+      const newEmail = await this.userService.updateEmail(userInfo, session);
 
       res.json(new ResponseData(newEmail, null, null));
     } catch (error) {
+      await session.abortTransaction();
       console.log(
         "🚀 ~ file: user.controller.ts:77 ~ UserController ~ error:",
         error
       );
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
@@ -191,16 +214,22 @@ export class UserController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
+      session.startTransaction();
       const updatedUser = await this.userService.verifyHost(
         req.body._uId,
         req.body.phone,
-        req.body.otp
+        req.body.otp,
+        session
       );
       res.json(new ResponseData(updatedUser, null, null));
     } catch (error) {
-      console.log(error);
+      await session.abortTransaction();
+      console.log("🚀 ~ UserController ~ error:", error)
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
@@ -209,39 +238,51 @@ export class UserController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const image_front = req.files["image_front"][0] as Express.Multer.File;
       const image_back = req.files["image_back"][0] as Express.Multer.File;
+      session.startTransaction();
       const identity = await this.userService.verifyIdentity(
         req.body._uId,
         image_front,
-        image_back
+        image_back,
+        session
       );
       res.json(new ResponseData(identity, null, null));
     } catch (error) {
-      console.log(error);
+      await session.abortTransaction();
+      console.log("🚀 ~ UserController ~ error:", error)
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
   public registerAddress = async (
-    req: Request,
+    req: BodyResquest<CreateAddressDTO>,
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const image = req.files as Express.Multer.File[];
+      const adrressInfo = CreateAddressDTO.fromRequest(req);
+      session.startTransaction();
       const address = await this.userService.registerAddress(
-        req.body._address,
-        isNaN(Number(req.body._totalRoom)) ? -1 : Number(req.body._totalRoom),
-        req.body._uId,
-        image
+        adrressInfo,
+        image,
+        session
       );
 
       res.json(new ResponseData(address, null, null));
     } catch (error) {
+      await session.abortTransaction();
       console.log("🚀 ~ UserController ~ error:", error);
       next(error);
+    } 
+    finally {
+      session.endSession();
     }
   };
 
@@ -324,18 +365,25 @@ export class UserController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const status = isNaN(Number(req.body.status))
         ? -1
         : Number(req.body.status);
+      session.startTransaction();
       const updatedAddress = await this.userService.manageSatusOfAddressUser(
         status,
         req.body._uId,
-        req.body.addressId
+        req.body.addressId,
+        session
       );
       res.json(new ResponseData(updatedAddress, null, null));
     } catch (error) {
+      await session.abortTransaction();
+      console.log("🚀 ~ UserController ~ error:", error)
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
@@ -344,17 +392,23 @@ export class UserController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const addressInfo = UpdateAddressDTO.fromRequest(req);
       const cef = req.files as Express.Multer.File[];
+      session.startTransaction();
       const updatedAddress = await this.userService.updateAddress(
         cef,
-        addressInfo
+        addressInfo,
+        session
       );
       res.json(new ResponseData(updatedAddress, null, null));
     } catch (error) {
+      await session.abortTransaction();
       console.log("🚀 ~ UserController ~ error:", error);
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
@@ -424,17 +478,24 @@ export class UserController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const sensorInfo = SensorIdenityDTO.fromRequest(req);
+      session.startTransaction();
       const updatedHost = await this.userService.sensorActiveHostRequest(
         sensorInfo.id,
         isNaN(Number(sensorInfo.status)) ? -1 : Number(sensorInfo.status),
         sensorInfo.reason,
-        sensorInfo._uId
+        sensorInfo._uId,
+        session
       );
       res.json(new ResponseData(updatedHost, null, null));
     } catch (error) {
+      await session.abortTransaction();
+      console.log("🚀 ~ UserController ~ error:", error)
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
@@ -493,17 +554,24 @@ export class UserController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const sensorInfo = SensorIdenityDTO.fromRequest(req);
+      session.startTransaction();
       const updatedAddress = await this.userService.sensorAddressRequest(
         sensorInfo.id,
         isNaN(Number(sensorInfo.status)) ? -1 : Number(sensorInfo.status),
         sensorInfo.reason,
-        sensorInfo._uId
+        sensorInfo._uId,
+        session
       );
       res.json(new ResponseData(updatedAddress, null, null));
     } catch (error) {
+      await session.abortTransaction();
+      console.log("🚀 ~ UserController ~ error:", error)
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
@@ -513,14 +581,19 @@ export class UserController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const infoUser = CreateUserRequestDTO.fromRequest(req);
-      const newInspector = await this.userService.createInspector(infoUser);
+      session.startTransaction();
+      const newInspector = await this.userService.createInspector(infoUser, session);
 
       res.json(new ResponseData(newInspector, null, null));
     } catch (error) {
-      console.log(error);
+      await session.abortTransaction();
+      console.log("🚀 ~ UserController ~ error:", error)
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
@@ -529,13 +602,20 @@ export class UserController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
+      session.startTransaction();
       const updatedInspector = await this.userService.blockInspector(
-        req.body.inspectId.toString() ?? null
+        req.body.inspectId.toString() ?? null,
+        session
       );
       res.json(new ResponseData(updatedInspector, null, null));
     } catch (error) {
+      await session.abortTransaction();
+      console.log("🚀 ~ UserController ~ error:", error)
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
@@ -559,13 +639,18 @@ export class UserController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const userInfo = UpdateInspectorPassDTO.fromRequest(req);
-      const newPass = await this.userService.updatePassInspector(userInfo);
+      session.startTransaction();
+      const newPass = await this.userService.updatePassInspector(userInfo, session);
       res.json(new ResponseData(newPass, null, null));
     } catch (error) {
+      await session.abortTransaction();
       console.log("🚀 ~ UserController ~ error:", error);
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
@@ -574,15 +659,21 @@ export class UserController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const inforInspector = UpdateUserDTO.fromRequest(req);
+      session.startTransaction();
       const updatedUser = await this.userService.updateInspectorProfile(
-        inforInspector
+        inforInspector,
+        session
       );
       res.json(new ResponseData(updatedUser, null, null));
     } catch (error) {
+      await session.abortTransaction();
       console.log("🚀 ~ UserController ~ error:", error);
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
@@ -591,17 +682,23 @@ export class UserController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const file = req.file as Express.Multer.File;
+      session.startTransaction();
       const updatedInspector = await this.userService.updateInspectorAvatar(
         file,
-        req.body._uId
+        req.body._uId,
+        session
       );
 
       res.json(new ResponseData(updatedInspector, null, null));
     } catch (error) {
+      await session.abortTransaction();
       console.log("🚀 ~ UserController ~ error:", error);
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
@@ -625,13 +722,19 @@ export class UserController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const userInfo = UpdateInspectorPasswordDTO.fromRequest(req);
-      const newPass = await this.userService.updatePasswordInspector(userInfo);
+      session.startTransaction();
+      const newPass = await this.userService.updatePasswordInspector(userInfo, session);
+
       res.json(new ResponseData(newPass, null, null));
     } catch (error) {
+      await session.abortTransaction();
       console.log("🚀 ~ UserController ~ error:", error);
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
@@ -640,17 +743,24 @@ export class UserController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const sensorInfo = SensorIdenityDTO.fromRequest(req);
+      session.startTransaction();
       const updatedHost = await this.userService.sensorActiveHostRequestAdmin(
         sensorInfo.id,
         isNaN(Number(sensorInfo.status)) ? -1 : Number(sensorInfo.status),
         sensorInfo.reason,
-        sensorInfo._uId
+        sensorInfo._uId,
+        session
       );
       res.json(new ResponseData(updatedHost, null, null));
     } catch (error) {
+      await session.abortTransaction();
+      console.log("🚀 ~ UserController ~ error:", error)
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
@@ -659,17 +769,25 @@ export class UserController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const sensorInfo = SensorIdenityDTO.fromRequest(req);
+      session.startTransaction();
       const updatedAddress = await this.userService.sensorAddressRequestAdmin(
         sensorInfo.id,
         isNaN(Number(sensorInfo.status)) ? -1 : Number(sensorInfo.status),
         sensorInfo.reason,
-        sensorInfo._uId
+        sensorInfo._uId,
+        session
       );
+
       res.json(new ResponseData(updatedAddress, null, null));
     } catch (error) {
+      await session.abortTransaction();
+      console.log("🚀 ~ UserController ~ error:", error)
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 

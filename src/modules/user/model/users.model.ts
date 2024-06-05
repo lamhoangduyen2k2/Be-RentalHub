@@ -78,7 +78,7 @@ const usersSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 usersSchema.pre("save", async function (next: NextFunction) {
-  if (!this.isModified("_pw")) return next();
+  if (!this.isModified("_pw") || this._role === 0) return next();
 
   const salt = await genSalt(10);
   this._pw = await hash(this._pw, salt);
@@ -93,6 +93,8 @@ usersSchema.pre("updateOne", async function () {
     data["_pw"] = await hash(data["_pw"], salt);
   }
 });
+
+
 
 const Users = mongoose.model("users", usersSchema);
 export default Users;

@@ -22,6 +22,7 @@ import { CreateNotificationDTO } from "../notification/dtos/create-notification.
 import addressRental from "../user/model/user-address.model";
 import { UserService } from "../user/user.service";
 import { eventEmitter } from "../socket/socket";
+import { ClientSession } from "mongoose";
 
 @Service()
 export class PostsService {
@@ -33,83 +34,105 @@ export class PostsService {
 
   public createNewPost = async (
     postParam: PostCreateDTO,
-    files: Express.Multer.File[]
+    files: Express.Multer.File[],
+    session: ClientSession
   ) => {
     // Check user is a host
     const user = await Users.findOne({
       $and: [{ _id: postParam._uId }, { _isHost: true }],
-    });
+    }).session(session);
     if (!user) throw Errors.UserNotFound;
 
     //Check address is registered
-    const address = await addressRental.findOne({
-      $and: [
-        { _uId: postParam._uId },
-        { _address: postParam._address },
-        { _status: 1 },
-      ],
-    });
+    const address = await addressRental
+      .findOne({
+        $and: [
+          { _uId: postParam._uId },
+          { _address: postParam._address },
+          { _status: 1 },
+        ],
+      })
+      .session(session);
     if (!address) throw Errors.AddressRentakNotFound;
 
     //Create new room
-    const newRoom = await Rooms.create({
-      _uId: postParam._uId,
-      // _street: postParam._street,
-      // _district: postParam._district,
-      // _city: postParam._city,
-      _address: postParam._address,
-      _services: postParam._services
-        ? postParam._services.split(",")
-        : undefined,
-      _utilities: postParam._utilities
-        ? postParam._utilities.split(",")
-        : undefined,
-      _area: postParam._area,
-      _price: postParam._price,
-      _electricPrice: postParam._electricPrice,
-      _waterPrice: postParam._waterPrice,
-    });
-    if (!newRoom) throw Errors.SaveToDatabaseFail;
+    const newRoom = await Rooms.create(
+      [
+        {
+          _uId: postParam._uId,
+          // _street: postParam._street,
+          // _district: postParam._district,
+          // _city: postParam._city,
+          _address: postParam._address,
+          _services: postParam._services
+            ? postParam._services.split(",")
+            : undefined,
+          _utilities: postParam._utilities
+            ? postParam._utilities.split(",")
+            : undefined,
+          _area: postParam._area,
+          _price: postParam._price,
+          _electricPrice: postParam._electricPrice,
+          _waterPrice: postParam._waterPrice,
+        },
+      ],
+      { session }
+    );
+    if (newRoom.length <= 0) throw Errors.SaveToDatabaseFail;
 
     //Upload images to firebase
     postParam._images = await this.imageService.uploadImage(files);
     if (postParam._images.length <= 0) throw Errors.UploadImageFail;
 
     //Create new post
-    const newPosts = await Posts.create({
-      _content: postParam._content,
-      _tags: postParam._tags,
-      _images: postParam._images,
-      _title: postParam._title,
-      _uId: newRoom._uId,
-      _desc: postParam._desc,
-      _rooms: newRoom._id,
-    });
-    if (!newPosts) throw Errors.SaveToDatabaseFail;
+    const newPosts = await Posts.create(
+      [
+        {
+          _content: postParam._content,
+          _tags: postParam._tags,
+          _images: postParam._images,
+          _title: postParam._title,
+          _uId: newRoom[0]._uId,
+          _desc: postParam._desc,
+          _rooms: newRoom[0]._id,
+        },
+      ],
+      { session }
+    );
+    if (newPosts.length <= 0) throw Errors.SaveToDatabaseFail;
 
     //Create notification for inspector
     const notification = CreateNotificationDTO.fromService({
       _title: "Có bài đăng mới cần kiểm duyệt",
-      _message: `Bài đăng ${newPosts._id} cần kiểm duyệt`,
+      _message: `Bài đăng ${newPosts[0]._id} cần kiểm duyệt`,
       _type: "CREATE_POST",
       _uId: user._id,
-      _postId: newPosts._id,
+      _postId: newPosts[0]._id,
     });
 
-    const newNotification = await this.notificationService.createNotification(notification);
+    const newNotification = await this.notificationService.createNotification(
+      notification,
+      session
+    );
+    if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
 
-    const newInfo = { ...newRoom.toObject(), ...newPosts.toObject() };
+    const newInfo = { ...newRoom[0].toObject(), ...newPosts[0].toObject() };
 
     //Emit event for internal server
-    eventEmitter.emit("sendNotification", {...newNotification, recipientRole: 2});
+    eventEmitter.emit("sendNotification", {
+      ...newNotification[0],
+      recipientRole: 2,
+    });
 
+    await session.commitTransaction();
     return PostResponseDTO.toResponse(newInfo);
   };
 
   public updatePost = async (
     postParam: PostUpdateDTO,
     postId: string,
-    files: Express.Multer.File[]
+    files: Express.Multer.File[],
+    session: ClientSession
   ) => {
     let status: number = 0;
     let active: boolean = true;
@@ -118,19 +141,21 @@ export class PostsService {
     //Find post of user is exist
     const post = await Posts.findOne({
       $and: [{ _id: postId }, { _uId: postParam._uId }],
-    });
+    }).session(session);
 
     if (!post) throw Errors.PostNotFound;
 
     // Check address is registered
     if (postParam._address) {
-      const address = await addressRental.findOne({
-        $and: [
-          { _uId: postParam._uId },
-          { _address: postParam._address },
-          { _status: 1 },
-        ],
-      });
+      const address = await addressRental
+        .findOne({
+          $and: [
+            { _uId: postParam._uId },
+            { _address: postParam._address },
+            { _status: 1 },
+          ],
+        })
+        .session(session);
       if (!address) throw Errors.AddressRentakNotFound;
     }
 
@@ -181,7 +206,7 @@ export class PostsService {
         _status: status,
         _active: active,
       },
-      { new: true }
+      { session, new: true }
     );
 
     const roomUpdated = await Rooms.findOneAndUpdate(
@@ -203,7 +228,7 @@ export class PostsService {
         _waterPrice: postParam._waterPrice,
         _isRented: postParam._isRented,
       },
-      { new: true }
+      { session, new: true }
     );
 
     //Create notification for inspector
@@ -215,17 +240,29 @@ export class PostsService {
       _postId: postUdated._id,
     });
 
-    const newNotification = await this.notificationService.createNotification(notification);
+    const newNotification = await this.notificationService.createNotification(
+      notification,
+      session
+    );
+    if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
     //Emit event "sendNotification" for internal server
-    eventEmitter.emit("sendNotification", {...newNotification, recipientRole: 2});
+    eventEmitter.emit("sendNotification", {
+      ...newNotification[0],
+      recipientRole: 2,
+    });
 
+    await session.commitTransaction();
     return PostResponseDTO.toResponse({
       ...postUdated.toObject(),
       ...roomUpdated.toObject(),
     });
   };
 
-  public sensorPost = async (postParam: PostSensorDTO, postId: string) => {
+  public sensorPost = async (
+    postParam: PostSensorDTO,
+    postId: string,
+    session: ClientSession
+  ) => {
     let isRented: boolean = false;
     let active: boolean = true;
     let notification: CreateNotificationDTO;
@@ -233,13 +270,10 @@ export class PostsService {
     if (postParam._status !== 1 && postParam._status !== 2)
       throw Errors.StatusInvalid;
 
-    await Posts.findById(postId)
-      .then((result) => {
-        console.log(result);
-      })
-      .catch(() => {
-        throw Errors.PostNotFound;
-      });
+    const post = await Posts.findOne({
+      _id: new mongoose.Types.ObjectId(postId),
+    }).session(session);
+    if (!post) throw Errors.PostNotFound;
 
     if (postParam._status === 2) {
       active = false;
@@ -253,14 +287,15 @@ export class PostsService {
         _active: active,
         _inspectId: postParam._uId,
       },
-      { new: true }
+      { session, new: true }
     );
 
     await Rooms.updateOne(
       { _id: updatedPost._rooms },
       {
         _isRented: isRented,
-      }
+      },
+      { session }
     );
 
     //Create notification for user
@@ -281,27 +316,33 @@ export class PostsService {
         _postId: updatedPost._id,
       });
     }
-    const newNotification = await this.notificationService.createNotification(notification);
-    if (!newNotification) throw Errors.SaveToDatabaseFail;
+    const newNotification = await this.notificationService.createNotification(
+      notification,
+      session
+    );
+    if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
 
     //Emit event for internal server
     eventEmitter.emit("sendNotification", {
-      ...newNotification,
+      ...newNotification[0],
       recipientRole: 0,
       recipientId: updatedPost._uId.toString(),
     });
+
+    await session.commitTransaction();
     return true;
   };
 
   public updatePostStatus = async (
     postParam: PostUpdateStatusDTO,
-    postId: string
+    postId: string,
+    session: ClientSession
   ) => {
     let status: number = 2;
     let isRented: boolean = true;
     const post = await Posts.findOne({
       $and: [{ _id: postId }, { _uId: postParam._uId }],
-    });
+    }).session(session);
     if (!post) throw Errors.PostNotFound;
 
     if (postParam._active) {
@@ -314,11 +355,17 @@ export class PostsService {
       {
         _status: status,
         _active: postParam._active,
-      }
+      },
+      { session }
     );
 
-    await Rooms.updateOne({ _id: post._rooms }, { _isRented: isRented });
+    await Rooms.updateOne(
+      { _id: post._rooms },
+      { _isRented: isRented },
+      { session }
+    );
 
+    await session.commitTransaction();
     return true;
   };
 
@@ -1503,33 +1550,35 @@ export class PostsService {
     ];
   };
 
-  public createFavoritePost = async (uId: string, postId: string) => {
+  public createFavoritePost = async (uId: string, postId: string, session: ClientSession) => {
     let favoritePosts: typeof FavoritePosts | null = null;
     const post = await Posts.findOne({
       $and: [{ _id: postId }, { _status: 1 }],
-    });
+    }).session(session);
     if (!post) throw Errors.PostNotFound;
 
     const favoritePost = await FavoritePosts.exists({
       $and: [{ _uId: uId }, { _postIds: { $in: [postId] } }],
-    });
+    }).session(session);
 
     if (favoritePost) {
       favoritePosts = await FavoritePosts.findOneAndUpdate(
         { _uId: uId },
         { $pull: { _postIds: postId } },
-        { upsert: true, new: true }
+        { session, upsert: true, new: true }
       );
     } else {
       favoritePosts = await FavoritePosts.findOneAndUpdate(
         { _uId: uId },
         { $push: { _postIds: postId } },
-        { upsert: true, new: true }
+        { session, upsert: true, new: true }
       );
     }
+    console.log("🚀 ~ PostsService ~ createFavoritePost= ~ favoritePosts:", favoritePosts)
 
     if (!favoritePosts) throw Errors.SaveToDatabaseFail;
 
+    await session.commitTransaction();
     return favoritePosts;
   };
 
@@ -1696,10 +1745,10 @@ export class PostsService {
     return filteredPostIds;
   };
 
-  public createReportPost = async (report: ReportCreateDTO) => {
+  public createReportPost = async (report: ReportCreateDTO, session: ClientSession) => {
     const post = await Posts.findOne({
       $and: [{ _id: report._postId }, { _status: 1 }],
-    });
+    }).session(session);
     if (!post) throw Errors.PostNotFound;
 
     const newReport = await ReportedPosts.findOneAndUpdate(
@@ -1713,7 +1762,7 @@ export class PostsService {
         _uIdReported: post._uId,
         _sensored: false,
       },
-      { upsert: true, new: true }
+      { session, upsert: true, new: true }
     );
     if (!newReport) throw Errors.SaveToDatabaseFail;
 
@@ -1725,11 +1774,19 @@ export class PostsService {
       _message: `Người dùng mang Id ${report._uId} đã báo cáo bài viết mang Id ${report._postId} với nội dung: ${report._content}`,
       _type: "NEW_REPORT_POST",
     });
-    const newNotification = await this.notificationService.createNotification(notification);
+    const newNotification = await this.notificationService.createNotification(
+      notification,
+      session
+    );
+    if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
 
     //Emit event "sendNotification" for internal server
-    eventEmitter.emit("sendNotification", {...newNotification, recipientRole: 2});
+    eventEmitter.emit("sendNotification", {
+      ...newNotification[0],
+      recipientRole: 2,
+    });
 
+    await session.commitTransaction();
     return newReport;
   };
 
@@ -1962,37 +2019,41 @@ export class PostsService {
   public sensorReportPost = async (
     reportId: string,
     inspectorId: string,
-    status: number
+    status: number,
+    session: ClientSession
   ) => {
     const reportPost = await ReportedPosts.findOneAndUpdate(
       { $and: [{ _id: reportId }, { _sensored: false }] },
-      { _sensored: true }
+      { _sensored: true },
+      { session }
     );
     if (!reportPost) throw Errors.ReportedPostNotFound;
 
     if (status) {
-      const post = await Posts.findOne({ _id: reportPost._postId });
+      const post = await Posts.findOne({ _id: reportPost._postId }).session(session);
       if (!post) throw Errors.PostNotFound;
 
       const sensorReport = await Posts.findOneAndUpdate(
         { _id: reportPost._postId },
         { _status: status, _active: false, _inspectId: inspectorId },
-        { new: true }
+        { session, new: true }
       );
       if (!sensorReport) throw Errors.SaveToDatabaseFail;
 
       //Increase totalReported or block user
-      const user = await Users.findOne({ _id: reportPost._uIdReported });
+      const user = await Users.findOne({ _id: reportPost._uIdReported }).session(session);
       if (!user) throw Errors.UserNotFound;
 
       if (user._totalReported >= 2) {
         const userBlocked = await this.userService.blockUser(
-          user._id.toString()
+          user._id.toString(),
+          session
         );
         if (!userBlocked) throw Errors.SaveToDatabaseFail;
       } else {
         const userTotalReported = await this.userService.increaseTotalReported(
-          user._id.toString()
+          user._id.toString(),
+          session
         );
         if (!userTotalReported) throw Errors.SaveToDatabaseFail;
       }
@@ -2007,16 +2068,23 @@ export class PostsService {
       });
 
       const newNotification = await this.notificationService.createNotification(
-        notification
+        notification,
+        session
       );
-      if (!newNotification) throw Errors.SaveToDatabaseFail;
+      if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
 
       //Emit event "sendNotification" for internal server
-      eventEmitter.emit("sendNotification", {...newNotification, recipientRole: 0, recipientId: reportPost._uIdReported});
+      eventEmitter.emit("sendNotification", {
+        ...newNotification[0],
+        recipientRole: 0,
+        recipientId: reportPost._uIdReported,
+      });
 
+      await session.commitTransaction();
       return sensorReport;
     }
 
+    await session.commitTransaction();
     return true;
   };
 

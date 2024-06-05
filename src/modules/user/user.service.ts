@@ -42,7 +42,9 @@ import { UpdateAddressDTO } from "./dtos/update-address.dto";
 import { UserNotDetailResponsesDTO } from "./dtos/user-response.dto";
 import Chat from "twilio/lib/rest/Chat";
 import chatModel from "../chats/chat.model";
-import { eventEmitter, getIo } from "../socket/socket";
+import { eventEmitter} from "../socket/socket";
+import { session } from "passport";
+import { CreateAddressDTO } from "./dtos/create-address.dto";
 //require("esm-hook");
 //const fetch = require("node-fetch").default;
 // const http = require("http");
@@ -85,7 +87,6 @@ export class UserService {
     userParam: CreateUserRequestDTO,
     session: ClientSession
   ) => {
-    console.log("🚀 ~ UserService ~ userParam:", userParam)
     const user = await Users.findOne({
       _email: userParam._email,
     }).session(session);
@@ -104,21 +105,24 @@ export class UserService {
     }
 
     const newUser = await UsersTermp.create(
-      [{
-        _fname: userParam._fname,
-        _lname: userParam._lname,
-        _email: userParam._email,
-        _pw: userParam._pw,
-        expiredAt: Date.now(),
-      }],
+      [
+        {
+          _fname: userParam._fname,
+          _lname: userParam._lname,
+          _email: userParam._email,
+          _pw: userParam._pw,
+          expiredAt: Date.now(),
+        },
+      ],
       { session }
     );
 
     if (newUser.length <= 0) throw Errors.SaveToDatabaseFail;
-    console.log("🚀 ~ UserService ~ newUser:", newUser)
 
     //Kiểm tra OTP có bị trùng không
-    const Otp = await OTP.findOne({ _email: newUser[0]._email }).session(session);
+    const Otp = await OTP.findOne({ _email: newUser[0]._email }).session(
+      session
+    );
     if (Otp) throw Errors.OtpDuplicate;
 
     //Create otp
@@ -139,11 +143,16 @@ export class UserService {
     await this.otpService.sendEmail(payload);
 
     //Save this otp to database
-    const newOTP = await OTP.create([{
-      _email: newUser[0]._email,
-      _otp: otp,
-      expiredAt: Date.now(),
-    }], { session });
+    const newOTP = await OTP.create(
+      [
+        {
+          _email: newUser[0]._email,
+          _otp: otp,
+          expiredAt: Date.now(),
+        },
+      ],
+      { session }
+    );
     if (newOTP.length <= 0) throw Errors.SaveToDatabaseFail;
 
     await session.commitTransaction();
@@ -151,30 +160,46 @@ export class UserService {
     return UserResponsesDTO.toResponse(newUser[0]);
   };
 
-  public verifyRegistor = async (email: string, otp: string, session: ClientSession) => {
+  public verifyRegistor = async (
+    email: string,
+    otp: string,
+    session: ClientSession
+  ) => {
     const checkOTP = await OTP.findOne({
       $and: [{ _email: email }, { _otp: otp }],
     }).session(session);
 
     if (!checkOTP) throw Errors.ExpiredOtp;
 
-    const newUser = await UsersTermp.findOne({ _email: email }).session(session);
+    const newUser = await UsersTermp.findOne({ _email: email }).session(
+      session
+    );
 
     if (!newUser) throw Errors.UserNotFound;
 
-    const user = await Users.create([{
-      _fname: newUser._fname,
-      _lname: newUser._lname,
-      _email: newUser._email,
-      _pw: newUser._pw,
-    }], { session });
+    const user = await Users.create(
+      [
+        {
+          _fname: newUser._fname,
+          _lname: newUser._lname,
+          _email: newUser._email,
+          _pw: newUser._pw,
+        },
+      ],
+      { session }
+    );
 
-    if (!user) throw Errors.SaveToDatabaseFail;
+    if (user.length <= 0) throw Errors.SaveToDatabaseFail;
 
-    const chatAdmin = await chatModel.create({
-      members: [user[0]._id.toString(), "65418310bec0ba49c4d9a276"],
-    });
-    if (!chatAdmin) throw Errors.SaveToDatabaseFail;
+    const chatAdmin = await chatModel.create(
+      [
+        {
+          members: [user[0]._id.toString(), "65418310bec0ba49c4d9a276"],
+        },
+      ],
+      { session }
+    );
+    if (chatAdmin.length <= 0) throw Errors.SaveToDatabaseFail;
 
     await UsersTermp.deleteOne({ _email: email }, { session });
 
@@ -214,11 +239,12 @@ export class UserService {
     userId: string,
     token: string,
     _pw: string,
-    _pwconfirm: string
+    _pwconfirm: string,
+    session: ClientSession
   ) => {
     const user = await Users.findOne({
       _id: userId,
-    });
+    }).session(session);
     if (!user) throw Errors.UserNotFound;
 
     const secret = process.env.SECRET_KEY_FORGOT_PASSWORD + user._pw;
@@ -229,22 +255,31 @@ export class UserService {
 
     if (_pw !== _pwconfirm) throw Errors.PwconfirmInvalid;
 
-    await Users.updateOne({ _id: userId }, { _pw: _pw });
+    const result = await Users.updateOne(
+      { _id: userId },
+      { _pw: _pw },
+      { session }
+    );
+    if (result.modifiedCount <= 0) throw Errors.SaveToDatabaseFail;
 
+    await session.commitTransaction();
     return { message: "Reset password successfully" };
   };
 
-  public updateUser = async (userParam: UpdateUserDTO) => {
+  public updateUser = async (
+    userParam: UpdateUserDTO,
+    session: ClientSession
+  ) => {
     //Check phoneNumber
     const userPhone = await Users.findOne({
       $and: [{ _phone: userParam._phone }, { _id: { $ne: userParam._uId } }],
-    });
+    }).session(session);
     if (userPhone) throw Errors.PhonenumberDuplicate;
 
     const userUpdated = await Users.findOneAndUpdate(
       { _id: userParam._uId },
       userParam,
-      { new: true }
+      { session, new: true }
     );
 
     if (!userUpdated) throw Errors.SaveToDatabaseFail;
@@ -255,10 +290,15 @@ export class UserService {
       _dob,
     };
 
+    await session.commitTransaction();
     return UserResponsesDTO.toResponse(newUser);
   };
 
-  public updateAvatar = async (file: Express.Multer.File, uId: ObjectId) => {
+  public updateAvatar = async (
+    file: Express.Multer.File,
+    uId: ObjectId,
+    session: ClientSession
+  ) => {
     const urlAvatar = await this.imageService.uploadAvatar(file);
 
     //Update avatar user
@@ -266,6 +306,7 @@ export class UserService {
       { _id: uId },
       { _avatar: urlAvatar },
       {
+        session,
         new: true,
       }
     );
@@ -278,19 +319,25 @@ export class UserService {
       _dob,
     };
 
+    await session.commitTransaction();
     return UserResponsesDTO.toResponse(newUser);
   };
 
-  public updateEmail = async (userParam: UserUpdateEmailOrPassDTO) => {
+  public updateEmail = async (
+    userParam: UserUpdateEmailOrPassDTO,
+    session: ClientSession
+  ) => {
     if (userParam._email) {
       const user = await Users.findOne({
         $and: [{ _email: userParam._email }, { _id: { $ne: userParam._uId } }],
-      });
+      }).session(session);
 
       if (user) throw Errors.Duplicate;
     }
 
-    const oldUser = await Users.findOne({ _id: userParam._uId });
+    const oldUser = await Users.findOne({ _id: userParam._uId }).session(
+      session
+    );
 
     if (!oldUser) throw Errors.UserNotFound;
 
@@ -300,13 +347,15 @@ export class UserService {
 
     const newUser = await Users.updateOne(
       { _id: userParam._uId },
-      { _email: userParam._email, _pw: userParam._pw }
+      { _email: userParam._email, _pw: userParam._pw },
+      { session }
     );
 
     if (newUser.modifiedCount <= 0) throw Errors.SaveToDatabaseFail;
 
-    await RefreshTokens.deleteMany({ _uId: userParam._uId });
+    await RefreshTokens.deleteMany({ _uId: userParam._uId }, { session });
 
+    await session.commitTransaction();
     return { message: "Please login againt!" };
   };
 
@@ -367,7 +416,12 @@ export class UserService {
     return true;
   };
 
-  public verifyHost = async (userId: string, phone: string, otp: string) => {
+  public verifyHost = async (
+    userId: string,
+    phone: string,
+    otp: string,
+    session: ClientSession
+  ) => {
     try {
       const _phone = phone.replace("0", "+84");
 
@@ -391,11 +445,12 @@ export class UserService {
       const newUser = await Users.findByIdAndUpdate(
         userId,
         { _phone: phone },
-        { new: true }
+        { session, new: true }
       );
 
       if (!newUser) Errors.SaveToDatabaseFail;
 
+      await session.commitTransaction();
       return UserResponsesDTO.toResponse(newUser);
     } catch (error) {
       console.log("🚀 ~ UserService ~ verifyHost= ~ error:", error);
@@ -421,14 +476,15 @@ export class UserService {
   public verifyIdentity = async (
     userId: string,
     image_front: Express.Multer.File,
-    image_back: Express.Multer.File
+    image_back: Express.Multer.File,
+    session: ClientSession
   ) => {
     try {
       let result;
       // Check user is Block Host
       const userBlock = await UserBlocked.findOne({
         _uId: new mongoose.Types.ObjectId(userId),
-      });
+      }).session(session);
       if (userBlock) throw Errors.UserIsBlocked;
 
       const base64_front = image_front.buffer.toString("base64");
@@ -439,17 +495,19 @@ export class UserService {
       // Check user is Block Host
       const userBlockIdentity = await UserBlocked.findOne({
         _idCard: data_front.id,
-      });
+      }).session(session);
       if (userBlockIdentity) throw Errors.UserIsBlocked;
       //Check identity card is duplicate
       const indentity = await Indentities.findOne({
         $and: [{ _uId: { $ne: userId } }, { _idCard: data_front.id }],
-      });
+      }).session(session);
       if (indentity) throw Errors.IDCardDuplicate;
 
       const data_back = await fetchIDRecognition(base64_back);
       const resultIndentity = { ...data_front, ...data_back };
-      const checkIdentity = await Indentities.findOne({ _uId: userId });
+      const checkIdentity = await Indentities.findOne({ _uId: userId }).session(
+        session
+      );
 
       if (checkIdentity) {
         const updateIndentity = await Indentities.findOneAndUpdate(
@@ -474,41 +532,48 @@ export class UserService {
             _verified: false,
             _reason: null,
           },
-          { new: true }
+          { session, new: true }
         );
         if (!updateIndentity) throw Errors.SaveToDatabaseFail;
 
         const updatedUser = await Users.findOneAndUpdate(
           { _id: new mongoose.Types.ObjectId(userId) },
           { _isHost: false, _temptHostBlocked: true },
-          { new: true }
+          { session, new: true }
         );
         if (!updatedUser) throw Errors.SaveToDatabaseFail;
 
         result = UserResponsesDTO.toResponse(updatedUser);
       } else {
-        const newIndentity = await Indentities.create({
-          _uId: new mongoose.Types.ObjectId(userId),
-          _idCard: resultIndentity.id,
-          _name: resultIndentity.name,
-          _dob: resultIndentity.dob,
-          _home: resultIndentity.home,
-          _address: resultIndentity.address,
-          _gender: resultIndentity.sex,
-          _nationality: resultIndentity.nationality
-            ? resultIndentity.nationality
-            : null,
-          _features: resultIndentity.features,
-          _issueDate: resultIndentity.issue_date,
-          _doe: resultIndentity.doe ? resultIndentity.doe : null,
-          _issueLoc: resultIndentity.issue_loc
-            ? resultIndentity.issue_loc
-            : null,
-          _type: data_front.type_new ? data_front.type_new : data_front.type,
-        });
-        if (!newIndentity) throw Errors.SaveToDatabaseFail;
+        const newIndentity = await Indentities.create(
+          [
+            {
+              _uId: new mongoose.Types.ObjectId(userId),
+              _idCard: resultIndentity.id,
+              _name: resultIndentity.name,
+              _dob: resultIndentity.dob,
+              _home: resultIndentity.home,
+              _address: resultIndentity.address,
+              _gender: resultIndentity.sex,
+              _nationality: resultIndentity.nationality
+                ? resultIndentity.nationality
+                : null,
+              _features: resultIndentity.features,
+              _issueDate: resultIndentity.issue_date,
+              _doe: resultIndentity.doe ? resultIndentity.doe : null,
+              _issueLoc: resultIndentity.issue_loc
+                ? resultIndentity.issue_loc
+                : null,
+              _type: data_front.type_new
+                ? data_front.type_new
+                : data_front.type,
+            },
+          ],
+          { session }
+        );
+        if (newIndentity.length <= 0) throw Errors.SaveToDatabaseFail;
 
-        result = newIndentity;
+        result = newIndentity[0];
       }
       //Create notification for inspector
       const notification = CreateNotificationInspectorDTO.fromService({
@@ -518,17 +583,18 @@ export class UserService {
         _message: `Người dùng mang id ${userId} đã gửi yêu cầu quyền host. Vui lòng kiểm tra thông tin và cấp quyền cho người dùng này`,
       });
       const newNotification = await this.notificationService.createNotification(
-        notification
+        notification,
+        session
       );
-
-      if (!newNotification) throw Errors.SaveToDatabaseFail;
+      if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
 
       //Emit event "sendNotification" for inspector
       eventEmitter.emit("sendNotification", {
-        ...newNotification,
+        ...newNotification[0],
         recipientRole: 2,
       });
 
+      await session.commitTransaction();
       return result;
     } catch (error) {
       console.log("🚀 ~ UserService ~ error:", error);
@@ -588,47 +654,53 @@ export class UserService {
   };
 
   public registerAddress = async (
-    address: string,
-    totalRooms: number,
-    userId: string,
-    img: Express.Multer.File[]
+    addressInfo: CreateAddressDTO,
+    img: Express.Multer.File[],
+    session: ClientSession
   ) => {
-    const user = await Users.findOne({ _id: userId });
+    const user = await Users.findOne({ _id: addressInfo._uId });
     if (!user) throw Errors.UserNotFound;
     if (!user._isHost) throw Errors.Unauthorized;
 
     //Upload certificate images to firebase
-    const urlCerf = await this.imageService.uploadCerf(img, userId);
+    const urlCerf = await this.imageService.uploadCerf(img, addressInfo._uId.toString());
     if (!urlCerf) throw Errors.UploadImageFail;
 
-    const addressUser = await addressRental.create({
-      _uId: new mongoose.Types.ObjectId(userId),
-      _address: address,
-      _totalRoom: totalRooms ? totalRooms : 1,
-      _imgLicense: urlCerf,
-    });
-    if (!addressUser) throw Errors.SaveToDatabaseFail;
+    const addressUser = await addressRental.create(
+        [{
+          _uId: addressInfo._uId,
+          _address: addressInfo._address,
+          _totalRoom: addressInfo._totalRoom ? addressInfo._totalRoom : 1,
+          _imgLicense: urlCerf,
+        }],
+        { session }
+    );
+    if (addressUser.length <= 0) throw Errors.SaveToDatabaseFail;
+    console.log("🚀 ~ UserService ~ addressUser:", addressUser[0]._id)
 
     //create notification for inspector
     const notification = CreateNotificationRegisterAddressDTO.fromService({
       _uId: user._id,
-      _addressId: addressUser._id,
+      _addressId: addressUser[0]._id,
       _type: "REGISTER_ADDRESS",
       _title: "Yêu cầu đăng kí địa chỉ host",
-      _message: `Người dùng mang id ${userId} đã gửi yêu cầu đăng kí địa chỉ phòng trọ. Vui lòng kiểm tra thông tin và cấp quyền cho người dùng này`,
+      _message: `Người dùng mang id ${addressUser[0]._uId.toString()} đã gửi yêu cầu đăng kí địa chỉ phòng trọ. Vui lòng kiểm tra thông tin và cấp quyền cho người dùng này`,
     });
+    console.log("🚀 ~ UserService ~ notification:", notification)
     const newNotification = await this.notificationService.createNotification(
-      notification
+      notification,
+      session
     );
-    if (!newNotification) throw Errors.SaveToDatabaseFail;
+    if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
 
     //Emit event "sendNotification" for inspector
     eventEmitter.emit("sendNotification", {
-      ...newNotification,
+      ...newNotification[0],
       recipientRole: 2,
     });
-
-    return addressUser;
+    
+    await session.commitTransaction();
+    return addressUser[0];
   };
 
   public getAddressesByStatusUser = async (
@@ -680,16 +752,19 @@ export class UserService {
   public manageSatusOfAddressUser = async (
     status: number,
     userId: string,
-    addressId: string
+    addressId: string,
+    session: ClientSession
   ) => {
     const user = await Users.findOne({
       $and: [{ _id: userId }, { _active: true }],
-    });
+    }).session(session);
     if (!user) throw Errors.UserNotFound;
 
-    const address = await addressRental.findOne({
-      $and: [{ _id: addressId }, { _uId: userId }],
-    });
+    const address = await addressRental
+      .findOne({
+        $and: [{ _id: addressId }, { _uId: userId }],
+      })
+      .session(session);
     if (!address) throw Errors.AddressRentakNotFound;
 
     if (status !== 1 && status !== 3) throw Errors.StatusInvalid;
@@ -697,7 +772,7 @@ export class UserService {
     const updateAddress = await addressRental.findOneAndUpdate(
       { _id: new mongoose.Types.ObjectId(addressId) },
       { _status: status, _active: status === 1 ? true : false },
-      { new: true }
+      { session, new: true }
     );
     if (!updateAddress) throw Errors.SaveToDatabaseFail;
 
@@ -709,7 +784,7 @@ export class UserService {
       const updateUser = await Users.findOneAndUpdate(
         { _id: new mongoose.Types.ObjectId(userId) },
         { _addressRental: user._addressRental },
-        { new: true }
+        { session, new: true }
       );
       if (!updateUser) throw Errors.SaveToDatabaseFail;
     } else if (status === 3 && index >= 0) {
@@ -718,31 +793,35 @@ export class UserService {
       const updateUser = await Users.findOneAndUpdate(
         { _id: new mongoose.Types.ObjectId(userId) },
         { _addressRental: user._addressRental },
-        { new: true }
+        { session, new: true }
       );
       if (!updateUser) throw Errors.SaveToDatabaseFail;
     }
 
+    await session.commitTransaction();
     return updateAddress;
   };
 
   public updateAddress = async (
     img: Express.Multer.File[],
-    addressInfo: UpdateAddressDTO
+    addressInfo: UpdateAddressDTO,
+    session: ClientSession
   ) => {
     const user = await Users.findOne({
       $and: [{ _id: addressInfo._uId }, { _active: true }, { _isHost: true }],
-    });
+    }).session(session);
     if (!user) throw Errors.UserNotFound;
 
-    const address = await addressRental.findOne({
-      $and: [
-        { _id: addressInfo._id },
-        { _uId: addressInfo._uId },
-        { _status: 1 },
-        { _active: true },
-      ],
-    });
+    const address = await addressRental
+      .findOne({
+        $and: [
+          { _id: addressInfo._id },
+          { _uId: addressInfo._uId },
+          { _status: 1 },
+          { _active: true },
+        ],
+      })
+      .session(session);
     if (!address) throw Errors.AddressRentakNotFound;
 
     const updateAddress = {
@@ -769,7 +848,7 @@ export class UserService {
         _id: new mongoose.Types.ObjectId(addressInfo._id),
       },
       updateAddress,
-      { new: true }
+      { session, new: true }
     );
     if (!updatedAddress) throw Errors.SaveToDatabaseFail;
 
@@ -782,24 +861,29 @@ export class UserService {
       _message: `Người dùng mang id ${user._id} đã cập nhật thông tin địa chỉ phòng trọ. Vui lòng kiểm tra thông tin và cấp quyền cho người dùng này`,
     });
     const newNotification = await this.notificationService.createNotification(
-      notification
+      notification,
+      session
     );
-    if (!newNotification) throw Errors.SaveToDatabaseFail;
+    if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
 
     //Emit event "sendNotification" for inspector
     eventEmitter.emit("sendNotification", {
-      ...newNotification,
+      ...newNotification[0],
       recipientRole: 2,
     });
 
+    await session.commitTransaction();
     return updatedAddress;
   };
 
   //Inspector
-  public updateInspectorProfile = async (userParam: UpdateUserDTO) => {
+  public updateInspectorProfile = async (
+    userParam: UpdateUserDTO,
+    session: ClientSession
+  ) => {
     const inspector = await Users.findOne({
       $and: [{ _id: userParam._uId }, { _role: 2 }, { _active: true }],
-    });
+    }).session(session);
     if (!inspector) throw Errors.UserNotFound;
 
     const inspectorPhone = await Users.findOne({
@@ -808,13 +892,13 @@ export class UserService {
         { _role: 2 },
         { _id: { $ne: userParam._uId } },
       ],
-    });
+    }).session(session);
     if (inspectorPhone) throw Errors.PhonenumberDuplicate;
 
     const inspectorUpdated = await Users.findOneAndUpdate(
       { _id: userParam._uId },
       userParam,
-      { new: true }
+      { session, new: true }
     );
     if (!inspectorUpdated) throw Errors.SaveToDatabaseFail;
 
@@ -824,12 +908,14 @@ export class UserService {
       _dob,
     };
 
+    await session.commitTransaction();
     return UserResponsesDTO.toResponse(newInspector);
   };
 
   public updateInspectorAvatar = async (
     file: Express.Multer.File,
-    uId: ObjectId
+    uId: ObjectId,
+    session: ClientSession
   ) => {
     const urlAvatar = await this.imageService.uploadAvatar(file);
 
@@ -838,6 +924,7 @@ export class UserService {
       { _id: uId },
       { _avatar: urlAvatar },
       {
+        session,
         new: true,
       }
     );
@@ -850,15 +937,17 @@ export class UserService {
       _dob,
     };
 
+    await session.commitTransaction();
     return UserResponsesDTO.toResponse(newInspector);
   };
 
   public updatePasswordInspector = async (
-    userParam: UpdateInspectorPasswordDTO
+    userParam: UpdateInspectorPasswordDTO,
+    session: ClientSession
   ) => {
     const inspector = await Users.findOne({
       $and: [{ _id: userParam._uId }, { _role: 2 }, { _active: true }],
-    });
+    }).session(session);
     if (!inspector) throw Errors.UserNotFound;
 
     //Check old password
@@ -870,12 +959,14 @@ export class UserService {
 
     const updateInspector = await Users.updateOne(
       { _id: userParam._uId },
-      { _pw: userParam._pw }
+      { _pw: userParam._pw },
+      { session }
     );
     if (updateInspector.modifiedCount <= 0) throw Errors.SaveToDatabaseFail;
 
-    await RefreshTokens.deleteMany({ _uId: userParam._uId });
+    await RefreshTokens.deleteMany({ _uId: userParam._uId }, { session });
 
+    await session.commitTransaction();
     return { message: "Login againt!" };
   };
 
@@ -977,13 +1068,14 @@ export class UserService {
     identId: string,
     status: number,
     reason: string,
-    inspectorId: string
+    inspectorId: string,
+    session: ClientSession
   ) => {
     let updateObj = {};
     let notification: CreateNotificationInspectorDTO;
     const userIdentity = await Indentities.findOne({
       $and: [{ _id: identId }, { _reason: null }, { _verified: false }],
-    });
+    }).session(session);
     if (!userIdentity) throw Errors.UserIdentityNotFound;
 
     if (status === 1) {
@@ -1018,7 +1110,7 @@ export class UserService {
     const updateIdentity = await Indentities.findOneAndUpdate(
       { _id: new mongoose.Types.ObjectId(identId) },
       updateObj,
-      { new: true }
+      { session, new: true }
     );
 
     if (!updateIdentity) throw Errors.SaveToDatabaseFail;
@@ -1027,24 +1119,26 @@ export class UserService {
       const updateUser = await Users.findOneAndUpdate(
         { _id: new mongoose.Types.ObjectId(userIdentity._uId) },
         { _isHost: true, _temptHostBlocked: false },
-        { new: true }
+        { session, new: true }
       );
 
       if (!updateUser) throw Errors.SaveToDatabaseFail;
     }
 
     const newNotification = await this.notificationService.createNotification(
-      notification
+      notification,
+      session
     );
 
-    if (!newNotification) throw Errors.SaveToDatabaseFail;
+    if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
     //Emit event "sendNotification" for inspector
     eventEmitter.emit("sendNotification", {
-      ...newNotification,
+      ...newNotification[0],
       recipientRole: 0,
       recipientId: userIdentity._uId,
     });
 
+    await session.commitTransaction();
     return updateIdentity;
   };
 
@@ -1120,18 +1214,23 @@ export class UserService {
     addressId: string,
     status: number,
     reason: string,
-    inspectorId: string
+    inspectorId: string,
+    session: ClientSession
   ) => {
     let updateObj = {};
     let notification: CreateNotificationInspectorDTO;
     let newAddressRental = [];
 
-    const addressRequest = await addressRental.findOne({
-      $and: [{ _id: addressId }, { _status: 0 }],
-    });
+    const addressRequest = await addressRental
+      .findOne({
+        $and: [{ _id: addressId }, { _status: 0 }],
+      })
+      .session(session);
     if (!addressRequest) throw Errors.AddressRentakNotFound;
 
-    const user = await Users.findOne({ _id: addressRequest._uId });
+    const user = await Users.findOne({ _id: addressRequest._uId }).session(
+      session
+    );
     if (!user || !user._isHost) throw Errors.UserNotFound;
 
     if (status === 1) {
@@ -1167,7 +1266,7 @@ export class UserService {
     const updateAddress = await addressRental.findOneAndUpdate(
       { _id: new mongoose.Types.ObjectId(addressId) },
       updateObj,
-      { new: true }
+      { session, new: true }
     );
 
     if (!updateAddress) throw Errors.SaveToDatabaseFail;
@@ -1176,24 +1275,26 @@ export class UserService {
       const updateUser = await Users.findOneAndUpdate(
         { _id: new mongoose.Types.ObjectId(addressRequest._uId) },
         { _addressRental: newAddressRental },
-        { new: true }
+        { session, new: true }
       );
       if (!updateUser) throw Errors.SaveToDatabaseFail;
     }
 
     const newNotification = await this.notificationService.createNotification(
-      notification
+      notification,
+      session
     );
 
-    if (!newNotification) throw Errors.SaveToDatabaseFail;
+    if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
 
     //Emit event "sendNotification" for inspector
     eventEmitter.emit("sendNotification", {
-      ...newNotification,
+      ...newNotification[0],
       recipientRole: 0,
       recipientId: addressRequest._uId,
     });
 
+    await session.commitTransaction();
     return updateAddress;
   };
 
@@ -1234,38 +1335,49 @@ export class UserService {
     ];
   };
 
-  public createInspector = async (userParam: CreateUserRequestDTO) => {
+  public createInspector = async (
+    userParam: CreateUserRequestDTO,
+    session: ClientSession
+  ) => {
     const inspector = await Users.findOne({
       $and: [{ _email: userParam._email }, { _role: 2 }, { _active: true }],
-    });
+    }).session(session);
 
     if (inspector) throw Errors.Duplicate;
 
     //Check password and password confirm
     if (userParam._pw !== userParam._pwconfirm) throw Errors.PwconfirmInvalid;
 
-    const newInspector = await Users.create({
-      _email: userParam._email,
-      _pw: userParam._pw,
-      _role: 2,
-    });
+    const newInspector = await Users.create(
+      [
+        {
+          _email: userParam._email,
+          _pw: userParam._pw,
+          _role: 2,
+        },
+      ],
+      { session }
+    );
+    if (newInspector.length <= 0) throw Errors.SaveToDatabaseFail;
 
-    return UserResponsesDTO.toResponse(newInspector);
+    await session.commitTransaction();
+    return UserResponsesDTO.toResponse(newInspector[0]);
   };
 
-  public blockInspector = async (inspectID: string) => {
+  public blockInspector = async (inspectID: string, session: ClientSession) => {
     const inspector = await Users.findOne({
       $and: [{ _id: inspectID }, { _role: 2 }],
-    });
+    }).session(session);
     if (!inspector) throw Errors.UserNotFound;
 
     const blockInspector = await Users.findOneAndUpdate(
       { _id: inspectID },
       { _active: !inspector._active },
-      { new: true }
+      { session, new: true }
     );
     if (!blockInspector) throw Errors.SaveToDatabaseFail;
 
+    await session.commitTransaction();
     return { message: "Block inspector successfully" };
   };
 
@@ -1284,10 +1396,13 @@ export class UserService {
     return UserResponsesDTO.toResponse(newInspector);
   };
 
-  public updatePassInspector = async (userParam: UpdateInspectorPassDTO) => {
+  public updatePassInspector = async (
+    userParam: UpdateInspectorPassDTO,
+    session: ClientSession
+  ) => {
     const inspector = await Users.findOne({
       $and: [{ _id: userParam._inspectId }, { _role: 2 }, { _active: true }],
-    });
+    }).session(session);
     if (!inspector) throw Errors.UserNotFound;
 
     //Check password and password confirm
@@ -1295,10 +1410,12 @@ export class UserService {
 
     const updateInspector = await Users.updateOne(
       { _id: userParam._inspectId },
-      { _pw: userParam._pw }
+      { _pw: userParam._pw },
+      { session }
     );
     if (updateInspector.modifiedCount <= 0) throw Errors.SaveToDatabaseFail;
 
+    await session.commitTransaction();
     return { message: "Update password successfull" };
   };
 
@@ -1306,13 +1423,14 @@ export class UserService {
     identId: string,
     status: number,
     reason: string,
-    inspectorId: string
+    inspectorId: string,
+    session: ClientSession
   ) => {
     let updateObj = {};
     let notification: CreateNotificationInspectorDTO;
     const userIdentity = await Indentities.findOne({
       $and: [{ _id: identId }],
-    });
+    }).session(session);
     if (!userIdentity) throw Errors.UserIdentityNotFound;
 
     if (status === 1) {
@@ -1347,7 +1465,7 @@ export class UserService {
     const updateIdentity = await Indentities.findOneAndUpdate(
       { _id: new mongoose.Types.ObjectId(identId) },
       updateObj,
-      { new: true }
+      { session, new: true }
     );
 
     if (!updateIdentity) throw Errors.SaveToDatabaseFail;
@@ -1356,7 +1474,7 @@ export class UserService {
       const updateUser = await Users.findOneAndUpdate(
         { _id: new mongoose.Types.ObjectId(userIdentity._uId) },
         { _isHost: true, _temptHostBlocked: false },
-        { new: true }
+        { session, new: true }
       );
 
       if (!updateUser) throw Errors.SaveToDatabaseFail;
@@ -1364,25 +1482,27 @@ export class UserService {
       const updateUser = await Users.findOneAndUpdate(
         { _id: new mongoose.Types.ObjectId(userIdentity._uId) },
         { _isHost: false },
-        { new: true }
+        { session, new: true }
       );
 
       if (!updateUser) throw Errors.SaveToDatabaseFail;
     }
 
     const newNotification = await this.notificationService.createNotification(
-      notification
+      notification,
+      session
     );
 
-    if (!newNotification) throw Errors.SaveToDatabaseFail;
+    if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
 
     //Emit event "sendNotification" for inspector
     eventEmitter.emit("sendNotification", {
-      ...newNotification,
+      ...newNotification[0],
       recipientRole: 0,
       recipientId: userIdentity._uId,
     });
 
+    await session.commitTransaction();
     return updateIdentity;
   };
 
@@ -1390,18 +1510,23 @@ export class UserService {
     addressId: string,
     status: number,
     reason: string,
-    inspectorId: string
+    inspectorId: string,
+    session: ClientSession
   ) => {
     let updateObj = {};
     let notification: CreateNotificationInspectorDTO;
     let newAddressRental = [];
 
-    const addressRequest = await addressRental.findOne({
-      $and: [{ _id: addressId }],
-    });
+    const addressRequest = await addressRental
+      .findOne({
+        $and: [{ _id: addressId }],
+      })
+      .session(session);
     if (!addressRequest) throw Errors.AddressRentakNotFound;
 
-    const user = await Users.findOne({ _id: addressRequest._uId });
+    const user = await Users.findOne({ _id: addressRequest._uId }).session(
+      session
+    );
     if (!user || !user._isHost) throw Errors.UserNotFound;
 
     if (status === 1) {
@@ -1440,7 +1565,7 @@ export class UserService {
     const updateAddress = await addressRental.findOneAndUpdate(
       { _id: new mongoose.Types.ObjectId(addressId) },
       updateObj,
-      { new: true }
+      { session, new: true }
     );
 
     if (!updateAddress) throw Errors.SaveToDatabaseFail;
@@ -1448,23 +1573,25 @@ export class UserService {
     const updateUser = await Users.findOneAndUpdate(
       { _id: new mongoose.Types.ObjectId(addressRequest._uId) },
       { _addressRental: newAddressRental },
-      { new: true }
+      { session, new: true }
     );
     if (!updateUser) throw Errors.SaveToDatabaseFail;
 
     const newNotification = await this.notificationService.createNotification(
-      notification
+      notification,
+      session
     );
 
-    if (!newNotification) throw Errors.SaveToDatabaseFail;
+    if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
 
     //Emit event "sendNotification" for inspector
     eventEmitter.emit("sendNotification", {
-      ...newNotification,
+      ...newNotification[0],
       recipientRole: 0,
       recipientId: addressRequest._uId,
     });
 
+    await session.commitTransaction();
     return updateAddress;
   };
 
@@ -1821,8 +1948,11 @@ export class UserService {
   };
 
   //Automaticly
-  public increaseTotalReported = async (userId: string) => {
-    const user = await Users.findOne({ _id: userId });
+  public increaseTotalReported = async (
+    userId: string,
+    session: ClientSession
+  ) => {
+    const user = await Users.findOne({ _id: userId }).session(session);
     if (!user) throw Errors.UserNotFound;
 
     //Increase total reported
@@ -1830,37 +1960,44 @@ export class UserService {
     const updateUser = await Users.findOneAndUpdate(
       { _id: userId },
       { _totalReported: totalReported },
-      { new: true }
+      { session, new: true }
     );
     if (!updateUser) throw Errors.SaveToDatabaseFail;
 
     return true;
   };
 
-  public blockUser = async (userId: string) => {
-    const user = await Users.findOne({ _id: userId });
+  public blockUser = async (userId: string, session: ClientSession) => {
+    const user = await Users.findOne({ _id: userId }).session(session);
     if (!user) throw Errors.UserNotFound;
 
-    const identity = await Indentities.findOne({ _uId: userId });
+    const identity = await Indentities.findOne({ _uId: userId }).session(
+      session
+    );
     if (!identity) throw Errors.UserIdentityNotFound;
 
     //Block user
     const updateUser = await Users.findOneAndUpdate(
       { _id: new mongoose.Types.ObjectId(userId) },
       { _isHost: false, _temptHostBlocked: false },
-      { new: true }
+      { session, new: true }
     );
     if (!updateUser) throw Errors.SaveToDatabaseFail;
 
     //Create block user
-    const userBlock = await UserBlocked.create({
-      _uId: new mongoose.Types.ObjectId(userId),
-      _idCard: identity._idCard,
-      _email: user._email,
-      _phone: user._phone,
-      _reason: "Có 3 bài viết bị báo cáo",
-    });
-    if (!userBlock) throw Errors.SaveToDatabaseFail;
+    const userBlock = await UserBlocked.create(
+      [
+        {
+          _uId: new mongoose.Types.ObjectId(userId),
+          _idCard: identity._idCard,
+          _email: user._email,
+          _phone: user._phone,
+          _reason: "Có 3 bài viết bị báo cáo",
+        },
+      ],
+      { session }
+    );
+    if (userBlock.length <= 0) throw Errors.SaveToDatabaseFail;
 
     //create notification for user
     const notification = CreateNotificationDTO.fromService({
@@ -1870,18 +2007,19 @@ export class UserService {
       _message: `Tài khoản của bạn đã bị khóa chức năng host do có 3 bài viết bị báo cáo. Vui lòng liên hệ với admin nếu có sai sót`,
     });
     const newNotification = await this.notificationService.createNotification(
-      notification
+      notification,
+      session
     );
-    if (!newNotification) throw Errors.SaveToDatabaseFail;
+    if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
 
     //Emit event "sendNotification" for inspector
     eventEmitter.emit("sendNotification", {
-      ...newNotification,
+      ...newNotification[0],
       recipientRole: 0,
       recipientId: userId,
     });
 
-    return userBlock;
+    return userBlock[0];
   };
 
   // public sendSMS = async (

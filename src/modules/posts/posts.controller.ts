@@ -8,6 +8,7 @@ import { PostUpdateDTO } from "./dtos/post-update.dto";
 import { PostSensorDTO } from "./dtos/post-sensor.dto";
 import { PostUpdateStatusDTO } from "./dtos/post-update-status.dto";
 import { ReportCreateDTO } from "./dtos/post-reported.dto";
+import { startSession } from "mongoose";
 
 @Service()
 export class PostsController {
@@ -178,15 +179,20 @@ export class PostsController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const files = req.files as Express.Multer.File[];
       const postInfo = PostCreateDTO.fromRequest(req);
-      const post = await this.postsService.createNewPost(postInfo, files);
+      session.startTransaction();
+      const post = await this.postsService.createNewPost(postInfo, files, session);
+
       res.json(new ResponseData(post, null, null));
     } catch (error) {
+      await session.abortTransaction();
       console.log("🚀 ~ PostsController ~ error:", error);
-      //console.log(error);
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
@@ -195,19 +201,25 @@ export class PostsController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const files = req.files as Express.Multer.File[];
       const postInfo = PostUpdateDTO.fromRequest(req);
+      session.startTransaction();
       const post = await this.postsService.updatePost(
         postInfo,
         req.params.postId,
-        files
+        files,
+        session
       );
 
       res.json(new ResponseData(post, null, null));
     } catch (error) {
-      console.log(error);
+      await session.abortTransaction();
+      console.log("🚀 ~ PostsController ~ error:", error)
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
@@ -216,20 +228,26 @@ export class PostsController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const infoStatus = PostUpdateStatusDTO.fromRequest(req);
+      session.startTransaction();
       const data = await this.postsService.updatePostStatus(
         infoStatus,
-        req.params.postId
+        req.params.postId,
+        session
       );
 
       res.json(new ResponseData(data, null, null));
     } catch (error) {
+      await session.abortTransaction();
       console.log(
         "🚀 ~ file: posts.controller.ts:101 ~ PostsController ~ error:",
         error
       );
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
@@ -238,17 +256,23 @@ export class PostsController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const postInfo = PostSensorDTO.fromRequest(req);
+      session.startTransaction();
       const post = await this.postsService.sensorPost(
         postInfo,
-        req.params.postId
+        req.params.postId,
+        session
       );
 
       res.json(new ResponseData(post, null, null));
     } catch (error) {
-      console.log(error);
+      await session.abortTransaction();
+      console.log("🚀 ~ PostsController ~ error:", error)
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
@@ -301,20 +325,26 @@ export class PostsController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const postId = req.body.postId ? req.body.postId.toString() : undefined;
+      session.startTransaction();
       const data = await this.postsService.createFavoritePost(
         req.body._uId,
-        postId
+        postId,
+        session
       );
 
       res.json(new ResponseData(data, null, null));
     } catch (error) {
+      await session.abortTransaction();
       console.log(
         "🚀 ~ file: posts.controller.ts:117 ~ PostsController ~ error:",
         error
       );
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
@@ -363,17 +393,22 @@ export class PostsController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const postInfo = ReportCreateDTO.fromRequest(req);
-      const data = await this.postsService.createReportPost(postInfo);
+      session.startTransaction();
+      const data = await this.postsService.createReportPost(postInfo, session);
 
       res.json(new ResponseData(data, null, null));
     } catch (error) {
+      await session.abortTransaction();
       console.log(
         "🚀 ~ file: posts.controller.ts:117 ~ PostsController ~ error:",
         error
       );
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
@@ -448,20 +483,26 @@ export class PostsController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
+      session.startTransaction();
       const data = await this.postsService.sensorReportPost(
         req.params.reportedId,
         req.body._uId,
-        req.body.status
+        req.body.status,
+        session
       );
 
       res.json(new ResponseData(data, null, null));
     } catch (error) {
+      await session.abortTransaction();
       console.log(
         "🚀 ~ file: posts.controller.ts:117 ~ PostsController ~ error:",
         error
       );
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
