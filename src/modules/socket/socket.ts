@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // import { Server, Socket } from "socket.io";
 // import { Server as HttpServer} from "http";
-import event from "events";
+import { EventEmitter } from "events";
 
 // //List of online users
 // let onlineUsers: { userId: string; socketId: string }[] = [];
@@ -12,7 +12,10 @@ import event from "events";
 // };
 
 // let io : Server;
-export const eventEmitter = new event.EventEmitter();
+class MyEmitter extends EventEmitter {}
+const eventEmitter = new MyEmitter();
+
+export default eventEmitter;
 
 // export const initSocket = (server: HttpServer, corsOptions: any) : Server => {
   

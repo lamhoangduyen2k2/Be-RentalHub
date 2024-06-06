@@ -556,6 +556,7 @@ export class UserController {
   ) => {
     const session = await startSession();
     try {
+      console.log("🚀 ~ UserController ~ Start call API")
       const sensorInfo = SensorIdenityDTO.fromRequest(req);
       session.startTransaction();
       const updatedAddress = await this.userService.sensorAddressRequest(
@@ -771,6 +772,7 @@ export class UserController {
   ) => {
     const session = await startSession();
     try {
+      console.log("🚀 ~ UserController ~ Start call API")
       const sensorInfo = SensorIdenityDTO.fromRequest(req);
       session.startTransaction();
       const updatedAddress = await this.userService.sensorAddressRequestAdmin(

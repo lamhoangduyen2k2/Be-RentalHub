@@ -21,7 +21,7 @@ import { NotificationService } from "../notification/notification.service";
 import { CreateNotificationDTO } from "../notification/dtos/create-notification.dto";
 import addressRental from "../user/model/user-address.model";
 import { UserService } from "../user/user.service";
-import { eventEmitter } from "../socket/socket";
+import eventEmitter from "../socket/socket";
 import { ClientSession } from "mongoose";
 
 @Service()
@@ -263,11 +263,11 @@ export class PostsService {
     postId: string,
     session: ClientSession
   ) => {
-    let isRented: boolean = false;
-    let active: boolean = true;
+    // let isRented: boolean = false;
+    // let active: boolean = true;
     let notification: CreateNotificationDTO;
 
-    if (postParam._status !== 1 && postParam._status !== 2)
+    if (postParam._status !== 1 && postParam._status !== 3)
       throw Errors.StatusInvalid;
 
     const post = await Posts.findOne({
@@ -275,28 +275,28 @@ export class PostsService {
     }).session(session);
     if (!post) throw Errors.PostNotFound;
 
-    if (postParam._status === 2) {
-      active = false;
-      isRented = true;
-    }
+    // if (postParam._status === 2) {
+    //   active = false;
+    //   isRented = true;
+    // }
 
     const updatedPost = await Posts.findOneAndUpdate(
       { _id: new mongoose.Types.ObjectId(postId) },
       {
         _status: postParam._status,
-        _active: active,
+        //_active: active,
         _inspectId: postParam._uId,
       },
       { session, new: true }
     );
 
-    await Rooms.updateOne(
-      { _id: updatedPost._rooms },
-      {
-        _isRented: isRented,
-      },
-      { session }
-    );
+    // await Rooms.updateOne(
+    //   { _id: updatedPost._rooms },
+    //   {
+    //     _isRented: isRented,
+    //   },
+    //   { session }
+    // );
 
     //Create notification for user
     if (postParam._status === 1) {

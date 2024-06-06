@@ -26,7 +26,7 @@ import chatRoute from "./modules/chats/chat.route";
 import messageRoute from "./modules/messages/message.route";
 import http from "http";
 //import { Server } from "socket.io";
-import { eventEmitter } from "./modules/socket/socket"
+import eventEmitter  from "./modules/socket/socket"
 import socialRoute from "./modules/social-posts/social-posts.route";
 import cookieParser from "cookie-parser";
 import { Server } from "socket.io";
@@ -157,26 +157,30 @@ import { Server } from "socket.io";
     });
 
     //send notifications
-    eventEmitter.on("sendNotification", (notification) => {
-      console.log("🚀 ~ socket.on ~ notification:", notification.recipientRole)
-      console.log("🚀 ~ socket.on ~ notification:", notification.recipientId.toString())
-      if (notification.recipientRole === 2) {
-        // Send notification for all inspectors
-        onlineInspectors.forEach((inspector) => {
-          io.to(inspector.socketId).emit("getNotification", notification._doc);
-        });
-      } else if (notification.recipientRole === 0) {
-        console.log("🚀 ~ socket.on.sendNotification ~ onlineUsers:", onlineUsers)
-        // Send notification for a specific user
-        const recipient = onlineUsers.find(
-          (user) => user.userId === notification.recipientId.toString()
-        );
-        console.log("🚀 ~ eventEmitter.on ~ recipient:", recipient)
-        if (recipient) {
-          io.to(recipient.socketId).emit("getNotification", notification._doc);
+    if (eventEmitter.listenerCount("sendNotification") === 0) {
+      eventEmitter.on("sendNotification", (notification) => {
+        console.log("🚀 ~ socket.on ~ notification:", notification.recipientRole)
+        console.log("🚀 ~ socket.on ~ notification:", notification.recipientId.toString())
+        if (notification.recipientRole === 2) {
+          // Send notification for all inspectors
+          onlineInspectors.forEach((inspector) => {
+            io.to(inspector.socketId).emit("getNotification", notification._doc);
+          });
+        } else if (notification.recipientRole === 0) {
+          console.log("🚀 ~ socket.on.sendNotification ~ onlineUsers:", onlineUsers)
+          // Send notification for a specific user
+          const recipient = onlineUsers.find(
+            (user) => user.userId === notification.recipientId.toString()
+          );
+          console.log("🚀 ~ eventEmitter.on ~ recipient:", recipient)
+          if (recipient) {
+            io.to(recipient.socketId).emit("getNotification", notification._doc);
+          }
         }
-      }
-    });
+      });
+    }
+
+    console.log('Listener count for sendNotification:', eventEmitter.listenerCount('sendNotification'));
 
     socket.on("disconnect", () => {
       onlineUsers = onlineUsers.filter((user) => user.socketId !== socket.id);

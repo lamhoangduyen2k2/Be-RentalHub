@@ -42,7 +42,7 @@ import { UpdateAddressDTO } from "./dtos/update-address.dto";
 import { UserNotDetailResponsesDTO } from "./dtos/user-response.dto";
 import Chat from "twilio/lib/rest/Chat";
 import chatModel from "../chats/chat.model";
-import { eventEmitter} from "../socket/socket";
+import eventEmitter from "../socket/socket";
 import { session } from "passport";
 import { CreateAddressDTO } from "./dtos/create-address.dto";
 //require("esm-hook");
