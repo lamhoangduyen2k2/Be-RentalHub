@@ -1,7 +1,7 @@
 import { Inject, Service } from "typedi";
 import { ChatService } from "./chat.service";
 import { NextFunction, Request, Response } from "express";
-import { ResponseData } from "../../helpers/response";
+import { Pagination, ResponseData } from "../../helpers/response";
 import { startSession } from "mongoose";
 // import Users from "../user/model/users.model";
 // import chatModel from "./chat.model";
@@ -42,6 +42,23 @@ export class ChatController {
       const chats = await this.chatService.findUserChats(userId);
 
       res.json(new ResponseData(chats, null, null));
+    } catch (error) {
+      console.log("🚀 ~ ChatController ~ findUserChats= ~ error:", error);
+      next(error);
+    }
+  };
+
+  public findUserChatsPagination = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const userId = req.query.userId ? req.query.userId.toString() : undefined;
+      const pagination = Pagination.getPagination(req);
+      const chats = await this.chatService.findUserChatsPagination(userId, pagination);
+
+      res.json(new ResponseData(chats[0], null, chats[1]));
     } catch (error) {
       console.log("🚀 ~ ChatController ~ findUserChats= ~ error:", error);
       next(error);

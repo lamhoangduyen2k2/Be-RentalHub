@@ -134,6 +134,7 @@ import { Server } from "socket.io";
       //Get users online list for customer
       io.emit("getOnlineUsers", onlineUsers);
       console.log("🚀 ~ socket.on ~ onlineUsers:", onlineUsers)
+      console.log("🚀 ~ socket.on ~ onlineInspectors:", onlineInspectors)
       //Get admin online for user
       //io.emit("getOnlineAdmin", onlineAdmins);
     });
@@ -158,17 +159,19 @@ import { Server } from "socket.io";
     //send notifications
     eventEmitter.on("sendNotification", (notification) => {
       console.log("🚀 ~ socket.on ~ notification:", notification.recipientRole)
-      console.log("🚀 ~ socket.on.sendNotification ~ onlineUsers:", onlineUsers)
+      console.log("🚀 ~ socket.on ~ notification:", notification.recipientId.toString())
       if (notification.recipientRole === 2) {
         // Send notification for all inspectors
         onlineInspectors.forEach((inspector) => {
           io.to(inspector.socketId).emit("getNotification", notification._doc);
         });
       } else if (notification.recipientRole === 0) {
+        console.log("🚀 ~ socket.on.sendNotification ~ onlineUsers:", onlineUsers)
         // Send notification for a specific user
         const recipient = onlineUsers.find(
-          (user) => user.userId === notification.recipientId
+          (user) => user.userId === notification.recipientId.toString()
         );
+        console.log("🚀 ~ eventEmitter.on ~ recipient:", recipient)
         if (recipient) {
           io.to(recipient.socketId).emit("getNotification", notification._doc);
         }
@@ -182,6 +185,7 @@ import { Server } from "socket.io";
       );
       io.emit("getOnlineUsers", onlineUsers);
       console.log("🚀 ~ socket.on.disconnect ~ onlineUsers:", onlineUsers)
+      console.log("🚀 ~ socket.on.disconnect ~ onlineInspectors:", onlineInspectors)
       //io.emit("getOnlineInspectors", onlineInspectors);
     });
   });
