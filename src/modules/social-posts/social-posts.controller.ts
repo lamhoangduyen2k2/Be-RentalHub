@@ -5,6 +5,7 @@ import { Pagination, ResponseData } from "../../helpers/response";
 import { BodyResquest } from "../../base/base.request";
 import { CreateSocialPostDTO } from "./dtos/create-social-post.dto";
 import { UpdateSocialPostDTO } from "./dtos/update-social-post.dto";
+import { startSession } from "mongoose";
 
 @Service()
 export class SocialPostsController {
@@ -26,7 +27,8 @@ export class SocialPostsController {
         uId,
         paignation
       );
-      return res.json(new ResponseData(socialPosts[0], null, socialPosts[1]));
+
+      res.json(new ResponseData(socialPosts[0], null, socialPosts[1]));
     } catch (error) {
       console.log(
         "🚀 ~ SocialPostsController ~ getSocilaPosts= ~ error:",
@@ -45,7 +47,8 @@ export class SocialPostsController {
     try {
       const postId = req.query.postId ? req.query.postId.toString() : undefined;
       const socialPost = await this.socialPostService.getSocialPostById(postId);
-      return res.json(new ResponseData(socialPost, null, null));
+
+      res.json(new ResponseData(socialPost, null, null));
     } catch (error) {
       console.log(
         "🚀 ~ SocialPostsController ~ getSocialPostById= ~ error:",
@@ -61,22 +64,29 @@ export class SocialPostsController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const createInfo = CreateSocialPostDTO.getFromReuqest(req);
       const uId = req.body._uId.toString();
       const file = req.file as Express.Multer.File;
+      session.startTransaction();
       const socialPost = await this.socialPostService.createSocialPost(
         createInfo,
         uId,
-        file
+        file,
+        session
       );
-      return res.json(new ResponseData(socialPost, null, null));
+
+      res.json(new ResponseData(socialPost, null, null));
     } catch (error) {
+      await session.abortTransaction();
       console.log(
         "🚀 ~ SocialPostsController ~ createSocialPost= ~ error:",
         error
       );
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
@@ -86,20 +96,27 @@ export class SocialPostsController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const updateInfo = UpdateSocialPostDTO.getFromReuqest(req);
       const file = req.file ? (req.file as Express.Multer.File) : undefined;
+      session.startTransaction();
       const socialPost = await this.socialPostService.updateSocialPost(
         updateInfo,
-        file
+        file,
+        session
       );
-      return res.json(new ResponseData(socialPost, null, null));
+
+      res.json(new ResponseData(socialPost, null, null));
     } catch (error) {
+      await session.abortTransaction();
       console.log(
         "🚀 ~ SocialPostsController ~ updateSocialPost= ~ error:",
         error
       );
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 
@@ -109,17 +126,23 @@ export class SocialPostsController {
     res: Response,
     next: NextFunction
   ) => {
+    const session = await startSession();
     try {
       const postId = req.query.postId ? req.query.postId.toString() : undefined;
       const uId = req.body._uId.toString();
-      await this.socialPostService.cancleSocialPost(postId, uId);
-      return res.json(new ResponseData(null, null, null));
+      session.startTransaction();
+      const result = await this.socialPostService.cancleSocialPost(postId, uId, session);
+
+      res.json(new ResponseData(result, null, null));
     } catch (error) {
+      await session.abortTransaction();
       console.log(
         "🚀 ~ SocialPostsController ~ blockSocialPost= ~ error:",
         error
       );
       next(error);
+    } finally {
+      session.endSession();
     }
   };
 }

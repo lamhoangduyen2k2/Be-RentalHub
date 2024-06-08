@@ -4,7 +4,7 @@ import { ImageService } from "../image/image.service";
 import SocialPosts from "./social-posts.model";
 import { Errors } from "../../helpers/handle-errors";
 import { Pagination } from "../../helpers/response";
-import mongoose, { PipelineStage } from "mongoose";
+import mongoose, { ClientSession, PipelineStage } from "mongoose";
 import { convertUTCtoLocal } from "../../helpers/ultil";
 import { UpdateSocialPostDTO } from "./dtos/update-social-post.dto";
 
@@ -116,26 +116,29 @@ export class SocialPostsService {
   public createSocialPost = async (
     postInfo: CreateSocialPostDTO,
     userId: string,
-    file: Express.Multer.File
+    file: Express.Multer.File,
+    session: ClientSession
   ) => {
     //Upload image to firebase
     const imgUrl = await this.imageService.uploadSocialImage(file);
 
     //Create post
-    const newPost = await SocialPosts.create({
+    const newPost = await SocialPosts.create([{
       ...postInfo,
       _images: imgUrl,
       _uId: new mongoose.Types.ObjectId(userId),
-    });
-    if (!newPost) throw Errors.SaveToDatabaseFail;
+    }], { session });
+    if (newPost.length <= 0) throw Errors.SaveToDatabaseFail;
 
-    return newPost;
+    await session.commitTransaction();
+    return newPost[0];
   };
 
   //Update social post
   public updateSocialPost = async (
     updatedInfo: UpdateSocialPostDTO,
-    file: Express.Multer.File | undefined
+    file: Express.Multer.File | undefined,
+    session: ClientSession
   ) => {
     //Check social post is existed
     const socialPost = await SocialPosts.findOne({
@@ -144,7 +147,7 @@ export class SocialPostsService {
         { _uId: new mongoose.Types.ObjectId(updatedInfo._uId.toString()) },
         { _status: { $ne: 2 } },
       ],
-    });
+    }).session(session);
     if (!socialPost) throw Errors.PostNotFound;
 
     //Update social post
@@ -169,15 +172,16 @@ export class SocialPostsService {
         ...socialPost,
         ...updatedInfo,
       },
-      { new: true }
+      { session, new: true }
     );
     if (!updatedSocialPost) throw Errors.SaveToDatabaseFail;
 
+    await session.commitTransaction();
     return updatedSocialPost;
   };
 
   //Cancle social post for owner
-  public cancleSocialPost = async (postId: string, uId: string) => {
+  public cancleSocialPost = async (postId: string, uId: string, session: ClientSession) => {
     //Check social post is existed
     const socialPost = await SocialPosts.findOne({
       $and: [
@@ -185,7 +189,7 @@ export class SocialPostsService {
         { _uId: new mongoose.Types.ObjectId(uId) },
         { _status: { $ne: 2 } },
       ],
-    });
+    }).session(session);
     if (!socialPost) throw Errors.PostNotFound;
 
     //Block social post
@@ -198,11 +202,12 @@ export class SocialPostsService {
         ],
       },
       { _status: 1 },
-      { new: true }
+      { session, new: true }
     );
     if (!blockedPost) throw Errors.SaveToDatabaseFail;
 
-    return blockedPost;
+    await session.commitTransaction();
+    return true;
   };
 
   //Like/Unlike social post

@@ -144,6 +144,7 @@ import { Server } from "socket.io";
       const recipient = onlineUsers.find(
         (user) => user.userId === message.recipientId
       );
+      console.log("🚀 ~ socket.on ~ recipient:", recipient)
       
       if (recipient) {
         console.log("🚀 ~ socket.on ~ message:", message)
@@ -159,15 +160,12 @@ import { Server } from "socket.io";
     //send notifications
     if (eventEmitter.listenerCount("sendNotification") === 0) {
       eventEmitter.on("sendNotification", (notification) => {
-        console.log("🚀 ~ socket.on ~ notification:", notification.recipientRole)
-        console.log("🚀 ~ socket.on ~ notification:", notification.recipientId.toString())
         if (notification.recipientRole === 2) {
           // Send notification for all inspectors
           onlineInspectors.forEach((inspector) => {
             io.to(inspector.socketId).emit("getNotification", notification._doc);
           });
         } else if (notification.recipientRole === 0) {
-          console.log("🚀 ~ socket.on.sendNotification ~ onlineUsers:", onlineUsers)
           // Send notification for a specific user
           const recipient = onlineUsers.find(
             (user) => user.userId === notification.recipientId.toString()

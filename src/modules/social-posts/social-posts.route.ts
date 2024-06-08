@@ -43,7 +43,7 @@ socialRoute.patch(
   socialPostMiddleware.checkValidationUpdateSocialPost,
   socialPostController.updateSocialPost
 );
-socialRoute.patch(
+socialRoute.delete(
     "/cancle-social-post",
     authMiddeleware.authorizedUser,
     socialPostController.cancleSocialPost

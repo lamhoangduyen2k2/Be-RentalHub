@@ -32,6 +32,15 @@ const socialPostsSchema = new mongoose.Schema({
         type: Number,
         default: 0, //O: public, 1: block, 2: resported
     },
+    _isReported: {
+        type: Boolean,
+        default: false,
+    },
+    _uIdReported: {
+        type: [Schema.Types.ObjectId],
+        ref: Users,
+        default: null,
+    },
     _inspectId: {
         type: Schema.Types.ObjectId,
         ref: Users,
