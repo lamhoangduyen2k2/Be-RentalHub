@@ -48,5 +48,10 @@ socialRoute.delete(
     authMiddeleware.authorizedUser,
     socialPostController.cancleSocialPost
 )
+socialRoute.patch(
+  "/react-social-post",
+  authMiddeleware.authorizedUser,
+  socialPostController.reactSocialPost
+)
 
 export default socialRoute;

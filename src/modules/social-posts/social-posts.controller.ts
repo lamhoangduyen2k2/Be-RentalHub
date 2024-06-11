@@ -145,4 +145,30 @@ export class SocialPostsController {
       session.endSession();
     }
   };
+
+  //Like/Unlike the social post
+  public reactSocialPost = async (
+    req: Request,
+    res: Response,
+    next: NextFunction    
+  ) => {
+    const session = await startSession();
+    try {
+      const postId = req.body.postId ? req.body.postId.toString() : undefined;
+      const uId = req.body._uId.toString();
+      session.startTransaction();
+      const result = await this.socialPostService.reactSocialPost(postId, uId, session);
+
+      res.json(new ResponseData(result, null, null));
+    } catch (error) {
+      await session.abortTransaction();
+      console.log(
+        "🚀 ~ SocialPostsController ~ likeSocialPost= ~ error:",
+        error
+      );
+      next(error);
+    } finally {
+      session.endSession();
+    }
+  };
 }

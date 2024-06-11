@@ -20,6 +20,11 @@ const socialPostsSchema = new mongoose.Schema({
         type: Schema.Types.ObjectId,
         ref: Users,
     },
+    _uIdLike: {
+        type: [Schema.Types.ObjectId],
+        ref: Users,
+        default: [],
+    },
     _totalComment: {
         type: Number,
         default: 0,

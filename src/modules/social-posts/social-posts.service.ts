@@ -123,11 +123,16 @@ export class SocialPostsService {
     const imgUrl = await this.imageService.uploadSocialImage(file);
 
     //Create post
-    const newPost = await SocialPosts.create([{
-      ...postInfo,
-      _images: imgUrl,
-      _uId: new mongoose.Types.ObjectId(userId),
-    }], { session });
+    const newPost = await SocialPosts.create(
+      [
+        {
+          ...postInfo,
+          _images: imgUrl,
+          _uId: new mongoose.Types.ObjectId(userId),
+        },
+      ],
+      { session }
+    );
     if (newPost.length <= 0) throw Errors.SaveToDatabaseFail;
 
     await session.commitTransaction();
@@ -181,7 +186,11 @@ export class SocialPostsService {
   };
 
   //Cancle social post for owner
-  public cancleSocialPost = async (postId: string, uId: string, session: ClientSession) => {
+  public cancleSocialPost = async (
+    postId: string,
+    uId: string,
+    session: ClientSession
+  ) => {
     //Check social post is existed
     const socialPost = await SocialPosts.findOne({
       $and: [
@@ -211,5 +220,42 @@ export class SocialPostsService {
   };
 
   //Like/Unlike social post
-  
+  public reactSocialPost = async (
+    postId: string,
+    uId: string,
+    session: ClientSession
+  ) => {
+    //Check social post is existed
+    const socialPost = await SocialPosts.findOne({
+      $and: [{ _id: new mongoose.Types.ObjectId(postId) }, { _status: 0 }],
+    }).session(session);
+    if (!socialPost) throw Errors.PostNotFound;
+
+    //Check user liked this post
+    const isLiked = socialPost._uIdLike.includes(
+      new mongoose.Types.ObjectId(uId)
+    );
+    if (isLiked) {
+      //Unlike social post
+      socialPost._uIdLike.splice(
+        socialPost._uIdLike.indexOf(new mongoose.Types.ObjectId(uId)),
+        1
+      );
+      socialPost._totalLike =
+        socialPost._totalLike === 0 ? 0 : Number(socialPost?._totalLike) - 1;
+    } else {
+      socialPost._uIdLike.push(new mongoose.Types.ObjectId(uId));
+      socialPost._totalLike = Number(socialPost._totalLike) + 1;
+    }
+    //Update Like/unliked social post
+    const updatedPost = await SocialPosts.findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(postId) },
+      { _totalLike: socialPost._totalLike, _uIdLike: socialPost._uIdLike },
+      { session, new: true }
+    );
+    if (!updatedPost) throw Errors.SaveToDatabaseFail;
+    
+    await session.commitTransaction();
+    return updatedPost;
+  };
 }
