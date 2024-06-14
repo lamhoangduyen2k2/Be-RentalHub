@@ -10,6 +10,7 @@ const socialPostsSchema = new mongoose.Schema({
     _content: {
         type: String,
         required: [true, "Content is required"],
+        index: true,
     },
     _images: {
         type: String,
