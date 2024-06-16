@@ -156,6 +156,7 @@ export const Errors = {
 
   //Errors for Post
   PostNotFound: new ErrorModel("Post not found!", "POST_NOTFOUND", 404),
+  PostIdNotFound: new ErrorModel("Post ID not found!", "POST_ID_NOTFOUND", 404),
 
   PostFavoriteNotFound: new ErrorModel(
     "User doesn't have any favorite posts!",

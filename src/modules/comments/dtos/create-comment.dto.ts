@@ -2,11 +2,17 @@ import { Expose, plainToClass } from "class-transformer";
 import { IsNotEmpty, IsString } from "class-validator";
 import { Request } from "express";
 
-export class CreateSocialPostDTO {
+export class CreateCommentDTO {
+  @Expose()
+  _uId: string;
+
   @Expose()
   @IsNotEmpty()
   @IsString()
-  _title: string;
+  _postId: string;
+
+  @Expose()
+  _parentId: string;
 
   @Expose()
   @IsNotEmpty()
@@ -14,10 +20,10 @@ export class CreateSocialPostDTO {
   _content: string;
 
   @Expose()
-  _uId: string;
+  _images: string[];
 
-  static getFromReuqest = (req: Request) => {
-    return plainToClass(CreateSocialPostDTO, req.body, {
+  static fromRequest = (req: Request) => {
+    return plainToClass(CreateCommentDTO, req.body, {
       excludeExtraneousValues: true,
     });
   };

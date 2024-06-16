@@ -21,7 +21,7 @@ export class SocialPostsService {
   ) => {
     let condition: PipelineStage;
     //Configing condition follows status
-    if (status) {
+    if (status >= 0) {
       condition = {
         $match: {
           $and: [
@@ -43,7 +43,7 @@ export class SocialPostsService {
     );
     //Count total social posts
     const totalSocialPosts = await SocialPosts.countDocuments({
-      _status: status,
+      _status: status | 0,
     });
 
     //Calculate total pages
@@ -86,7 +86,7 @@ export class SocialPostsService {
         },
       },
     ])
-      .skip(pagination.limit)
+      .skip(pagination.offset)
       .limit(pagination.limit);
     if (socialPosts.length <= 0) throw Errors.PostNotFound;
 

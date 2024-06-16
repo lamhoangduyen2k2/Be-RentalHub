@@ -9,6 +9,7 @@ import { CreateNotificationInspectorDTO } from "./dtos/create-notification-inspe
 import { GetNotificationsInspectorDTO } from "./dtos/get-notificaion-inspector.dto";
 import { CreateNotificationRegisterAddressDTO } from "./dtos/create-notification-register-address.dto";
 import { PaginationNotification } from "../../helpers/response";
+import { CreateNotificationCommentDTO } from "./dtos/create-notification-comment.dto";
 
 @Service()
 export class NotificationService {
@@ -16,7 +17,8 @@ export class NotificationService {
     data:
       | CreateNotificationDTO
       | CreateNotificationInspectorDTO
-      | CreateNotificationRegisterAddressDTO,
+      | CreateNotificationRegisterAddressDTO
+      | CreateNotificationCommentDTO,
     session: ClientSession
   ) => {
     const newNotification = await Notification.create([data], { session });

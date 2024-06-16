@@ -1,21 +1,29 @@
 import mongoose, { Schema } from "mongoose";
+import Users from "../user/model/users.model";
+import Posts from "../posts/models/posts.model";
+import addressRental from "../user/model/user-address.model";
 
 const notificationSchema = new mongoose.Schema(
   {
     _uId: {
       type: Schema.Types.ObjectId,
-      ref: "users",
+      ref: Users,
       required: true,
+    },
+    _senderId: {
+      type: Schema.Types.ObjectId,
+      ref: Users,
+      default: null,
     },
     _postId: {
       type: Schema.Types.ObjectId,
       default: null,
-      ref: "posts",
+      ref: Posts,
     },
     _addressId: {
       type: Schema.Types.ObjectId,
       default: null,
-      ref: "address-rentals",
+      ref: addressRental,
     },
     _title: {
       type: String,
