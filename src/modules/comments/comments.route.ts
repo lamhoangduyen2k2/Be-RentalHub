@@ -31,4 +31,12 @@ commentsRoute.patch(
   commentsController.updateComments
 );
 
+
+//API DELETE
+commentsRoute.delete(
+  "/hide-comment",
+  authMiddeleware.authorizedUser,
+  commentsController.hideComment
+);
+
 export default commentsRoute;

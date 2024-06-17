@@ -45,7 +45,10 @@ export class CommentsService {
     //Check parentComment is exist (if parentId is exist)
     if (commentInfo._parentId) {
       const parentComment = await Comments.findOne({
-        $and: [{ _id: new mongoose.Types.ObjectId(commentInfo._parentId) }, { _status: 0 }],
+        $and: [
+          { _id: new mongoose.Types.ObjectId(commentInfo._parentId) },
+          { _status: 0 },
+        ],
       }).session(session);
       if (!parentComment) throw Errors.CommentNotFound;
       parentId = parentComment._uId.toString();
@@ -251,5 +254,85 @@ export class CommentsService {
 
     await session.commitTransaction();
     return commentUpdated;
+  };
+
+  //Hide comment
+  public hideComment = async (
+    commentId: string,
+    uId: string,
+    session: ClientSession
+  ) => {
+    let totalHideComments = 1;
+    //Check comment is exist
+    const comment = await Comments.findOne({
+      $and: [
+        { _id: new mongoose.Types.ObjectId(commentId) },
+        { _uId: new mongoose.Types.ObjectId(uId) },
+        { _status: 0 },
+      ],
+    }).session(session);
+    if (!comment) throw Errors.CommentNotFound;
+
+    //Check social post is exist
+    const post = await SocialPosts.findOne({
+      $and: [{ _id: comment._postId }, { _status: 0 }],
+    }).session(session);
+    if (!post) throw Errors.PostNotFound;
+
+    //Hide comment
+    const commentHided = await Comments.findOneAndUpdate(
+      {
+        _id: comment._id,
+      },
+      {
+        _status: 1,
+      },
+      { session, new: true }
+    );
+    if (commentHided._status !== 1) throw Errors.SaveToDatabaseFail;
+
+    //Count child comments of comment
+    if (!commentHided._parentId) {
+      const childComment = await Comments.countDocuments({
+        $and: [
+          {
+            _parentId: commentHided._id,
+          },
+          { _status: 0 },
+        ],
+      });
+
+      if (childComment > 0) {
+        totalHideComments = totalHideComments + childComment;
+
+        //Hide child comments of comment
+        const childHided = await Comments.updateMany(
+          {
+            $and: [
+              {
+                _parentId: commentHided._id,
+              },
+              { _status: 0 },
+            ],
+          },
+          {
+            _status: 1,
+          },
+          { session }
+        );
+        if (childHided.modifiedCount <= 0) throw Errors.SaveToDatabaseFail;
+      }
+    }
+
+    //Decrease totalComment of SocialPost
+    const postUpdated = await SocialPosts.findOneAndUpdate(
+      { _id: post._id },
+      { $inc: { _totalComment: -totalHideComments } },
+      { session, new: true }
+    );
+    if (Number(postUpdated._totalComment) < 0) throw Errors.SaveToDatabaseFail;
+
+    await session.commitTransaction();
+    return commentHided;
   };
 }

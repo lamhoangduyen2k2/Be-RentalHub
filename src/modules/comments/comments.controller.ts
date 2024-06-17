@@ -2,7 +2,7 @@ import { Inject, Service } from "typedi";
 import { CommentsService } from "./comments.service";
 import { BodyResquest } from "../../base/base.request";
 import { CreateCommentDTO } from "./dtos/create-comment.dto";
-import { NextFunction, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { startSession } from "mongoose";
 import { ResponseData } from "../../helpers/response";
 import { UpdateCommentDTO } from "./dtos/update-comments.dto";
@@ -68,4 +68,31 @@ export class CommentsController {
       session.endSession();
     }
   };
+
+  //Hide comment
+  public hideComment = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const session = await startSession();
+    try {
+      const commentId = req.query.commentId.toString();
+      const uId = req.body._uId;
+      session.startTransaction();
+      const comment = await this.commentsService.hideComment(
+        commentId,
+        uId,
+        session
+      );
+
+      res.json(new ResponseData(comment, null, null));
+    } catch (error) {
+      await session.abortTransaction();
+      console.log("🚀 ~ CommentsController ~ error:", error)
+      next(error);
+    } finally {
+      session.endSession();
+    }
+  }
 }
