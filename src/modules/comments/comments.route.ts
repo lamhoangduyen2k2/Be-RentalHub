@@ -20,3 +20,15 @@ commentsRoute.post(
   commentMiddleware.checkValidationCreateComment,
   commentsController.createComments
 );
+
+//API PATCH
+commentsRoute.patch(
+  "/update-comment",
+  imageMiddleWare.upload.array("_images"),
+  imageMiddleWare.checkUploadImages,
+  authMiddeleware.authorizedUser,
+  commentMiddleware.checkValidationUpdateComment,
+  commentsController.updateComments
+);
+
+export default commentsRoute;

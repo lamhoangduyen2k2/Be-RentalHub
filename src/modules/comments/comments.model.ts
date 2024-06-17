@@ -2,6 +2,8 @@ import mongoose, { Schema } from "mongoose";
 import Users from "../user/model/users.model";
 import SocialPosts from "../social-posts/social-posts.model";
 
+const statusEnum = [0, 1]
+
 const commentsSchema = new mongoose.Schema({
     _uId: {
         type: Schema.Types.ObjectId,
@@ -20,6 +22,15 @@ const commentsSchema = new mongoose.Schema({
     _content: {
         type: String,
         required: [true, "Content is required"],
+    },
+    _images: {
+        type: [String],
+        default: [],
+    },
+    _status: {
+        type: Number,
+        enum: statusEnum,                     
+        default: 0 // 0: active, 1: inactive
     },
 }, { timestamps: true });
 

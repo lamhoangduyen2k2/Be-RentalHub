@@ -30,6 +30,7 @@ import eventEmitter  from "./modules/socket/socket"
 import socialRoute from "./modules/social-posts/social-posts.route";
 import cookieParser from "cookie-parser";
 import { Server } from "socket.io";
+import commentsRoute from "./modules/comments/comments.route";
 //import bodyParser from "body-parser";
 
 (async () => {
@@ -96,6 +97,7 @@ import { Server } from "socket.io";
   app.use("/api/message", messageRoute);
   app.use("/api/social", socialRoute);
   app.use("/api/reaction", socialRoute);
+  app.use("/api/comment", commentsRoute);
 
   io.on("connection", (socket) => {
     console.log("🚀 ~ New connection ~ socket:", socket.id)

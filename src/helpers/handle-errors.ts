@@ -345,6 +345,9 @@ export const Errors = {
 
   //Error for Statistic
   YearInvalid : new ErrorModel("Year invalid!", "YEAR_INVALID", 400),
+
+  //Error for Comment
+  CommentNotFound: new ErrorModel("Comment not found!", "COMMENT_NOTFOUND", 404),
 };
 
 //Global error handler
