@@ -111,6 +111,12 @@ export class CommentsService {
       });
     }
 
+    //Increase totalComment of SocialPost
+    await SocialPosts.updateOne(
+      { _id: post._id },
+      { $inc: { _totalComment: 1 } }
+    ).session(session);
+
     //Create notification
     const newNotification = await this.notificationService.createNotification(
       notification,
