@@ -4,7 +4,7 @@ import { BodyResquest } from "../../base/base.request";
 import { CreateCommentDTO } from "./dtos/create-comment.dto";
 import { NextFunction, Request, Response } from "express";
 import { startSession } from "mongoose";
-import { ResponseData } from "../../helpers/response";
+import { Pagination, ResponseData } from "../../helpers/response";
 import { UpdateCommentDTO } from "./dtos/update-comments.dto";
 
 @Service()
@@ -95,4 +95,37 @@ export class CommentsController {
       session.endSession();
     }
   }
+
+  //Get All Parent Comments
+  public getAllParentComments = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const postId = req.query.postId.toString();
+      const pagination = Pagination.getPagination(req);
+      const comments = await this.commentsService.getAllParentComments(postId, pagination);
+      res.json(new ResponseData(comments[0], null, comments[1]));
+    } catch (error) {
+      console.log("🚀 ~ CommentsController ~ error:", error);
+      next(error);
+    }
+  };
+  //Get All Reply Comments
+  public getAllReplyComments = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const rootId = req.query.rootId.toString();
+      const pagination = Pagination.getPagination(req);
+      const comments = await this.commentsService.getAllReplyComments(rootId, pagination);
+      res.json(new ResponseData(comments[0], null, comments[1]));
+    } catch (error) {
+      console.log("🚀 ~ CommentsController ~ error:", error);
+      next(error);
+    }
+  };
 }

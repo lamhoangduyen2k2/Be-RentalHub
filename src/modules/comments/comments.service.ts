@@ -10,6 +10,7 @@ import { NotificationService } from "../notification/notification.service";
 import eventEmitter from "../socket/socket";
 import { ImageService } from "../image/image.service";
 import { UpdateCommentDTO } from "./dtos/update-comments.dto";
+import { Pagination } from "../../helpers/response";
 
 @Service()
 export class CommentsService {
@@ -25,6 +26,7 @@ export class CommentsService {
   ) => {
     let comment = {};
     let parentId: string = "";
+    let rootId: string = "";
     let notification: CreateNotificationCommentDTO;
     //Check  user is exist
     const user = await Users.findOne({
@@ -52,6 +54,9 @@ export class CommentsService {
       }).session(session);
       if (!parentComment) throw Errors.CommentNotFound;
       parentId = parentComment._uId.toString();
+      rootId = parentComment._rootId
+        ? parentComment._rootId.toString()
+        : commentInfo._parentId;
     }
 
     //Upload images to firebase
@@ -68,6 +73,7 @@ export class CommentsService {
             _uId: new mongoose.Types.ObjectId(commentInfo._uId),
             _postId: new mongoose.Types.ObjectId(commentInfo._postId),
             _parentId: new mongoose.Types.ObjectId(commentInfo._parentId),
+            _rootId: new mongoose.Types.ObjectId(rootId),
             _content: commentInfo._content,
             _images: commentInfo._images,
           },
@@ -334,5 +340,205 @@ export class CommentsService {
 
     await session.commitTransaction();
     return commentHided;
+  };
+
+  //Get All Parent Comments
+  public getAllParentComments = async (
+    postId: string,
+    pagination: Pagination
+  ) => {
+    //Check post is exist
+    const post = await SocialPosts.findOne({
+      $and: [{ _id: new mongoose.Types.ObjectId(postId) }, { _status: 0 }],
+    });
+    if (!post) throw Errors.PostNotFound;
+
+    //Count total parent comments
+    const totalParentComments = await Comments.countDocuments({
+      $and: [
+        { _postId: new mongoose.Types.ObjectId(postId) },
+        { _parentId: null },
+        { _status: 0 },
+      ],
+    });
+    if (totalParentComments <= 0) throw Errors.CommentNotFound;
+
+    //Cacular total page
+    const totalPage = Math.ceil(totalParentComments / pagination.limit);
+    if (pagination.page > totalPage) throw Errors.PageNotFound;
+
+    //Get all parent comments
+    const parentComments = await Comments.aggregate([
+      {
+        $match: {
+          $and: [
+            { _postId: new mongoose.Types.ObjectId(postId) },
+            { _parentId: null },
+            { _status: 0 },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_uId",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      { $unwind: "$user" },
+      {
+        $lookup: {
+          from: "comments",
+          localField: "_id",
+          foreignField: "_rootId",
+          as: "replies",
+        },
+      },
+      {
+        $addFields: {
+          totalReplies: { $size: "$replies" },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          _postId: 1,
+          _uId: 1,
+          _name: {
+            $concat: ["$user._fname", " ", "$user._lname"],
+          },
+          _parentId: 1,
+          _rootId: 1,
+          _content: 1,
+          _images: 1,
+          _status: 1,
+          totalReplies: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+    ])
+      .sort({ createdAt: -1 })
+      .skip(pagination.offset)
+      .limit(pagination.limit);
+    if (parentComments.length <= 0) throw Errors.CommentNotFound;
+
+    return [
+      parentComments,
+      { page: pagination.page, limit: pagination.limit, total: totalPage },
+    ];
+  };
+  //Get All Reply Comments
+  public getAllReplyComments = async (
+    rootId: string,
+    pagination: Pagination
+  ) => {
+    //Check root comment is exist
+    const rootComment = await Comments.findOne({
+      $and: [{ _id: new mongoose.Types.ObjectId(rootId) }, { _status: 0 }],
+    });
+    if (!rootComment) throw Errors.CommentNotFound;
+
+    //Count total reply comments
+    const totalReplyComments = await Comments.countDocuments({
+      $and: [{ _rootId: new mongoose.Types.ObjectId(rootId) }, { _status: 0 }],
+    });
+    if (totalReplyComments <= 0) throw Errors.CommentNotFound;
+
+    //Cacular total page
+    const totalPage = Math.ceil(totalReplyComments / pagination.limit);
+    if (pagination.page > totalPage) throw Errors.PageNotFound;
+
+    //Get all reply comments
+    const replyComments = await Comments.aggregate([
+      {
+        $match: {
+          $and: [
+            { _rootId: new mongoose.Types.ObjectId(rootId) },
+            { _status: 0 },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_uId",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      { $unwind: "$user" },
+      {
+        $lookup: {
+          from: "comments",
+          localField: "_parentId",
+          foreignField: "_id",
+          let: {
+            parent: {
+              $toString: "$_parentId",
+            },
+            root: {
+              $toString: "$_rootId",
+            },
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $ne: ["$$parent", "$$root"],
+                },
+              },
+            },
+          ],
+          as: "parentComment",
+        },
+      },
+      {
+        $unwind: {
+          path: "$parentComment",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "parentComment._uId",
+          foreignField: "_id",
+          as: "userParent",
+        },
+      },
+      {
+        $unwind: {
+          path: "$userParent",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          _uId: 1,
+          _name: {
+            $concat: ["$user._fname", " ", "$user._lname"],
+          },
+          _nameParent: {
+            $concat: ["$userParent._fname", " ", "$userParent._lname"],
+          },
+          _content: 1,
+          _images: 1,
+          _status: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+    ])
+      .skip(pagination.offset)
+      .limit(pagination.limit);
+    if (replyComments.length <= 0) throw Errors.CommentNotFound;
+
+    return [
+      replyComments,
+      { page: pagination.page, limit: pagination.limit, total: totalPage },
+    ];
   };
 }

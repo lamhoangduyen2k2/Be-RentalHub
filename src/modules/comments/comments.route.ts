@@ -11,6 +11,18 @@ const commentMiddleware = Container.get(CommentsMiddleware);
 const commentsController = Container.get(CommentsController);
 const imageMiddleWare = Container.get(ImageMiddleWare);
 
+//API GET
+commentsRoute.get(
+  "/get-parent-comments",
+  authMiddeleware.authorizedUser,
+  commentsController.getAllParentComments
+);
+commentsRoute.get(
+  "/get-reply-comments",
+  authMiddeleware.authorizedUser,
+  commentsController.getAllReplyComments
+)
+
 //API POST
 commentsRoute.post(
   "/create-comment",

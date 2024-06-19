@@ -19,6 +19,10 @@ const commentsSchema = new mongoose.Schema({
         type: Schema.Types.ObjectId,
         default: null,
     },
+    _rootId: {
+        type: Schema.Types.ObjectId,
+        default: null, 
+    },
     _content: {
         type: String,
         required: [true, "Content is required"],
