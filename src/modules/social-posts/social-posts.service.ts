@@ -22,7 +22,7 @@ export class SocialPostsService {
   ) => {
     let condition: PipelineStage;
     //Configing condition follows status
-    if (status === 0 && userId === null) {
+    if (status === 0 && !userId) {
       condition = {
         $match: {
           $and: [
@@ -41,7 +41,7 @@ export class SocialPostsService {
         },
       };
     }
-    else if (status === 0 && userId !== null) {
+    else if (status === 0 && userId) {
       condition = {
         $match: {
           $and: [
