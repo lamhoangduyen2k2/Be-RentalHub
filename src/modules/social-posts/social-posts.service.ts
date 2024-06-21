@@ -17,20 +17,41 @@ export class SocialPostsService {
   public getSocialPosts = async (
     status: number | undefined,
     uId: string | undefined,
+    userId: string | undefined,
     pagination: Pagination
   ) => {
     let condition: PipelineStage;
     //Configing condition follows status
-    if (status >= 0) {
+    if (status === 0 && userId === null) {
       condition = {
         $match: {
           $and: [
-            { _status: status },
+            { $or: [{ _status: 0 }, { _status: 1 }] },
             { _uId: new mongoose.Types.ObjectId(uId) },
           ],
         },
       };
-    } else {
+    } else if (status === 2 ) {
+      condition = {
+        $match: {
+          $and: [
+            { _status: 2 },
+            { _uId: new mongoose.Types.ObjectId(uId) },
+          ],
+        },
+      };
+    }
+    else if (status === 0 && userId !== null) {
+      condition = {
+        $match: {
+          $and: [
+            { _status: 0 },
+            { _uId: new mongoose.Types.ObjectId(userId) },
+          ],
+        },
+      };
+    } 
+    else {
       condition = {
         $match: {
           _status: 0,
@@ -254,7 +275,7 @@ export class SocialPostsService {
       { session, new: true }
     );
     if (!updatedPost) throw Errors.SaveToDatabaseFail;
-    
+
     await session.commitTransaction();
     return updatedPost;
   };

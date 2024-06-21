@@ -21,10 +21,12 @@ export class SocialPostsController {
     try {
       const status = req.query.status ? Number(req.query.status) : undefined;
       const uId = req.body._uId.toString();
+      const userId = req.query.userId ? req.query.userId.toString() : undefined;
       const paignation = Pagination.getPagination(req);
       const socialPosts = await this.socialPostService.getSocialPosts(
         status,
         uId,
+        userId,
         paignation
       );
 
