@@ -32,7 +32,6 @@ export class ImageMiddleWare {
     try {
       const file = req?.file as Express.Multer.File;
       console.log("🚀 ~ ImageMiddleWare ~ file:", file)
-      console.log("🚀 ~ ImageMiddleWare ~ file:", req.body)
 
       if (file?.size > 10485760) throw Errors.FileSizeExceedLimit;
 

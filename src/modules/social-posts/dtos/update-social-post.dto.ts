@@ -17,6 +17,9 @@ export class UpdateSocialPostDTO {
     @Expose()
     @IsString()
     _content: string;
+
+    @Expose()
+    _images: string;
   
     @Expose()
     @IsNotEmpty()

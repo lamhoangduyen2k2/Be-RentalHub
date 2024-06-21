@@ -166,6 +166,7 @@ export class SocialPostsService {
     file: Express.Multer.File | undefined,
     session: ClientSession
   ) => {
+    console.log("🚀 ~ SocialPostsService ~ updatedInfo:", updatedInfo)
     //Check social post is existed
     const socialPost = await SocialPosts.findOne({
       $and: [
@@ -179,10 +180,10 @@ export class SocialPostsService {
     //Update social post
     //Upload image to firebase (if exist)
     if (file)
-      socialPost._images = await this.imageService.uploadSocialImage(file);
+      updatedInfo._images = await this.imageService.uploadSocialImage(file);
     console.log(
       "🚀 ~ SocialPostsService ~ updateSocialPost= ~ socialPost._images:",
-      socialPost._images
+      updatedInfo._images
     );
 
     //Update social post
@@ -194,10 +195,7 @@ export class SocialPostsService {
           { _status: { $ne: 2 } },
         ],
       },
-      {
-        ...socialPost,
-        ...updatedInfo,
-      },
+      updatedInfo,
       { session, new: true }
     );
     if (!updatedSocialPost) throw Errors.SaveToDatabaseFail;
