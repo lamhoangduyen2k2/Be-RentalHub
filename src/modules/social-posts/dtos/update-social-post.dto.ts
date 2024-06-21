@@ -1,5 +1,5 @@
 import { Expose, plainToClass } from "class-transformer";
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsNotEmpty, IsString, ValidateIf } from "class-validator";
 import { Request } from "express";
 import { ObjectId } from "mongoose";
 
@@ -8,10 +8,12 @@ export class UpdateSocialPostDTO {
     @IsNotEmpty()
     _id: string;
 
+    @ValidateIf((o: UpdateSocialPostDTO) => o._title !== undefined)
     @Expose()
     @IsString()
     _title: string;
   
+    @ValidateIf((o: UpdateSocialPostDTO) => o._content !== undefined)
     @Expose()
     @IsString()
     _content: string;

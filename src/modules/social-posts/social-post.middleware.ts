@@ -38,6 +38,8 @@ export class SocialPostMiddleware {
       const errors: ValidationError[] = await validate(updateInfo);
 
       if (errors[0]) throw errors;
+
+      next();
     } catch (error) {
       const err = handleErrorOfValidation(error);
       next(err);
