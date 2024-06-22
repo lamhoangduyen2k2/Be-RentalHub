@@ -120,6 +120,9 @@ export class SocialPostsService {
           _status: 1,
           _inspectId: 1,
           _reason: 1,
+          _totalLike: 1,
+          _totalComment: 1,
+          _uIdLike: 1,
           _authorId: "$user._id",
           _authorName: {
             $concat: ["$user._fname", " ", "$user._lname"],
