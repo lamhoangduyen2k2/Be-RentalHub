@@ -229,7 +229,7 @@ export class SocialPostsService {
           { _status: { $ne: 2 } },
         ],
       },
-      { _status: 1 },
+      { _status: socialPost._status === 0 ? 1 : 0 },
       { session, new: true }
     );
     if (!blockedPost) throw Errors.SaveToDatabaseFail;
