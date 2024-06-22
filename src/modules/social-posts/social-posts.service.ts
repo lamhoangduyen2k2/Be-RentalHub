@@ -20,43 +20,68 @@ export class SocialPostsService {
     userId: string | undefined,
     pagination: Pagination
   ) => {
-    let condition: PipelineStage;
+    let condition: PipelineStage[];
     //Configing condition follows status
     if (status === 0 && !userId) {
-      condition = {
-        $match: {
-          $and: [
-            { $or: [{ _status: 0 }, { _status: 1 }] },
-            { _uId: new mongoose.Types.ObjectId(uId) },
-          ],
+      condition = [
+        {
+          $match: {
+            $and: [
+              { $or: [{ _status: 0 }, { _status: 1 }] },
+              { _uId: new mongoose.Types.ObjectId(uId) },
+            ],
+          },
         },
-      };
-    } else if (status === 2 ) {
-      condition = {
-        $match: {
-          $and: [
-            { _status: 2 },
-            { _uId: new mongoose.Types.ObjectId(uId) },
-          ],
+      ];
+    } else if (status === 2) {
+      condition = [
+        {
+          $match: {
+            $and: [{ _status: 2 }, { _uId: new mongoose.Types.ObjectId(uId) }],
+          },
         },
-      };
-    }
-    else if (status === 0 && userId) {
-      condition = {
-        $match: {
-          $and: [
-            { _status: 0 },
-            { _uId: new mongoose.Types.ObjectId(userId) },
-          ],
+      ];
+    } else if (status === 0 && userId) {
+      condition = [
+        {
+          $match: {
+            $and: [
+              { _status: 0 },
+              { _uId: new mongoose.Types.ObjectId(userId) },
+            ],
+          },
         },
-      };
-    } 
-    else {
-      condition = {
-        $match: {
-          _status: 0,
+        {
+          $addFields: {
+            _isLiked: {
+              $cond: {
+                if: { $in: [new mongoose.Types.ObjectId(uId), "$_uIdLike"] },
+                then: true,
+                else: false,
+              },
+            },
+          },
         },
-      };
+      ];
+    } else {
+      condition = [
+        {
+          $match: {
+            _status: 0,
+          },
+        },
+        {
+          $addFields: {
+            _isLiked: {
+              $cond: {
+                if: { $in: [new mongoose.Types.ObjectId(uId), "$_uIdLike"] },
+                then: true,
+                else: false,
+              },
+            },
+          },
+        },
+      ];
     }
     console.log(
       "🚀 ~ SocialPostsService ~ getSocialPosts= ~ condition:",
@@ -74,7 +99,7 @@ export class SocialPostsService {
 
     //Get all social posts
     const socialPosts = await SocialPosts.aggregate([
-      condition,
+      ...condition,
       {
         $lookup: {
           from: "users",
@@ -102,6 +127,7 @@ export class SocialPostsService {
           _authorAvatar: "$user._avatar",
           _authorEmail: "$user._email",
           _authorPhone: "$user._phone",
+          _isLiked: 1,
           createdAt: 1,
           updatedAt: 1,
         },
@@ -166,7 +192,7 @@ export class SocialPostsService {
     file: Express.Multer.File | undefined,
     session: ClientSession
   ) => {
-    console.log("🚀 ~ SocialPostsService ~ updatedInfo:", updatedInfo)
+    console.log("🚀 ~ SocialPostsService ~ updatedInfo:", updatedInfo);
     //Check social post is existed
     const socialPost = await SocialPosts.findOne({
       $and: [
