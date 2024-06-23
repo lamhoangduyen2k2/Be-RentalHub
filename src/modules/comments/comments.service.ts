@@ -391,7 +391,7 @@ export class CommentsService {
         $lookup: {
           from: "comments",
           localField: "_id",
-          foreignField: "_rootId",
+          foreignField: "_parentId",
           as: "replies",
         },
       },
@@ -408,6 +408,7 @@ export class CommentsService {
           _name: {
             $concat: ["$user._fname", " ", "$user._lname"],
           },
+          _avatar: "$user._avatar",
           _parentId: 1,
           _rootId: 1,
           _content: 1,
@@ -431,19 +432,20 @@ export class CommentsService {
   };
   //Get All Reply Comments
   public getAllReplyComments = async (
-    rootId: string,
+    parentId: string,
     pagination: Pagination
   ) => {
     //Check root comment is exist
     const rootComment = await Comments.findOne({
-      $and: [{ _id: new mongoose.Types.ObjectId(rootId) }, { _status: 0 }],
+      $and: [{ _id: new mongoose.Types.ObjectId(parentId) }, { _status: 0 }],
     });
     if (!rootComment) throw Errors.CommentNotFound;
 
     //Count total reply comments
     const totalReplyComments = await Comments.countDocuments({
-      $and: [{ _rootId: new mongoose.Types.ObjectId(rootId) }, { _status: 0 }],
+      $and: [{ _parentId: new mongoose.Types.ObjectId(parentId) }, { _status: 0 }],
     });
+    console.log("🚀 ~ CommentsService ~ totalReplyComments:", totalReplyComments)
     if (totalReplyComments <= 0) throw Errors.CommentNotFound;
 
     //Cacular total page
@@ -455,7 +457,7 @@ export class CommentsService {
       {
         $match: {
           $and: [
-            { _rootId: new mongoose.Types.ObjectId(rootId) },
+            { _parentId: new mongoose.Types.ObjectId(parentId) },
             { _status: 0 },
           ],
         },
@@ -515,18 +517,33 @@ export class CommentsService {
         },
       },
       {
+        $lookup: {
+          from: "comments",
+          localField: "_id",
+          foreignField: "_parentId",
+          as: "replies",
+        },
+      },
+      {
+        $addFields: {
+          totalReplies: { $size: "$replies" },
+        },
+      },
+      {
         $project: {
           _id: 1,
           _uId: 1,
           _name: {
             $concat: ["$user._fname", " ", "$user._lname"],
           },
+          _avatar: "$user._avatar",
           _nameParent: {
             $concat: ["$userParent._fname", " ", "$userParent._lname"],
           },
           _content: 1,
           _images: 1,
           _status: 1,
+          totalReplies: 1,
           createdAt: 1,
           updatedAt: 1,
         },

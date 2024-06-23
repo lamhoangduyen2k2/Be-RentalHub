@@ -119,9 +119,9 @@ export class CommentsController {
     next: NextFunction
   ) => {
     try {
-      const rootId = req.query.rootId.toString();
+      const parentId = req.query.parentId.toString();
       const pagination = Pagination.getPagination(req);
-      const comments = await this.commentsService.getAllReplyComments(rootId, pagination);
+      const comments = await this.commentsService.getAllReplyComments(parentId, pagination);
       res.json(new ResponseData(comments[0], null, comments[1]));
     } catch (error) {
       console.log("🚀 ~ CommentsController ~ error:", error);
