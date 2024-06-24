@@ -41,7 +41,7 @@ export class SocialPostsService {
           },
         },
       ];
-    } else if (status === 0 && userId) {
+    } else if (!status && userId) {
       condition = [
         {
           $match: {
