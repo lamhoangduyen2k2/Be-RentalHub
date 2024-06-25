@@ -5,12 +5,12 @@ import Users from "../user/model/users.model";
 import { Errors } from "../../helpers/handle-errors";
 import Comments from "./comments.model";
 import { CreateNotificationCommentDTO } from "../notification/dtos/create-notification-comment.dto";
-import SocialPosts from "../social-posts/social-posts.model";
 import { NotificationService } from "../notification/notification.service";
 import eventEmitter from "../socket/socket";
 import { ImageService } from "../image/image.service";
 import { UpdateCommentDTO } from "./dtos/update-comments.dto";
 import { Pagination } from "../../helpers/response";
+import SocialPosts from "../social-posts/models/social-posts.model";
 
 @Service()
 export class CommentsService {

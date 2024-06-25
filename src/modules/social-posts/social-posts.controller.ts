@@ -6,6 +6,7 @@ import { BodyResquest } from "../../base/base.request";
 import { CreateSocialPostDTO } from "./dtos/create-social-post.dto";
 import { UpdateSocialPostDTO } from "./dtos/update-social-post.dto";
 import { startSession } from "mongoose";
+import { ReportSocialPostDTO } from "./dtos/report-social-post.dto";
 
 @Service()
 export class SocialPostsController {
@@ -166,6 +167,31 @@ export class SocialPostsController {
       await session.abortTransaction();
       console.log(
         "🚀 ~ SocialPostsController ~ likeSocialPost= ~ error:",
+        error
+      );
+      next(error);
+    } finally {
+      session.endSession();
+    }
+  };
+
+  //Report social post
+  public reportSocialPost = async (
+    req: BodyResquest<ReportSocialPostDTO>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const session = await startSession();
+    try {
+      const reportInfo = ReportSocialPostDTO.fromRequest(req);
+      session.startTransaction();
+      const result = await this.socialPostService.reportSocialPost(reportInfo, session);
+
+      res.json(new ResponseData(result, null, null));
+    } catch (error) {
+      await session.abortTransaction();
+      console.log(
+        "🚀 ~ SocialPostsController ~ reportSocialPost= ~ error:",
         error
       );
       next(error);

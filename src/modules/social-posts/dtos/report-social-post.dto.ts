@@ -1,5 +1,6 @@
 import { Expose, plainToClass } from "class-transformer";
 import { IsNotEmpty } from "class-validator";
+import { Request } from "express";
 import mongoose from "mongoose";
 
 export class ReportSocialPostDTO {
@@ -13,9 +14,6 @@ export class ReportSocialPostDTO {
   @Expose()
   @IsNotEmpty()
   _reason: string;
-
-  @Expose()
-  _uIdReported: mongoose.Types.ObjectId;
 
   static fromRequest = (req: Request) => {
     return plainToClass(ReportSocialPostDTO, req.body, {

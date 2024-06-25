@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import Users from "../user/model/users.model";
-import SocialPosts from "../social-posts/social-posts.model";
+import SocialPosts from "../social-posts/models/social-posts.model";
 
 const statusEnum = [0, 1]
 

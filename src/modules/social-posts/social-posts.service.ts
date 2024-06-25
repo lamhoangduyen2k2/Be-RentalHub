@@ -8,10 +8,10 @@ import { convertUTCtoLocal } from "../../helpers/ultil";
 import { UpdateSocialPostDTO } from "./dtos/update-social-post.dto";
 import SocialPosts from "./models/social-posts.model";
 import { ReportSocialPostDTO } from "./dtos/report-social-post.dto";
-import ReportedPosts from "../posts/models/reported-posts.model";
 import { CreateNotificationDTO } from "../notification/dtos/create-notification.dto";
 import { NotificationService } from "../notification/notification.service";
 import eventEmitter from "../socket/socket";
+import ReportedSocialPosts from "./models/social-posts-reported.model";
 
 @Service()
 export class SocialPostsService {
@@ -327,14 +327,13 @@ export class SocialPostsService {
     if (!socialPost) throw Errors.PostNotFound;
 
     //Report social post
-    const reportedPost = await ReportedPosts.findOneAndUpdate(
+    const reportedPost = await ReportedSocialPosts.findOneAndUpdate(
       {
-        $and: [{ _postId: reportInfo._postId }, { _isReported: false }],
+        $and: [{ _postId: reportInfo._postId }, { _isSensored: false }],
       },
       {
         $addToSet: {
           _uId: reportInfo._uId,
-          _uIdReported: reportInfo._uIdReported,
           _reason: reportInfo._reason,
         },
         _uIdReported: socialPost._uId,
@@ -345,10 +344,10 @@ export class SocialPostsService {
 
     //Create notification
     const notification = CreateNotificationDTO.fromService({
-      _uId: reportedPost._uId,
+      _uId: reportInfo._uId,
       _postId: reportedPost._postId,
       _title: "Báo cáo bài viết mạng xã hội",
-      _message: `Người dùng mang Id ${reportedPost._uId} đã báo cáo bài viết mang Id ${reportedPost._postId} với nội dung: ${reportInfo._reason}`,
+      _message: `Người dùng mang Id ${reportInfo._uId} đã báo cáo bài viết mang Id ${reportedPost._postId} với nội dung: ${reportInfo._reason}`,
       _type: "NEW_REPORT_SOCIAL_POST",
     });
     const newNotification = await this.notificationService.createNotification(

@@ -33,6 +33,11 @@ socialRoute.post(
   socialPostMiddleware.checkValidationCreateSocialPost,
   socialPostController.createSocialPost
 );
+socialRoute.post(
+  "/report-social-post",
+  authMiddeleware.authorizedUser,
+  socialPostController.reportSocialPost
+);
 
 //API PATCH
 socialRoute.patch(
