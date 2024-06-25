@@ -1,16 +1,24 @@
 import { Inject, Service } from "typedi";
 import { CreateSocialPostDTO } from "./dtos/create-social-post.dto";
 import { ImageService } from "../image/image.service";
-import SocialPosts from "./social-posts.model";
 import { Errors } from "../../helpers/handle-errors";
 import { Pagination } from "../../helpers/response";
 import mongoose, { ClientSession, PipelineStage } from "mongoose";
 import { convertUTCtoLocal } from "../../helpers/ultil";
 import { UpdateSocialPostDTO } from "./dtos/update-social-post.dto";
+import SocialPosts from "./models/social-posts.model";
+import { ReportSocialPostDTO } from "./dtos/report-social-post.dto";
+import ReportedPosts from "../posts/models/reported-posts.model";
+import { CreateNotificationDTO } from "../notification/dtos/create-notification.dto";
+import { NotificationService } from "../notification/notification.service";
+import eventEmitter from "../socket/socket";
 
 @Service()
 export class SocialPostsService {
-  constructor(@Inject() private imageService: ImageService) {}
+  constructor(
+    @Inject() private imageService: ImageService,
+    @Inject() private notificationService: NotificationService
+  ) {}
 
   //Customer
   //Get all data of social-posts
@@ -305,5 +313,57 @@ export class SocialPostsService {
 
     await session.commitTransaction();
     return updatedPost;
+  };
+
+  //Report social post
+  public reportSocialPost = async (
+    reportInfo: ReportSocialPostDTO,
+    session: ClientSession
+  ) => {
+    //Check social post is existed
+    const socialPost = await SocialPosts.findOne({
+      $and: [{ _id: reportInfo._postId }, { _status: 0 }],
+    }).session(session);
+    if (!socialPost) throw Errors.PostNotFound;
+
+    //Report social post
+    const reportedPost = await ReportedPosts.findOneAndUpdate(
+      {
+        $and: [{ _postId: reportInfo._postId }, { _isReported: false }],
+      },
+      {
+        $addToSet: {
+          _uId: reportInfo._uId,
+          _uIdReported: reportInfo._uIdReported,
+          _reason: reportInfo._reason,
+        },
+        _uIdReported: socialPost._uId,
+      },
+      { session, new: true, upsert: true }
+    );
+    if (!reportedPost) throw Errors.SaveToDatabaseFail;
+
+    //Create notification
+    const notification = CreateNotificationDTO.fromService({
+      _uId: reportedPost._uId,
+      _postId: reportedPost._postId,
+      _title: "Báo cáo bài viết mạng xã hội",
+      _message: `Người dùng mang Id ${reportedPost._uId} đã báo cáo bài viết mang Id ${reportedPost._postId} với nội dung: ${reportInfo._reason}`,
+      _type: "NEW_REPORT_SOCIAL_POST",
+    });
+    const newNotification = await this.notificationService.createNotification(
+      notification,
+      session
+    );
+    if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
+
+    //Emit event "sendNotification" for internal server
+    eventEmitter.emit("sendNotification", {
+      ...newNotification[0],
+      recipientRole: 2,
+    });
+
+    await session.commitTransaction();
+    return reportedPost;
   };
 }

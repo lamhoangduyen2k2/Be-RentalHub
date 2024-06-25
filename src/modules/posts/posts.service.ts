@@ -1550,7 +1550,11 @@ export class PostsService {
     ];
   };
 
-  public createFavoritePost = async (uId: string, postId: string, session: ClientSession) => {
+  public createFavoritePost = async (
+    uId: string,
+    postId: string,
+    session: ClientSession
+  ) => {
     let favoritePosts: typeof FavoritePosts | null = null;
     const post = await Posts.findOne({
       $and: [{ _id: postId }, { _status: 1 }],
@@ -1574,7 +1578,10 @@ export class PostsService {
         { session, upsert: true, new: true }
       );
     }
-    console.log("🚀 ~ PostsService ~ createFavoritePost= ~ favoritePosts:", favoritePosts)
+    console.log(
+      "🚀 ~ PostsService ~ createFavoritePost= ~ favoritePosts:",
+      favoritePosts
+    );
 
     if (!favoritePosts) throw Errors.SaveToDatabaseFail;
 
@@ -1745,7 +1752,10 @@ export class PostsService {
     return filteredPostIds;
   };
 
-  public createReportPost = async (report: ReportCreateDTO, session: ClientSession) => {
+  public createReportPost = async (
+    report: ReportCreateDTO,
+    session: ClientSession
+  ) => {
     const post = await Posts.findOne({
       $and: [{ _id: report._postId }, { _status: 1 }],
     }).session(session);
@@ -2030,7 +2040,9 @@ export class PostsService {
     if (!reportPost) throw Errors.ReportedPostNotFound;
 
     if (status) {
-      const post = await Posts.findOne({ _id: reportPost._postId }).session(session);
+      const post = await Posts.findOne({ _id: reportPost._postId }).session(
+        session
+      );
       if (!post) throw Errors.PostNotFound;
 
       const sensorReport = await Posts.findOneAndUpdate(
@@ -2041,7 +2053,9 @@ export class PostsService {
       if (!sensorReport) throw Errors.SaveToDatabaseFail;
 
       //Increase totalReported or block user
-      const user = await Users.findOne({ _id: reportPost._uIdReported }).session(session);
+      const user = await Users.findOne({
+        _id: reportPost._uIdReported,
+      }).session(session);
       if (!user) throw Errors.UserNotFound;
 
       if (user._totalReported >= 2) {
