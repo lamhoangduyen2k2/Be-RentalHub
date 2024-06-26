@@ -283,7 +283,6 @@ export class CommentsService {
     const comment = await Comments.findOne({
       $and: [
         { _id: new mongoose.Types.ObjectId(commentId) },
-        { _uId: new mongoose.Types.ObjectId(uId) },
         { _status: 0 },
       ],
     }).session(session);
@@ -294,6 +293,9 @@ export class CommentsService {
       $and: [{ _id: comment._postId }, { _status: 0 }],
     }).session(session);
     if (!post) throw Errors.PostNotFound;
+
+    //Check authentication of user
+    if (comment._uId.toString() !== uId && post._uId.toString() !== uId) throw Errors.Unauthorized;
 
     //Hide comment
     const commentHided = await Comments.findOneAndUpdate(
