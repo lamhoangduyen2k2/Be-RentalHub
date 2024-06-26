@@ -549,6 +549,7 @@ export class CommentsService {
         $project: {
           _id: 1,
           _uId: 1,
+          _postId: 1,
           _name: {
             $concat: ["$user._fname", " ", "$user._lname"],
           },
