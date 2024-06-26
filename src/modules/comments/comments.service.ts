@@ -107,7 +107,12 @@ export class CommentsService {
       );
 
       if (newComment.length <= 0) throw Errors.SaveToDatabaseFail;
-      comment = { ...newComment[0].toObject() };
+      comment = {
+        ...newComment[0].toObject(),
+        _name: `${user._fname} ${user._lname}`,
+        _avatar: user._avatar,
+        totalReplies: 0,
+      };
 
       notification = CreateNotificationCommentDTO.fromService({
         _commentId: newComment[0]._id,
@@ -443,9 +448,15 @@ export class CommentsService {
 
     //Count total reply comments
     const totalReplyComments = await Comments.countDocuments({
-      $and: [{ _parentId: new mongoose.Types.ObjectId(parentId) }, { _status: 0 }],
+      $and: [
+        { _parentId: new mongoose.Types.ObjectId(parentId) },
+        { _status: 0 },
+      ],
     });
-    console.log("🚀 ~ CommentsService ~ totalReplyComments:", totalReplyComments)
+    console.log(
+      "🚀 ~ CommentsService ~ totalReplyComments:",
+      totalReplyComments
+    );
     if (totalReplyComments <= 0) throw Errors.CommentNotFound;
 
     //Cacular total page

@@ -365,4 +365,39 @@ export class SocialPostsService {
     await session.commitTransaction();
     return reportedPost;
   };
+
+  //Sensor reported social post
+  // public sensorReportedSocialPost = async (
+  //   reportedId: string,
+  //   session: ClientSession
+  // ) => {
+  //   //Check social post is existed
+  //   const socialPost = await SocialPosts.findOne({
+  //     $and: [{ _id: new mongoose.Types.ObjectId(postId) }, { _status: 0 }],
+  //   }).session(session);
+  //   if (!socialPost) throw Errors.PostNotFound;
+
+  //   //Sensor social post
+  //   const sensorPost = await ReportedSocialPosts.findOneAndUpdate(
+  //     {
+  //       $and: [{ _postId: new mongoose.Types.ObjectId(postId) }],
+  //     },
+  //     { _isSensored: true },
+  //     { session, new: true }
+  //   );
+  //   if (!sensorPost) throw Errors.SaveToDatabaseFail;
+
+  //   //Block social post
+  //   const blockedPost = await SocialPosts.findOneAndUpdate(
+  //     {
+  //       $and: [{ _id: new mongoose.Types.ObjectId(postId) }],
+  //     },
+  //     { _status: 2 },
+  //     { session, new: true }
+  //   );
+  //   if (!blockedPost) throw Errors.SaveToDatabaseFail;
+
+  //   await session.commitTransaction();
+  //   return blockedPost;
+  // };
 }
