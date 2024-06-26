@@ -82,7 +82,12 @@ export class CommentsService {
       );
 
       if (newComment.length <= 0) throw Errors.SaveToDatabaseFail;
-      comment = { ...newComment[0].toObject() };
+      comment = {
+        ...newComment[0].toObject(),
+        _name: `${user._fname} ${user._lname}`,
+        _avatar: user._avatar,
+        totalReplies: 0,
+      };
 
       notification = CreateNotificationCommentDTO.fromService({
         _commentId: newComment[0]._id,

@@ -367,37 +367,69 @@ export class SocialPostsService {
   };
 
   //Sensor reported social post
-  // public sensorReportedSocialPost = async (
-  //   reportedId: string,
-  //   session: ClientSession
-  // ) => {
-  //   //Check social post is existed
-  //   const socialPost = await SocialPosts.findOne({
-  //     $and: [{ _id: new mongoose.Types.ObjectId(postId) }, { _status: 0 }],
-  //   }).session(session);
-  //   if (!socialPost) throw Errors.PostNotFound;
+  public sensorReportedSocialPost = async (
+    reportedId: string,
+    inspectorId: string,
+    status: number,
+    session: ClientSession
+  ) => {
+    //Check reported request is existed
+    const reportedSocial = await ReportedSocialPosts.findOneAndUpdate(
+      {
+        $and: [
+          { _id: new mongoose.Types.ObjectId(reportedId) },
+          { _isSensored: false },
+        ],
+      },
+      { _isSensored: true },
+      { session }
+    );
+    if (!reportedSocial) throw Errors.ReportedPostNotFound;
 
-  //   //Sensor social post
-  //   const sensorPost = await ReportedSocialPosts.findOneAndUpdate(
-  //     {
-  //       $and: [{ _postId: new mongoose.Types.ObjectId(postId) }],
-  //     },
-  //     { _isSensored: true },
-  //     { session, new: true }
-  //   );
-  //   if (!sensorPost) throw Errors.SaveToDatabaseFail;
+    if (status) {
+      const socialPost = await SocialPosts.findOne({
+        _id: reportedSocial._postId,
+      }).session(session);
+      if (!socialPost) throw Errors.PostNotFound;
 
-  //   //Block social post
-  //   const blockedPost = await SocialPosts.findOneAndUpdate(
-  //     {
-  //       $and: [{ _id: new mongoose.Types.ObjectId(postId) }],
-  //     },
-  //     { _status: 2 },
-  //     { session, new: true }
-  //   );
-  //   if (!blockedPost) throw Errors.SaveToDatabaseFail;
+      const blockedPost = await SocialPosts.findOneAndUpdate(
+        { _id: reportedSocial._postId },
+        {
+          _status: 2,
+          _reason: reportedSocial._reason.toString(),
+          _inspectId: new mongoose.Types.ObjectId(inspectorId),
+        },
+        { session, new: true }
+      );
+      if (!blockedPost) throw Errors.SaveToDatabaseFail;
 
-  //   await session.commitTransaction();
-  //   return blockedPost;
-  // };
+      //Create notification
+      const notification = CreateNotificationDTO.fromService({
+        _uId: reportedSocial._uIdReported,
+        _postId: reportedSocial._postId,
+        _type: "REPORTED_SOCIAL_POST",
+        _title: "Bài viết mạng xã hội của bạn đã bị xóa",
+        _message: `Bài viết mang ID ${reportedSocial._postId} của bạn đã bị xóa do vi phạm quy định của chúng tôi.`,
+      });
+
+      const newNotification = await this.notificationService.createNotification(
+        notification,
+        session
+      );
+      if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
+
+      //Emit event "sendNotification" for internal server
+      eventEmitter.emit("sendNotification", {
+        ...newNotification[0],
+        recipientRole: 0,
+        recipientId: reportedSocial._uIdReported,
+      });
+
+      await session.commitTransaction();
+      return blockedPost;
+    }
+
+    await session.commitTransaction();
+    return true;
+  };
 }
