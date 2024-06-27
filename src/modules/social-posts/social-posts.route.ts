@@ -18,11 +18,6 @@ socialRoute.get(
   authMiddeleware.authorizedUser,
   socialPostController.getSocilaPosts
 );
-socialRoute.get(
-  "/get-social-post-id",
-  authMiddeleware.authorizedUser,
-  socialPostController.getSocialPostById
-);
 
 //API POST
 socialRoute.post(
@@ -50,33 +45,29 @@ socialRoute.patch(
 );
 
 socialRoute.delete(
-    "/cancle-social-post",
-    authMiddeleware.authorizedUser,
-    socialPostController.cancleSocialPost
-)
+  "/cancle-social-post",
+  authMiddeleware.authorizedUser,
+  socialPostController.cancleSocialPost
+);
 socialRoute.patch(
   "/react-social-post",
   authMiddeleware.authorizedUser,
   socialPostController.reactSocialPost
-)
+);
 
 //Inspector
 //API PATCH
-socialRoute.patch(
-  "/sensor-reported-request",
-  authMiddeleware.authorizedInspector,
-  socialPostController.sensorReportedSocialPost
-);
 
 //Admin
 //API PATCH
-socialRoute.patch(
-  "/admin/sensor-reported-request",
-  authMiddeleware.authorizedAdmin,
-  socialPostController.sensorReportedSocialPost
-);
 
 //Admin and Inspector
+//API GET
+socialRoute.get(
+  "/get-social-posts-status",
+  authMiddeleware.authorizedInspector,
+  socialPostController.getdSocialPostsByStatus
+);
 socialRoute.get(
   "/get-reported-social-post",
   authMiddeleware.authorized,
@@ -87,4 +78,20 @@ socialRoute.get(
   authMiddeleware.authorized,
   socialPostController.getReportedSocialPostById
 );
+
+//API PATCH
+socialRoute.patch(
+  "/sensor-reported-request",
+  authMiddeleware.authorizedInspector,
+  socialPostController.sensorReportedSocialPost
+);
+
+//Common
+//API GET
+socialRoute.get(
+  "/get-social-post-id",
+  authMiddeleware.authorized,
+  socialPostController.getSocialPostById
+);
+
 export default socialRoute;

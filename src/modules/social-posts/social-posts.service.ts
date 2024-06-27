@@ -367,6 +367,72 @@ export class SocialPostsService {
   };
 
   //Admin/Inspector
+  //Get all social posts by status
+  public getSocialPostsByStatus = async (
+    status: number,
+    pagination: Pagination
+  ) => {
+    //Count total social posts
+    const totalSocialPosts = await SocialPosts.countDocuments({
+      _status: status,
+    });
+    if (totalSocialPosts <= 0) throw Errors.PostNotFound;
+
+    //Calculate total pages
+    const totalPages = Math.ceil(totalSocialPosts / pagination.limit);
+    if (pagination.page > totalPages) throw Errors.PageNotFound;
+
+    //Get all social posts
+    const socialPosts = await SocialPosts.aggregate([
+      {
+        $match: {
+          _status: status,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_uId",
+          foreignField: "_id",
+          as: "author",
+        },
+      },
+      { $unwind: "$author" },
+      {
+        $project: {
+          _id: 1,
+          _title: 1,
+          _content: 1,
+          _images: 1,
+          _status: 1,
+          _inspectId: 1,
+          _reason: 1,
+          _totalLike: 1,
+          _totalComment: 1,
+          _uId: 1,
+          _auName: { $concat: ["$author._fname", " ", "$author._lname"] },
+          _auEmail: "$author._email",
+          _auAvatar: "$author._avatar",
+          _createdAt: 1,
+        },
+      },
+    ])
+      .skip(pagination.offset)
+      .limit(pagination.limit);
+    
+    if (socialPosts.length <= 0) throw Errors.PageNotFound;
+
+    //Convert UTC time to Local time
+    socialPosts.forEach((post) => {
+      post._createdAtLocal = convertUTCtoLocal(post._createdAt);
+      delete post._createdAt;
+    });
+
+    return [
+      socialPosts,
+      { page: pagination.page, limit: pagination.limit, total: totalPages },
+    ];
+  };
 
   //Get all reported social posts
   public getReportedSocialPosts = async (pagination: Pagination) => {
@@ -481,7 +547,7 @@ export class SocialPostsService {
             },
             {
               _id: new mongoose.Types.ObjectId(reportedId),
-            }
+            },
           ],
         },
       },

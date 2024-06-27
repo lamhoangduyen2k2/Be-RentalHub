@@ -212,6 +212,29 @@ export class SocialPostsController {
   };
 
   //Admin/Inspector
+  //Get all social posts by status
+  public getdSocialPostsByStatus = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const paignation = Pagination.getPagination(req);
+      const status = req.query.status ? Number(req.query.status) : undefined;
+      const socialPosts = await this.socialPostService.getSocialPostsByStatus(
+        status,
+        paignation
+      );
+
+      res.json(new ResponseData(socialPosts[0], null, socialPosts[1]));
+    } catch (error) {
+      console.log(
+        "🚀 ~ SocialPostsController ~ getReportedSocialPosts= ~ error:",
+        error
+      );
+      next(error);
+    }
+  };
   //Get all reported social posts
   public getReportedSocialPosts = async (
     req: Request,
