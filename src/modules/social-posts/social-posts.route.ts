@@ -48,6 +48,7 @@ socialRoute.patch(
   socialPostMiddleware.checkValidationUpdateSocialPost,
   socialPostController.updateSocialPost
 );
+
 socialRoute.delete(
     "/cancle-social-post",
     authMiddeleware.authorizedUser,
@@ -59,4 +60,31 @@ socialRoute.patch(
   socialPostController.reactSocialPost
 )
 
+//Inspector
+//API PATCH
+socialRoute.patch(
+  "/sensor-reported-request",
+  authMiddeleware.authorizedInspector,
+  socialPostController.sensorReportedSocialPost
+);
+
+//Admin
+//API PATCH
+socialRoute.patch(
+  "/admin/sensor-reported-request",
+  authMiddeleware.authorizedAdmin,
+  socialPostController.sensorReportedSocialPost
+);
+
+//Admin and Inspector
+socialRoute.get(
+  "/get-reported-social-post",
+  authMiddeleware.authorized,
+  socialPostController.getReportedSocialPosts
+);
+socialRoute.get(
+  "/get-reported-social-post-id",
+  authMiddeleware.authorized,
+  socialPostController.getReportedSocialPostById
+);
 export default socialRoute;

@@ -134,7 +134,11 @@ export class SocialPostsController {
       const postId = req.query.postId ? req.query.postId.toString() : undefined;
       const uId = req.body._uId.toString();
       session.startTransaction();
-      const result = await this.socialPostService.cancleSocialPost(postId, uId, session);
+      const result = await this.socialPostService.cancleSocialPost(
+        postId,
+        uId,
+        session
+      );
 
       res.json(new ResponseData(result, null, null));
     } catch (error) {
@@ -153,14 +157,18 @@ export class SocialPostsController {
   public reactSocialPost = async (
     req: Request,
     res: Response,
-    next: NextFunction    
+    next: NextFunction
   ) => {
     const session = await startSession();
     try {
       const postId = req.body.postId ? req.body.postId.toString() : undefined;
       const uId = req.body._uId.toString();
       session.startTransaction();
-      const result = await this.socialPostService.reactSocialPost(postId, uId, session);
+      const result = await this.socialPostService.reactSocialPost(
+        postId,
+        uId,
+        session
+      );
 
       res.json(new ResponseData(result, null, null));
     } catch (error) {
@@ -185,7 +193,10 @@ export class SocialPostsController {
     try {
       const reportInfo = ReportSocialPostDTO.fromRequest(req);
       session.startTransaction();
-      const result = await this.socialPostService.reportSocialPost(reportInfo, session);
+      const result = await this.socialPostService.reportSocialPost(
+        reportInfo,
+        session
+      );
 
       res.json(new ResponseData(result, null, null));
     } catch (error) {
@@ -194,6 +205,85 @@ export class SocialPostsController {
         "🚀 ~ SocialPostsController ~ reportSocialPost= ~ error:",
         error
       );
+      next(error);
+    } finally {
+      session.endSession();
+    }
+  };
+
+  //Admin/Inspector
+  //Get all reported social posts
+  public getReportedSocialPosts = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const paignation = Pagination.getPagination(req);
+      const socialPosts = await this.socialPostService.getReportedSocialPosts(
+        paignation
+      );
+
+      res.json(new ResponseData(socialPosts[0], null, socialPosts[1]));
+    } catch (error) {
+      console.log(
+        "🚀 ~ SocialPostsController ~ getReportedSocialPosts= ~ error:",
+        error
+      );
+      next(error);
+    }
+  };
+
+  //Get reported social-post by id
+  public getReportedSocialPostById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const reportedId = req.query.reportedId
+        ? req.query.reportedId.toString()
+        : undefined;
+      const notiId = req.query.notiId ? req.query.notiId.toString() : undefined;
+      const socialPost = await this.socialPostService.getReportedSocialPostById(
+        reportedId,
+        notiId
+      );
+
+      res.json(new ResponseData(socialPost, null, null));
+    } catch (error) {
+      console.log(
+        "🚀 ~ SocialPostsController ~ getReportedSocialPostById= ~ error:",
+        error
+      );
+      next(error);
+    }
+  };
+
+  public sensorReportedSocialPost = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const session = await startSession();
+    try {
+      const inspectorId = req.body._uId.toString();
+      const reportedId = req.query.reportedId
+        ? req.query.reportedId.toString()
+        : undefined;
+      const status = req.body.status ? Number(req.body.status) : undefined;
+      session.startTransaction();
+      const result = await this.socialPostService.sensorReportedSocialPost(
+        reportedId,
+        inspectorId,
+        status,
+        session
+      );
+
+      res.json(new ResponseData(result, null, null));
+    } catch (error) {
+      await session.abortTransaction();
+      console.log("🚀 ~ SocialPostsController ~ error:", error);
       next(error);
     } finally {
       session.endSession();

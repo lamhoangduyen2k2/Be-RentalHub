@@ -366,6 +366,196 @@ export class SocialPostsService {
     return reportedPost;
   };
 
+  //Admin/Inspector
+
+  //Get all reported social posts
+  public getReportedSocialPosts = async (pagination: Pagination) => {
+    //Count all reported social posts request
+    const totalReportedPosts = await ReportedSocialPosts.countDocuments({
+      _isSensored: false,
+    });
+    if (totalReportedPosts <= 0) throw Errors.ReportedPostNotFound;
+
+    const totalPages = Math.ceil(totalReportedPosts / pagination.limit);
+    if (pagination.page > totalPages) throw Errors.PageNotFound;
+
+    //Get all reported social posts
+    const reportedSocialPosts = await ReportedSocialPosts.aggregate([
+      {
+        $match: {
+          _isSensored: false,
+        },
+      },
+      {
+        $lookup: {
+          from: "social-posts",
+          localField: "_postId",
+          foreignField: "_id",
+          as: "socialPost",
+        },
+      },
+      {
+        $unwind: "$socialPost",
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_uIdReported",
+          foreignField: "_id",
+          as: "author",
+        },
+      },
+      {
+        $unwind: "$author",
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_uId",
+          foreignField: "_id",
+          let: { id_user: "$_uId" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $in: ["$_id", "$$id_user"] },
+              },
+            },
+          ],
+          as: "user",
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          _postId: "$socialPost._id",
+          _title: "$socialPost._title",
+          _content: "$socialPost._content",
+          _image: "$socialPost._images",
+          _totalComment: "$socialPost._totalComment",
+          _totalLike: "$socialPost._totalLike",
+          _status: "$socialPost._status",
+          _reason: 1,
+          _uRequest: "$user",
+          _uIdReported: 1,
+          _auName: {
+            $concat: ["$author._fname", " ", "$author._lname"],
+          },
+          _auEmail: "$author._email",
+          _auAvatar: "$author._avatar",
+          _createdAt: 1,
+        },
+      },
+    ])
+      .skip(pagination.offset)
+      .limit(pagination.limit);
+
+    if (reportedSocialPosts.length <= 0) throw Errors.PageNotFound;
+
+    //Convert UTC time to Local time
+    reportedSocialPosts.forEach((post) => {
+      post._createdAtLocal = convertUTCtoLocal(post._createdAt);
+      delete post._createdAt;
+    });
+
+    return [
+      reportedSocialPosts,
+      { page: pagination.page, limit: pagination.limit, total: totalPages },
+    ];
+  };
+
+  //Get Reported Social Post By Id
+  public getReportedSocialPostById = async (
+    reportedId: string,
+    notiId: string | undefined
+  ) => {
+    //Read Notification
+    if (notiId) this.notificationService.getNotificationById(notiId);
+
+    //Check reported request is existed
+    const reportedSocial = await ReportedSocialPosts.aggregate([
+      {
+        $match: {
+          $and: [
+            {
+              _isSensored: false,
+            },
+            {
+              _id: new mongoose.Types.ObjectId(reportedId),
+            }
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "social-posts",
+          localField: "_postId",
+          foreignField: "_id",
+          as: "socialPost",
+        },
+      },
+      {
+        $unwind: "$socialPost",
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_uIdReported",
+          foreignField: "_id",
+          as: "author",
+        },
+      },
+      {
+        $unwind: "$author",
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_uId",
+          foreignField: "_id",
+          let: { id_user: "$_uId" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $in: ["$_id", "$$id_user"] },
+              },
+            },
+          ],
+          as: "user",
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          _postId: "$socialPost._id",
+          _title: "$socialPost._title",
+          _content: "$socialPost._content",
+          _image: "$socialPost._images",
+          _totalComment: "$socialPost._totalComment",
+          _totalLike: "$socialPost._totalLike",
+          _status: "$socialPost._status",
+          _reason: 1,
+          _uRequest: "$user",
+          _uIdReported: 1,
+          _auName: {
+            $concat: ["$author._fname", " ", "$author._lname"],
+          },
+          _auEmail: "$author._email",
+          _auAvatar: "$author._avatar",
+          _createdAt: 1,
+        },
+      },
+    ]);
+    if (reportedSocial.length <= 0) throw Errors.ReportedPostNotFound;
+
+    //Convert UTC time to Local time
+    reportedSocial[0]._createdAtLocal = convertUTCtoLocal(
+      reportedSocial[0]._createdAt
+    );
+    delete reportedSocial[0]._createdAt;
+
+    return reportedSocial[0];
+  };
+
   //Sensor reported social post
   public sensorReportedSocialPost = async (
     reportedId: string,
@@ -388,7 +578,12 @@ export class SocialPostsService {
 
     if (status) {
       const socialPost = await SocialPosts.findOne({
-        _id: reportedSocial._postId,
+        $and: [
+          {
+            _id: reportedSocial._postId,
+          },
+          { _status: 0 },
+        ],
       }).session(session);
       if (!socialPost) throw Errors.PostNotFound;
 

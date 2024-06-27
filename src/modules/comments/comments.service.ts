@@ -281,10 +281,7 @@ export class CommentsService {
     let totalHideComments = 1;
     //Check comment is exist
     const comment = await Comments.findOne({
-      $and: [
-        { _id: new mongoose.Types.ObjectId(commentId) },
-        { _status: 0 },
-      ],
+      $and: [{ _id: new mongoose.Types.ObjectId(commentId) }, { _status: 0 }],
     }).session(session);
     if (!comment) throw Errors.CommentNotFound;
 
@@ -295,7 +292,8 @@ export class CommentsService {
     if (!post) throw Errors.PostNotFound;
 
     //Check authentication of user
-    if (comment._uId.toString() !== uId && post._uId.toString() !== uId) throw Errors.Unauthorized;
+    if (comment._uId.toString() !== uId && post._uId.toString() !== uId)
+      throw Errors.Unauthorized;
 
     //Hide comment
     const commentHided = await Comments.findOneAndUpdate(
