@@ -170,6 +170,81 @@ export class SocialPostsService {
     return socialPost;
   };
 
+  //Search social post by keyword
+  public searchSocialPost = async (keyword: string, pagination: Pagination) => {
+    //Count total social posts by keyword
+    const totalSocialPosts = await SocialPosts.countDocuments({
+      $and: [
+        {
+          $text: { $search: keyword },
+        },
+        { _status: 0 },
+      ],
+    });
+    if (totalSocialPosts <= 0) throw Errors.PostNotFound;
+
+    //Calculate total pages
+    const totalPages = Math.ceil(totalSocialPosts / pagination.limit);
+    if (pagination.page > totalPages) throw Errors.PageNotFound;
+
+    //Search social post
+    const socialPosts = await SocialPosts.aggregate([
+      {
+        $match: {
+          $and: [
+            {
+              $text: { $search: keyword },
+            },
+            { _status: 0 },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_uId",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $unwind: "$user",
+      },
+      {
+        $project: {
+          _id: 1,
+          _title: 1,
+          _content: 1,
+          _images: 1,
+          _status: 1,
+          _inspectId: 1,
+          _reason: 1,
+          _totalLike: 1,
+          _totalComment: 1,
+          _uIdLike: 1,
+          _authorId: "$user._id",
+          _authorName: {
+            $concat: ["$user._fname", " ", "$user._lname"],
+          },
+          _authorAvatar: "$user._avatar",
+          _authorEmail: "$user._email",
+          _authorPhone: "$user._phone",
+          _isLiked: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+    ])
+      .skip(pagination.offset)
+      .limit(pagination.limit);
+    if (socialPosts.length <= 0) throw Errors.PostNotFound;
+
+    return [
+      socialPosts,
+      { page: pagination.page, limit: pagination.limit, total: totalPages },
+    ];
+  };
+
   //Create new social post
   public createSocialPost = async (
     postInfo: CreateSocialPostDTO,

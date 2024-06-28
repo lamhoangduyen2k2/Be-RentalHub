@@ -18,6 +18,11 @@ socialRoute.get(
   authMiddeleware.authorizedUser,
   socialPostController.getSocilaPosts
 );
+socialRoute.get(
+  "/search-social-posts",
+  authMiddeleware.authorizedUser,
+  socialPostController.searchSocialPost
+);
 
 //API POST
 socialRoute.post(

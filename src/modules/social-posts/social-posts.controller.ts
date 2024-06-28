@@ -61,6 +61,32 @@ export class SocialPostsController {
     }
   };
 
+  //Search social post by keyword
+  public searchSocialPost = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const keyword = req.query.keyword
+        ? req.query.keyword.toString()
+        : undefined;
+      const paignation = Pagination.getPagination(req);
+      const socialPosts = await this.socialPostService.searchSocialPost(
+        keyword,
+        paignation
+      );
+
+      res.json(new ResponseData(socialPosts[0], null, socialPosts[1]));
+    } catch (error) {
+      console.log(
+        "🚀 ~ SocialPostsController ~ searchSocialPost= ~ error:",
+        error
+      );
+      next(error);
+    }
+  };
+
   //Create social post
   public createSocialPost = async (
     req: BodyResquest<CreateSocialPostDTO>,
