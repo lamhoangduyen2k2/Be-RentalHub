@@ -86,6 +86,14 @@ socialRoute.patch(
   socialPostController.sensorReportedSocialPost
 );
 
+//Admin
+//API PATCH
+socialRoute.patch(
+  "/admin/block-social-post",
+  authMiddeleware.authorizedAdmin,
+  socialPostController.unBlockSocialPost
+);
+
 //Common
 //API GET
 socialRoute.get(

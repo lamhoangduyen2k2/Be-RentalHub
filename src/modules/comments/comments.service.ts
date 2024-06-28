@@ -402,6 +402,15 @@ export class CommentsService {
           from: "comments",
           localField: "_id",
           foreignField: "_parentId",
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $ne: ["$_status", 1],
+                },
+              },
+            },
+          ],
           as: "replies",
         },
       },
@@ -410,6 +419,15 @@ export class CommentsService {
           totalReplies: { $size: "$replies" },
         },
       },
+      {
+        $lookup: {
+          from: "social-posts",
+          localField: "_postId",
+          foreignField: "_id",
+          as: "authorPost",
+        },
+      },
+      { $unwind: "$authorPost" },
       {
         $project: {
           _id: 1,
@@ -425,6 +443,7 @@ export class CommentsService {
           _images: 1,
           _status: 1,
           totalReplies: 1,
+          postCreatorId: "$authorPost._uId",
           createdAt: 1,
           updatedAt: 1,
         },
@@ -537,6 +556,15 @@ export class CommentsService {
           from: "comments",
           localField: "_id",
           foreignField: "_parentId",
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $ne: ["$_status", 1],
+                },
+              },
+            },
+          ],
           as: "replies",
         },
       },
@@ -545,6 +573,15 @@ export class CommentsService {
           totalReplies: { $size: "$replies" },
         },
       },
+      {
+        $lookup: {
+          from: "social-posts",
+          localField: "_postId",
+          foreignField: "_id",
+          as: "authorPost",
+        },
+      },
+      { $unwind: "$authorPost" },
       {
         $project: {
           _id: 1,
@@ -561,6 +598,7 @@ export class CommentsService {
           _images: 1,
           _status: 1,
           totalReplies: 1,
+          postCreatorId: "$authorPost._uId",
           createdAt: 1,
           updatedAt: 1,
         },

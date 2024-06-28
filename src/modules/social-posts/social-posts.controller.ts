@@ -312,4 +312,32 @@ export class SocialPostsController {
       session.endSession();
     }
   };
+
+  //Admin
+  public unBlockSocialPost = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const session = await startSession();
+    try {
+      const postId = req.query.postId ? req.query.postId.toString() : undefined;
+      session.startTransaction();
+      const result = await this.socialPostService.unBlockSocialPost(
+        postId,
+        session
+      );
+
+      res.json(new ResponseData(result, null, null));
+    } catch (error) {
+      await session.abortTransaction();
+      console.log(
+        "🚀 ~ SocialPostsController ~ unBlockSocialPost= ~ error:",
+        error
+      );
+      next(error);
+    } finally {
+      session.endSession();
+    }
+  };
 }

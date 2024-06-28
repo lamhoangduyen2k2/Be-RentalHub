@@ -419,7 +419,7 @@ export class SocialPostsService {
     ])
       .skip(pagination.offset)
       .limit(pagination.limit);
-    
+
     if (socialPosts.length <= 0) throw Errors.PageNotFound;
 
     //Convert UTC time to Local time
@@ -622,6 +622,17 @@ export class SocialPostsService {
     return reportedSocial[0];
   };
 
+  //Search social post by id
+  public searchSocialPostById = async (postId: string) => {
+    //Get social post
+    const socialPost = await SocialPosts.findOne({
+      _id: new mongoose.Types.ObjectId(postId),
+    });
+    if (!socialPost) throw Errors.PostNotFound;
+
+    return socialPost;
+  };
+
   //Sensor reported social post
   public sensorReportedSocialPost = async (
     reportedId: string,
@@ -692,5 +703,25 @@ export class SocialPostsService {
 
     await session.commitTransaction();
     return true;
+  };
+
+  //Admin
+  //Manage social post status for admin
+  public unBlockSocialPost = async (postId: string, session: ClientSession) => {
+    //Check social post has status = 2
+    const socialPost = await SocialPosts.findOne({
+      $and: [{ _id: new mongoose.Types.ObjectId(postId) }, { _status: 2 }],
+    }).session(session);
+    if (!socialPost) throw Errors.PostNotFound;
+
+    //Unblock social post
+    const unblockedPost = await SocialPosts.findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(postId) },
+      { _status: 0 },
+      { session, new: true }
+    );
+    if (!unblockedPost) throw Errors.SaveToDatabaseFail;
+
+    return unblockedPost;
   };
 }
