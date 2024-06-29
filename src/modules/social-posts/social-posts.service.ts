@@ -12,6 +12,7 @@ import { CreateNotificationDTO } from "../notification/dtos/create-notification.
 import { NotificationService } from "../notification/notification.service";
 import eventEmitter from "../socket/socket";
 import ReportedSocialPosts from "./models/social-posts-reported.model";
+import Users from "../user/model/users.model";
 
 @Service()
 export class SocialPostsService {
@@ -171,9 +172,13 @@ export class SocialPostsService {
   };
 
   //Search social post by keyword
-  public searchSocialPost = async (keyword: string, pagination: Pagination) => {
+  public searchSocialMedia = async (keyword: string, pagination: Pagination, type: number) => {
+    let socialResult = [];
+    let totalPages = 0;
+    let totalSocialResult = 0;
     //Count total social posts by keyword
-    const totalSocialPosts = await SocialPosts.countDocuments({
+    if (type === 0) {
+    totalSocialResult = await SocialPosts.countDocuments({
       $and: [
         {
           $text: { $search: keyword },
@@ -181,14 +186,14 @@ export class SocialPostsService {
         { _status: 0 },
       ],
     });
-    if (totalSocialPosts <= 0) throw Errors.PostNotFound;
+    if (totalSocialResult <= 0) throw Errors.PostNotFound;
 
     //Calculate total pages
-    const totalPages = Math.ceil(totalSocialPosts / pagination.limit);
+    totalPages = Math.ceil(totalSocialResult / pagination.limit);
     if (pagination.page > totalPages) throw Errors.PageNotFound;
 
     //Search social post
-    const socialPosts = await SocialPosts.aggregate([
+    socialResult = await SocialPosts.aggregate([
       {
         $match: {
           $and: [
@@ -237,10 +242,59 @@ export class SocialPostsService {
     ])
       .skip(pagination.offset)
       .limit(pagination.limit);
-    if (socialPosts.length <= 0) throw Errors.PostNotFound;
+    if (socialResult.length <= 0) throw Errors.PostNotFound;
+    } else {
+      //Count user by keyword
+      totalSocialResult = await Users.countDocuments({
+        $and: [
+          {
+            $text: { $search: keyword },
+          },
+          { _role: 0 },
+          { _active: true },
+        ],
+      });
+      if (totalSocialResult <= 0) throw Errors.UserNotFound;
+
+      //Calculate total pages
+      totalPages = Math.ceil(totalSocialResult / pagination.limit);
+      if (pagination.page > totalPages) throw Errors.PageNotFound;
+
+      //Search user by keyword
+      socialResult = await Users.aggregate([
+        {
+          $match: {
+            $and: [
+              {
+                $text: { $search: keyword },
+              },
+              { _role: 0 },
+              { _active: true },
+            ],
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            _name: { $concat: ["$_fname", " ", "$_lname"] },
+            _email: 1,
+            _phone: 1,
+            _avatar: 1,
+            _totalReported: 1,
+            _addressRental: 1,
+            _rating: 1,
+            _role: 1,
+            _createdAt: 1,
+          },
+        },
+      ])
+        .skip(pagination.offset)
+        .limit(pagination.limit);
+      if (socialResult.length <= 0) throw Errors.UserNotFound;
+    }
 
     return [
-      socialPosts,
+      socialResult,
       { page: pagination.page, limit: pagination.limit, total: totalPages },
     ];
   };

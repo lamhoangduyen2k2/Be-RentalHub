@@ -77,6 +77,8 @@ const usersSchema = new mongoose.Schema({
   },
 }, { timestamps: true });
 
+usersSchema.index({ _fname: "text", _lname: "text", _email: "text" });
+
 usersSchema.pre("save", async function (next: NextFunction) {
   if (!this.isModified("_pw") || this._role === 0) return next();
 

@@ -19,9 +19,9 @@ socialRoute.get(
   socialPostController.getSocilaPosts
 );
 socialRoute.get(
-  "/search-social-posts",
+  "/search-social-medias",
   authMiddeleware.authorizedUser,
-  socialPostController.searchSocialPost
+  socialPostController.searchSocialMediaByKeyword
 );
 
 //API POST

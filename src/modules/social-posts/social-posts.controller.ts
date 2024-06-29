@@ -62,7 +62,7 @@ export class SocialPostsController {
   };
 
   //Search social post by keyword
-  public searchSocialPost = async (
+  public searchSocialMediaByKeyword = async (
     req: Request,
     res: Response,
     next: NextFunction
@@ -71,10 +71,12 @@ export class SocialPostsController {
       const keyword = req.query.keyword
         ? req.query.keyword.toString()
         : undefined;
+      const type = req.query.type ? Number(req.query.type) : undefined;
       const paignation = Pagination.getPagination(req);
-      const socialPosts = await this.socialPostService.searchSocialPost(
+      const socialPosts = await this.socialPostService.searchSocialMedia(
         keyword,
-        paignation
+        paignation,
+        type
       );
 
       res.json(new ResponseData(socialPosts[0], null, socialPosts[1]));
