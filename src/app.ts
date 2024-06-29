@@ -168,6 +168,7 @@ import commentsRoute from "./modules/comments/comments.route";
             io.to(inspector.socketId).emit("getNotification", notification._doc);
           });
         } else if (notification.recipientRole === 0) {
+          console.log("🚀 ~ eventEmitter.on ~ notification:", notification)
           // Send notification for a specific user
           const recipient = onlineUsers.find(
             (user) => user.userId === notification.recipientId.toString()

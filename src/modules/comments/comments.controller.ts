@@ -20,6 +20,7 @@ export class CommentsController {
     const session = await startSession();
     try {
       const comment = CreateCommentDTO.fromRequest(req);
+      console.log("🚀 ~ CommentsController ~ comment:", comment)
       const files = req.files as Express.Multer.File[];
       session.startTransaction();
       const newComment = await this.commentsService.createComment(

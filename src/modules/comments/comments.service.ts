@@ -28,6 +28,7 @@ export class CommentsService {
     let parentId: string = "";
     let rootId: string = "";
     let notification: CreateNotificationCommentDTO;
+    let notificationRoot: CreateNotificationCommentDTO;
     //Check  user is exist
     const user = await Users.findOne({
       $and: [
@@ -89,6 +90,18 @@ export class CommentsService {
         totalReplies: 0,
       };
 
+      if (newComment[0]._uId.toString() !== post._uId.toString()) {
+        notificationRoot = CreateNotificationCommentDTO.fromService({
+          _commentId: newComment[0]._id,
+          _title: "Có người đã bình luận vào bài viết của bạn",
+          _message: `Có người đã bình luận vào bài viết của bạn trong bài viết ${post._id}`,
+          _uId: post._uId,
+          _senderId: newComment[0]._uId,
+          _postId: post._id,
+          _type: "NEW_COMMENT",
+        });
+      }
+
       notification = CreateNotificationCommentDTO.fromService({
         _commentId: newComment[0]._id,
         _title: "Có người đã trả lời bình luận của bạn",
@@ -119,15 +132,17 @@ export class CommentsService {
         totalReplies: 0,
       };
 
-      notification = CreateNotificationCommentDTO.fromService({
-        _commentId: newComment[0]._id,
-        _title: "Có người đã bình luận vào bài viết của bạn",
-        _message: `Có người đã bình luận vào bài viết của bạn trong bài viết ${post._id}`,
-        _uId: post._uId,
-        _senderId: newComment[0]._uId,
-        _postId: post._id,
-        _type: "NEW_COMMENT",
-      });
+      if (newComment[0]._uId.toString() !== post._uId.toString()) {
+        notification = CreateNotificationCommentDTO.fromService({
+          _commentId: newComment[0]._id,
+          _title: "Có người đã bình luận vào bài viết của bạn",
+          _message: `Có người đã bình luận vào bài viết của bạn trong bài viết ${post._id}`,
+          _uId: post._uId,
+          _senderId: newComment[0]._uId,
+          _postId: post._id,
+          _type: "NEW_COMMENT",
+        });
+      }
     }
 
     //Increase totalComment of SocialPost
@@ -137,18 +152,37 @@ export class CommentsService {
     ).session(session);
 
     //Create notification
-    const newNotification = await this.notificationService.createNotification(
-      notification,
-      session
-    );
-    if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
+    if (notification) {
+      const newNotification = await this.notificationService.createNotification(
+        notification,
+        session
+      );
+      if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
 
-    //Emit event "sendNotification"
-    eventEmitter.emit("sendNotification", {
-      ...newNotification[0],
-      recipientRole: 0,
-      recipientId: newNotification[0]._uId.toString(),
-    });
+      //Emit event "sendNotification"
+      eventEmitter.emit("sendNotification", {
+        ...newNotification[0],
+        recipientRole: 0,
+        recipientId: newNotification[0]._uId.toString(),
+      });
+    }
+
+    //Create notification root
+    if (notificationRoot) {
+      const newNotificationRoot =
+        await this.notificationService.createNotification(
+          notificationRoot,
+          session
+        );
+      if (newNotificationRoot.length <= 0) throw Errors.SaveToDatabaseFail;
+
+      //Emit event "sendNotification"
+      eventEmitter.emit("sendNotification", {
+        ...newNotificationRoot[0],
+        recipientRole: 0,
+        recipientId: newNotificationRoot[0]._uId.toString(),
+      });
+    }
 
     await session.commitTransaction();
     return comment;
