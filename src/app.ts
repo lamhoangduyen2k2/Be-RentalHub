@@ -26,15 +26,22 @@ import chatRoute from "./modules/chats/chat.route";
 import messageRoute from "./modules/messages/message.route";
 import http from "http";
 //import { Server } from "socket.io";
-import eventEmitter  from "./modules/socket/socket"
+import eventEmitter from "./modules/socket/socket";
 import socialRoute from "./modules/social-posts/social-posts.route";
 import cookieParser from "cookie-parser";
 import { Server } from "socket.io";
 import commentsRoute from "./modules/comments/comments.route";
+import { engine } from "express-handlebars";
+import { join } from "path";
+import payRoute from "./modules/vnpay/vnpay.route";
 //import bodyParser from "body-parser";
 
 (async () => {
   const app = express();
+
+  // Trust the `x-forwarded-for` header, then set it to `req.ip`
+  app.set("trust proxy", true);
+
   const server = http.createServer(app);
   //Config allow ports
   const allowedOrigins = [
@@ -45,6 +52,7 @@ import commentsRoute from "./modules/comments/comments.route";
   //Setup cors options
   const corsOptions = {
     origin: (origin, callback) => {
+      console.log("🚀 ~ origin:", origin);
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -71,14 +79,33 @@ import commentsRoute from "./modules/comments/comments.route";
   //Init socket
   //const io = initSocket(server, corsOptions);
 
+  const hbs = engine({
+    extname: "hbs",
+    defaultLayout: "main",
+    encoding: "utf-8",
+  });
+
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use(compression());
-  app.use(helmet());
-  app.use(cors(corsOptions));
+  app.use(
+    helmet({
+      contentSecurityPolicy: false, // Disable CSP
+      hsts: false, // Disable HSTS
+      frameguard: false, // Disable frameguard
+      xssFilter: false, // Disable XSS filter
+      noSniff: false, // Disable noSniff
+      ieNoOpen: false, // Disable ieNoOpen
+    })
+  );
+  app.use(cors());
   app.use(morgan("combined"));
   app.use(cookieParser());
-  app.set("view engine", "ejs");
+
+  app.engine("hbs", hbs);
+  app.set("view engine", "hbs");
+  app.set("views", join(__dirname, "../", "views"));
+  app.set("view layouts", join(__dirname, "../", "views", "layouts"));
 
   await DBconnect();
 
@@ -98,9 +125,10 @@ import commentsRoute from "./modules/comments/comments.route";
   app.use("/api/social", socialRoute);
   app.use("/api/reaction", socialRoute);
   app.use("/api/comment", commentsRoute);
+  app.use(payRoute);
 
   io.on("connection", (socket) => {
-    console.log("🚀 ~ New connection ~ socket:", socket.id)
+    console.log("🚀 ~ New connection ~ socket:", socket.id);
 
     //listen to a connection
     socket.on("addNewUser", (user) => {
@@ -135,8 +163,8 @@ import commentsRoute from "./modules/comments/comments.route";
       }
       //Get users online list for customer
       io.emit("getOnlineUsers", onlineUsers);
-      console.log("🚀 ~ socket.on ~ onlineUsers:", onlineUsers)
-      console.log("🚀 ~ socket.on ~ onlineInspectors:", onlineInspectors)
+      console.log("🚀 ~ socket.on ~ onlineUsers:", onlineUsers);
+      console.log("🚀 ~ socket.on ~ onlineInspectors:", onlineInspectors);
       //Get admin online for user
       //io.emit("getOnlineAdmin", onlineAdmins);
     });
@@ -146,10 +174,10 @@ import commentsRoute from "./modules/comments/comments.route";
       const recipient = onlineUsers.find(
         (user) => user.userId === message.recipientId
       );
-      console.log("🚀 ~ socket.on ~ recipient:", recipient)
-      
+      console.log("🚀 ~ socket.on ~ recipient:", recipient);
+
       if (recipient) {
-        console.log("🚀 ~ socket.on ~ message:", message)
+        console.log("🚀 ~ socket.on ~ message:", message);
         io.to(recipient.socketId).emit("getMessage", message);
         io.to(recipient.socketId).emit("getUnreadMessage", {
           chatId: message.chatId,
@@ -165,23 +193,32 @@ import commentsRoute from "./modules/comments/comments.route";
         if (notification.recipientRole === 2) {
           // Send notification for all inspectors
           onlineInspectors.forEach((inspector) => {
-            io.to(inspector.socketId).emit("getNotification", notification._doc);
+            io.to(inspector.socketId).emit(
+              "getNotification",
+              notification._doc
+            );
           });
         } else if (notification.recipientRole === 0) {
-          console.log("🚀 ~ eventEmitter.on ~ notification:", notification)
+          console.log("🚀 ~ eventEmitter.on ~ notification:", notification);
           // Send notification for a specific user
           const recipient = onlineUsers.find(
             (user) => user.userId === notification.recipientId.toString()
           );
-          console.log("🚀 ~ eventEmitter.on ~ recipient:", recipient)
+          console.log("🚀 ~ eventEmitter.on ~ recipient:", recipient);
           if (recipient) {
-            io.to(recipient.socketId).emit("getNotification", notification._doc);
+            io.to(recipient.socketId).emit(
+              "getNotification",
+              notification._doc
+            );
           }
         }
       });
     }
 
-    console.log('Listener count for sendNotification:', eventEmitter.listenerCount('sendNotification'));
+    console.log(
+      "Listener count for sendNotification:",
+      eventEmitter.listenerCount("sendNotification")
+    );
 
     socket.on("disconnect", () => {
       onlineUsers = onlineUsers.filter((user) => user.socketId !== socket.id);
@@ -189,8 +226,11 @@ import commentsRoute from "./modules/comments/comments.route";
         (user) => user.socketId !== socket.id
       );
       io.emit("getOnlineUsers", onlineUsers);
-      console.log("🚀 ~ socket.on.disconnect ~ onlineUsers:", onlineUsers)
-      console.log("🚀 ~ socket.on.disconnect ~ onlineInspectors:", onlineInspectors)
+      console.log("🚀 ~ socket.on.disconnect ~ onlineUsers:", onlineUsers);
+      console.log(
+        "🚀 ~ socket.on.disconnect ~ onlineInspectors:",
+        onlineInspectors
+      );
       //io.emit("getOnlineInspectors", onlineInspectors);
     });
   });
