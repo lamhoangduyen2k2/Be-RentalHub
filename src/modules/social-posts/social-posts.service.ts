@@ -172,77 +172,81 @@ export class SocialPostsService {
   };
 
   //Search social post by keyword
-  public searchSocialMedia = async (keyword: string, pagination: Pagination, type: number) => {
+  public searchSocialMedia = async (
+    keyword: string,
+    pagination: Pagination,
+    type: number
+  ) => {
     let socialResult = [];
     let totalPages = 0;
     let totalSocialResult = 0;
     //Count total social posts by keyword
     if (type === 0) {
-    totalSocialResult = await SocialPosts.countDocuments({
-      $and: [
-        {
-          $text: { $search: keyword },
-        },
-        { _status: 0 },
-      ],
-    });
-    if (totalSocialResult <= 0) throw Errors.PostNotFound;
-
-    //Calculate total pages
-    totalPages = Math.ceil(totalSocialResult / pagination.limit);
-    if (pagination.page > totalPages) throw Errors.PageNotFound;
-
-    //Search social post
-    socialResult = await SocialPosts.aggregate([
-      {
-        $match: {
-          $and: [
-            {
-              $text: { $search: keyword },
-            },
-            { _status: 0 },
-          ],
-        },
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "_uId",
-          foreignField: "_id",
-          as: "user",
-        },
-      },
-      {
-        $unwind: "$user",
-      },
-      {
-        $project: {
-          _id: 1,
-          _title: 1,
-          _content: 1,
-          _images: 1,
-          _status: 1,
-          _inspectId: 1,
-          _reason: 1,
-          _totalLike: 1,
-          _totalComment: 1,
-          _uIdLike: 1,
-          _authorId: "$user._id",
-          _authorName: {
-            $concat: ["$user._fname", " ", "$user._lname"],
+      totalSocialResult = await SocialPosts.countDocuments({
+        $and: [
+          {
+            $text: { $search: keyword },
           },
-          _authorAvatar: "$user._avatar",
-          _authorEmail: "$user._email",
-          _authorPhone: "$user._phone",
-          _isLiked: 1,
-          createdAt: 1,
-          updatedAt: 1,
+          { _status: 0 },
+        ],
+      });
+      if (totalSocialResult <= 0) throw Errors.PostNotFound;
+
+      //Calculate total pages
+      totalPages = Math.ceil(totalSocialResult / pagination.limit);
+      if (pagination.page > totalPages) throw Errors.PageNotFound;
+
+      //Search social post
+      socialResult = await SocialPosts.aggregate([
+        {
+          $match: {
+            $and: [
+              {
+                $text: { $search: keyword },
+              },
+              { _status: 0 },
+            ],
+          },
         },
-      },
-    ])
-      .skip(pagination.offset)
-      .limit(pagination.limit);
-    if (socialResult.length <= 0) throw Errors.PostNotFound;
+        {
+          $lookup: {
+            from: "users",
+            localField: "_uId",
+            foreignField: "_id",
+            as: "user",
+          },
+        },
+        {
+          $unwind: "$user",
+        },
+        {
+          $project: {
+            _id: 1,
+            _title: 1,
+            _content: 1,
+            _images: 1,
+            _status: 1,
+            _inspectId: 1,
+            _reason: 1,
+            _totalLike: 1,
+            _totalComment: 1,
+            _uIdLike: 1,
+            _authorId: "$user._id",
+            _authorName: {
+              $concat: ["$user._fname", " ", "$user._lname"],
+            },
+            _authorAvatar: "$user._avatar",
+            _authorEmail: "$user._email",
+            _authorPhone: "$user._phone",
+            _isLiked: 1,
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        },
+      ])
+        .skip(pagination.offset)
+        .limit(pagination.limit);
+      if (socialResult.length <= 0) throw Errors.PostNotFound;
     } else {
       //Count user by keyword
       totalSocialResult = await Users.countDocuments({
@@ -274,6 +278,30 @@ export class SocialPostsService {
           },
         },
         {
+          $lookup: {
+            from: "social-posts",
+            localField: "_id",
+            foreignField: "_uId",
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $eq: ["$_status", 0],
+                  },
+                },
+              },
+            ],
+            as: "socialPost",
+          },
+        },
+        {
+          $addFields: {
+            _totalSocialPost: {
+              $size: "$socialPost",
+            },
+          },
+        },
+        {
           $project: {
             _id: 1,
             _name: { $concat: ["$_fname", " ", "$_lname"] },
@@ -282,6 +310,7 @@ export class SocialPostsService {
             _avatar: 1,
             _totalReported: 1,
             _addressRental: 1,
+            _totalSocialPost: 1,
             _rating: 1,
             _role: 1,
             _createdAt: 1,
