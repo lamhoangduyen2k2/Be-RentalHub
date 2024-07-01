@@ -33,14 +33,13 @@ import { Server } from "socket.io";
 import commentsRoute from "./modules/comments/comments.route";
 import { engine } from "express-handlebars";
 import { join } from "path";
-import payRoute from "./modules/vnpay/vnpay.route";
 //import bodyParser from "body-parser";
 
 (async () => {
   const app = express();
 
   // Trust the `x-forwarded-for` header, then set it to `req.ip`
-  app.set("trust proxy", true);
+  //app.set("trust proxy", true);
 
   const server = http.createServer(app);
   //Config allow ports
@@ -88,24 +87,15 @@ import payRoute from "./modules/vnpay/vnpay.route";
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use(compression());
-  app.use(
-    helmet({
-      contentSecurityPolicy: false, // Disable CSP
-      hsts: false, // Disable HSTS
-      frameguard: false, // Disable frameguard
-      xssFilter: false, // Disable XSS filter
-      noSniff: false, // Disable noSniff
-      ieNoOpen: false, // Disable ieNoOpen
-    })
-  );
-  app.use(cors());
+  app.use(helmet());
+  app.use(cors(corsOptions));
   app.use(morgan("combined"));
   app.use(cookieParser());
 
-  app.engine("hbs", hbs);
-  app.set("view engine", "hbs");
-  app.set("views", join(__dirname, "../", "views"));
-  app.set("view layouts", join(__dirname, "../", "views", "layouts"));
+  // app.engine("hbs", hbs);
+  // app.set("view engine", "hbs");
+  // app.set("views", join(__dirname, "../", "views"));
+  // app.set("view layouts", join(__dirname, "../", "views", "layouts"));
 
   await DBconnect();
 
@@ -125,7 +115,6 @@ import payRoute from "./modules/vnpay/vnpay.route";
   app.use("/api/social", socialRoute);
   app.use("/api/reaction", socialRoute);
   app.use("/api/comment", commentsRoute);
-  app.use(payRoute);
 
   io.on("connection", (socket) => {
     console.log("🚀 ~ New connection ~ socket:", socket.id);
