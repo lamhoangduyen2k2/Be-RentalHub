@@ -175,7 +175,8 @@ export class SocialPostsService {
   public searchSocialMedia = async (
     keyword: string,
     pagination: Pagination,
-    type: number
+    type: number,
+    uId: string
   ) => {
     let socialResult = [];
     let totalPages = 0;
@@ -206,6 +207,17 @@ export class SocialPostsService {
               },
               { _status: 0 },
             ],
+          },
+        },
+        {
+          $addFields: {
+            _isLiked: {
+              $cond: {
+                if: { $in: [new mongoose.Types.ObjectId(uId), "$_uIdLike"] },
+                then: true,
+                else: false,
+              },
+            },
           },
         },
         {

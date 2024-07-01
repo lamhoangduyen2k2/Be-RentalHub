@@ -68,6 +68,7 @@ export class SocialPostsController {
     next: NextFunction
   ) => {
     try {
+      const uId = req.body._uId.toString();
       const keyword = req.query.keyword
         ? req.query.keyword.toString()
         : undefined;
@@ -76,7 +77,8 @@ export class SocialPostsController {
       const socialPosts = await this.socialPostService.searchSocialMedia(
         keyword,
         paignation,
-        type
+        type,
+        uId
       );
 
       res.json(new ResponseData(socialPosts[0], null, socialPosts[1]));
