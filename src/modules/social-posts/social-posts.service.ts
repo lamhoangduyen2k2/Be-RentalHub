@@ -604,22 +604,6 @@ export class SocialPostsService {
         $unwind: "$author",
       },
       {
-        $lookup: {
-          from: "users",
-          localField: "_uId",
-          foreignField: "_id",
-          let: { id_user: "$_uId" },
-          pipeline: [
-            {
-              $match: {
-                $expr: { $in: ["$_id", "$$id_user"] },
-              },
-            },
-          ],
-          as: "user",
-        },
-      },
-      {
         $project: {
           _id: 1,
           _postId: "$socialPost._id",
@@ -630,7 +614,7 @@ export class SocialPostsService {
           _totalLike: "$socialPost._totalLike",
           _status: "$socialPost._status",
           _reason: 1,
-          _uRequest: "$user",
+          _uId: 1,
           _uIdReported: 1,
           _auName: {
             $concat: ["$author._fname", " ", "$author._lname"],
@@ -703,22 +687,6 @@ export class SocialPostsService {
         $unwind: "$author",
       },
       {
-        $lookup: {
-          from: "users",
-          localField: "_uId",
-          foreignField: "_id",
-          let: { id_user: "$_uId" },
-          pipeline: [
-            {
-              $match: {
-                $expr: { $in: ["$_id", "$$id_user"] },
-              },
-            },
-          ],
-          as: "user",
-        },
-      },
-      {
         $project: {
           _id: 1,
           _postId: "$socialPost._id",
@@ -729,7 +697,7 @@ export class SocialPostsService {
           _totalLike: "$socialPost._totalLike",
           _status: "$socialPost._status",
           _reason: 1,
-          _uRequest: "$user",
+          _uId: 1,
           _uIdReported: 1,
           _auName: {
             $concat: ["$author._fname", " ", "$author._lname"],
