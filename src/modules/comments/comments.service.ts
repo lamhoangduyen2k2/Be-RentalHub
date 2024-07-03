@@ -652,4 +652,133 @@ export class CommentsService {
       { page: pagination.page, limit: pagination.limit, total: totalPage },
     ];
   };
+
+  //Get Comment By Id
+  private getCommentById = async (commentId: string) => {
+    const comment = await Comments.aggregate([
+      {
+        $match: {
+          $and: [
+            { _id: new mongoose.Types.ObjectId(commentId) },
+            { _status: 0 },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_uId",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $unwind: "$user",
+      },
+      {
+        $lookup: {
+          from: "comments",
+          localField: "_parentId",
+          foreignField: "_id",
+          as: "parentComment",
+        },
+      },
+      {
+        $unwind: {
+          preserveNullAndEmptyArrays: true,
+          path: "$parentComment",
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "parentComment._uId",
+          foreignField: "_id",
+          as: "userParent",
+        },
+      },
+      {
+        $unwind: {
+          preserveNullAndEmptyArrays: true,
+          path: "$userParent",
+        },
+      },
+      {
+        $lookup: {
+          from: "comments",
+          localField: "_id",
+          foreignField: "_parentId",
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $ne: ["$_status", 1],
+                },
+              },
+            },
+          ],
+          as: "replies",
+        },
+      },
+      {
+        $addFields: {
+          totalReplies: { $size: "$replies" },
+        },
+      },
+      {
+        $lookup: {
+          from: "social-posts",
+          localField: "_postId",
+          foreignField: "_id",
+          as: "authorPost",
+        },
+      },
+      { $unwind: "$authorPost" },
+      {
+        $project: {
+          _id: 1,
+          _uId: 1,
+          _postId: 1,
+          _name: {
+            $concat: ["$user._fname", " ", "$user._lname"],
+          },
+          _avatar: "$user._avatar",
+          _parentId: 1,
+          _rootId: 1,
+          _content: 1,
+          _images: 1,
+          _status: 1,
+          _nameParent: {
+            $concat: ["$userParent._fname", " ", "$userParent._lname"],
+          },
+          totalReplies: 1,
+          postCreatorId: "$authorPost._uId",
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+    ]);
+    if (comment.length <= 0) return null;
+
+    return comment[0];
+  };
+
+  //Get All Comments Tree for Notification
+  public getCommentsTree = async (commentId: string) => {
+    let parentId: string | null = commentId;
+    const commentsTree = [];
+    do {
+      const comment = await this.getCommentById(parentId);
+      console.log(
+        "🚀 ~ CommentsService ~ getCommentsTree= ~ comment:",
+        comment
+      );
+      if (!comment) throw Errors.CommentNotFound;
+
+      commentsTree.unshift(comment);
+      parentId = comment._parentId;
+    } while (parentId !== null);
+
+    return commentsTree;
+  };
 }

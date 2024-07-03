@@ -129,4 +129,20 @@ export class CommentsController {
       next(error);
     }
   };
+
+  //Get Comments Tree for Notification
+  public getCommentsTree = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const commentId = req.query.commentId.toString();
+      const comments = await this.commentsService.getCommentsTree(commentId);
+      res.json(new ResponseData(comments, null, null));
+    } catch (error) {
+      console.log("🚀 ~ CommentsController ~ error:", error);
+      next(error);
+    }
+  };
 }

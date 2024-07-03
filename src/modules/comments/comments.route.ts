@@ -22,6 +22,11 @@ commentsRoute.get(
   authMiddeleware.authorizedUser,
   commentsController.getAllReplyComments
 )
+commentsRoute.get(
+  "/get-comments-notification",
+  authMiddeleware.authorizedUser,
+  commentsController.getCommentsTree
+);
 
 //API POST
 commentsRoute.post(
