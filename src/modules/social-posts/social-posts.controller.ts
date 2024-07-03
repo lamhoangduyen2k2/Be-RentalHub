@@ -49,7 +49,8 @@ export class SocialPostsController {
   ) => {
     try {
       const postId = req.query.postId ? req.query.postId.toString() : undefined;
-      const socialPost = await this.socialPostService.getSocialPostById(postId);
+      const uId = req.body._uId.toString();
+      const socialPost = await this.socialPostService.getSocialPostById(postId, uId);
 
       res.json(new ResponseData(socialPost, null, null));
     } catch (error) {

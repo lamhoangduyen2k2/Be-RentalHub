@@ -161,14 +161,62 @@ export class SocialPostsService {
   };
 
   //Get social post by id
-  public getSocialPostById = async (postId: string) => {
+  public getSocialPostById = async (postId: string, uId: string) => {
     //Get social post
-    const socialPost = await SocialPosts.findOne({
-      _id: new mongoose.Types.ObjectId(postId),
-    });
-    if (!socialPost) throw Errors.PostNotFound;
+    const socialPost = await SocialPosts.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(postId),
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_uId",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      { $unwind: "$user" },
+      {
+        $addFields: {
+          _isLiked: {
+            $cond: {
+              if: { $in: [new mongoose.Types.ObjectId(uId), "$_uIdLike"] },
+              then: true,
+              else: false,
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          _title: 1,
+          _content: 1,
+          _images: 1,
+          _status: 1,
+          _inspectId: 1,
+          _reason: 1,
+          _totalLike: 1,
+          _totalComment: 1,
+          _uIdLike: 1,
+          _authorId: "$user._id",
+          _authorName: {
+            $concat: ["$user._fname", " ", "$user._lname"],
+          },
+          _authorAvatar: "$user._avatar",
+          _authorEmail: "$user._email",
+          _authorPhone: "$user._phone",
+          _isLiked: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+    ]);
+    if (socialPost.length <= 0) throw Errors.PostNotFound;
 
-    return socialPost;
+    return socialPost[0];
   };
 
   //Search social post by keyword
