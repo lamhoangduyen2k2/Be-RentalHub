@@ -93,6 +93,7 @@ export class CommentsService {
       if (newComment[0]._uId.toString() !== post._uId.toString()) {
         notificationRoot = CreateNotificationCommentDTO.fromService({
           _commentId: newComment[0]._id,
+          _rootId: newComment[0]._rootId,
           _title: "Có người đã bình luận vào bài viết của bạn",
           _message: `Có người đã bình luận vào bài viết của bạn trong bài viết ${post._id}`,
           _uId: post._uId,
@@ -104,6 +105,7 @@ export class CommentsService {
 
       notification = CreateNotificationCommentDTO.fromService({
         _commentId: newComment[0]._id,
+        _rootId: newComment[0]._rootId,
         _title: "Có người đã trả lời bình luận của bạn",
         _message: `Có người đã trả lời bình luận của bạn trong bài viết ${post._id}`,
         _uId: new mongoose.Types.ObjectId(parentId),
@@ -135,6 +137,7 @@ export class CommentsService {
       if (newComment[0]._uId.toString() !== post._uId.toString()) {
         notification = CreateNotificationCommentDTO.fromService({
           _commentId: newComment[0]._id,
+          _rootId: newComment[0]._rootId,
           _title: "Có người đã bình luận vào bài viết của bạn",
           _message: `Có người đã bình luận vào bài viết của bạn trong bài viết ${post._id}`,
           _uId: post._uId,
@@ -269,6 +272,7 @@ export class CommentsService {
     if (parentId !== "") {
       notification = CreateNotificationCommentDTO.fromService({
         _commentId: new mongoose.Types.ObjectId(commentId),
+        _rootId: commentUpdated._rootId,
         _title: `Người dùng ${commentUpdated._uId} đã thay đổi bình luận của họ`,
         _message: `Người dùng ${commentUpdated._uId} đã thay đổi bình luận của họ trong bài viết ${comment._postId}`,
         _uId: new mongoose.Types.ObjectId(parentId),
@@ -279,6 +283,7 @@ export class CommentsService {
     } else {
       notification = CreateNotificationCommentDTO.fromService({
         _commentId: new mongoose.Types.ObjectId(commentId),
+        _rootId: commentUpdated._rootId,
         _title: `Người dùng ${commentUpdated._uId} đã thay đổi bình luận của họ`,
         _message: `Người dùng ${commentUpdated._uId} đã thay đổi bình luận của họ trong bài viết ${comment._postId}`,
         _uId: post._uId,

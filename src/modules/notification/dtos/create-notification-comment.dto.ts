@@ -5,6 +5,10 @@ export class CreateNotificationCommentDTO {
     @Expose()
     @Transform((value) => value.obj._commentId.toString())
     _commentId: mongoose.Types.ObjectId;
+
+    @Expose()
+    @Transform((value) => value.obj._rootId && value.obj._rootId.toString())
+    _rootId: mongoose.Types.ObjectId;
     
     @Expose()
     @Transform((value) => value.obj._uId.toString())
