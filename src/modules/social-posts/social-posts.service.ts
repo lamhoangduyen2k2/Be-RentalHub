@@ -655,7 +655,9 @@ export class SocialPostsService {
           _totalLike: "$socialPost._totalLike",
           _status: "$socialPost._status",
           _reason: 1,
-          _uId: 1,
+          _uRequest: {
+            $size: "$_uId",
+          },
           _uIdReported: 1,
           _auName: {
             $concat: ["$author._fname", " ", "$author._lname"],
