@@ -15,6 +15,10 @@ export class GetNotificationsListDTO {
   _postId: mongoose.Types.ObjectId;
 
   @Expose()
+  @Transform((value) => value.obj._commentId && value.obj._commentId.toString())
+  _commentId: mongoose.Types.ObjectId;
+
+  @Expose()
   _title: string;
 
   @Expose()
