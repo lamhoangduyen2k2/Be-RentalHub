@@ -3,7 +3,10 @@ import messageModel from "../messages/message.model";
 
 const chatSchema = new mongoose.Schema(
   {
-    members: Array,
+    members: {
+      type: [Schema.Types.ObjectId],
+      default: null,
+    },
     lsmessage: {
       type: String,
       default: null,

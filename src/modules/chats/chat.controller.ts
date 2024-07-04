@@ -65,6 +65,23 @@ export class ChatController {
     }
   };
 
+  public findDetailUserChatsPagination = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const userId = req.query.userId ? req.query.userId.toString() : undefined;
+      const pagination = Pagination.getPagination(req);
+      const chats = await this.chatService.findDetailUserChatsPagination(userId, pagination);
+
+      res.json(new ResponseData(chats[0], null, chats[1]));
+    } catch (error) {
+      console.log("🚀 ~ ChatController ~ findUserChats= ~ error:", error);
+      next(error);
+    }
+  };
+
   public findChat = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const firstId = req.query.firstId

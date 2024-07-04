@@ -23,6 +23,11 @@ chatRoute.get(
   chatController.findUserChatsPagination
 );
 chatRoute.get(
+  "/find-detail-user-chats-pagination",
+  authMiddleware.authorized,
+  chatController.findDetailUserChatsPagination
+);
+chatRoute.get(
   "/find-chat",
   authMiddleware.authorized,
   chatController.findChat
