@@ -236,15 +236,7 @@ export class ChatService {
 
   public findDetailUserChatsPagination = async (
     userId: string,
-    pagination: Pagination
   ) => {
-    //Count total chats
-    const totalChats = await chatModel.countDocuments({
-      members: { $in: [new mongoose.Types.ObjectId(userId)] },
-    });
-    const totalPage = Math.ceil(totalChats / pagination.limit);
-    if (pagination.page > totalPage) throw Errors.PageNotFound;
-
     const chats = await chatModel
       .aggregate([
         {
@@ -287,8 +279,6 @@ export class ChatService {
           }
         }
       ])
-      .skip(pagination.offset)
-      .limit(pagination.limit)
       .sort({ updatedAt: -1 });
 
     const totalUnReadMessages = await chatModel.aggregate([
@@ -367,15 +357,12 @@ export class ChatService {
       };
     });
 
-    return [
-      {
-        chats: unReadEachChat,
-        totalUnReadMessages: totalUnReadMessages[0]
-          ? totalUnReadMessages[0]["totalUnRead"]
-          : 0,
-      },
-      { total: totalPage, page: pagination.page, limit: pagination.limit },
-    ];
+    return {
+      chats: unReadEachChat,
+      totalUnReadMessages: totalUnReadMessages[0]
+        ? totalUnReadMessages[0]["totalUnRead"]
+        : 0,
+    }
   };
 
   public findChat = async (firstId: string, secondId: string) => {

@@ -72,10 +72,9 @@ export class ChatController {
   ) => {
     try {
       const userId = req.query.userId ? req.query.userId.toString() : undefined;
-      const pagination = Pagination.getPagination(req);
-      const chats = await this.chatService.findDetailUserChatsPagination(userId, pagination);
+      const chats = await this.chatService.findDetailUserChatsPagination(userId);
 
-      res.json(new ResponseData(chats[0], null, chats[1]));
+      res.json(new ResponseData(chats, null,null));
     } catch (error) {
       console.log("🚀 ~ ChatController ~ findUserChats= ~ error:", error);
       next(error);
