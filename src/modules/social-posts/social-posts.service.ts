@@ -161,7 +161,13 @@ export class SocialPostsService {
   };
 
   //Get social post by id
-  public getSocialPostById = async (postId: string, uId: string) => {
+  public getSocialPostById = async (
+    postId: string,
+    uId: string,
+    notiId: string | undefined
+  ) => {
+    if (notiId) this.notificationService.getNotificationById(notiId);
+
     //Get social post
     const socialPost = await SocialPosts.aggregate([
       {
