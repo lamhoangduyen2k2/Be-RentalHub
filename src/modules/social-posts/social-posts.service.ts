@@ -593,26 +593,13 @@ export class SocialPostsService {
   //Admin/Inspector
   //Get all social posts by status
   public getSocialPostsByStatus = async (
-    status: number,
+    status: number | undefined,
     pagination: Pagination
   ) => {
-    //Count total social posts
-    const totalSocialPosts = await SocialPosts.countDocuments({
-      _status: status,
-    });
-    if (totalSocialPosts <= 0) throw Errors.PostNotFound;
+    let count = 0;
 
-    //Calculate total pages
-    const totalPages = Math.ceil(totalSocialPosts / pagination.limit);
-    if (pagination.page > totalPages) throw Errors.PageNotFound;
-
-    //Get all social posts
-    const socialPosts = await SocialPosts.aggregate([
-      {
-        $match: {
-          _status: status,
-        },
-      },
+    //Config pipeline stage
+    const pipeline : PipelineStage[] = [
       {
         $lookup: {
           from: "users",
@@ -622,6 +609,44 @@ export class SocialPostsService {
         },
       },
       { $unwind: "$author" },
+      {
+        $lookup: {
+          from: "reported-social-posts",
+          localField: "_id",
+          foreignField: "_postId",
+          let: { status_post: "$_status" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$_isSensored", true] },
+                    { $eq: ["$$status_post", 2] },
+                  ],
+                },
+              },
+            },
+          ],
+          as: "reportedPost",
+        },
+      },
+      {
+        $unwind: {
+          preserveNullAndEmptyArrays: true,
+          path: "$reportedPost",
+        },
+      },
+      {
+        $addFields: {
+          _uRequest: {
+            $cond: {
+              if: "$reportedPost._uId",
+              then: { $size: "$reportedPost._uId" },
+              else: 0,
+            },
+          },
+        },
+      },
       {
         $project: {
           _id: 1,
@@ -637,10 +662,39 @@ export class SocialPostsService {
           _auName: { $concat: ["$author._fname", " ", "$author._lname"] },
           _auEmail: "$author._email",
           _auAvatar: "$author._avatar",
+          _uRequest: 1,
           _createdAt: 1,
         },
       },
-    ])
+    ]
+    //Check condition by status
+    if (!isNaN(status)) {
+      pipeline.unshift({
+        $match: {
+          _status: status,
+        },
+      })
+
+      count = await SocialPosts.countDocuments({
+        _status: status,
+      });
+    } else {
+      count = await SocialPosts.countDocuments();
+    }
+
+    if (count <= 0) throw Errors.PostNotFound;
+    // //Count total social posts
+    // const totalSocialPosts = await SocialPosts.countDocuments({
+    //   _status: status,
+    // });
+    // if (totalSocialPosts <= 0) throw Errors.PostNotFound;
+
+    //Calculate total pages
+    const totalPages = Math.ceil(count / pagination.limit);
+    if (pagination.page > totalPages) throw Errors.PageNotFound;
+
+    //Get all social posts
+    const socialPosts = await SocialPosts.aggregate(pipeline)
       .skip(pagination.offset)
       .limit(pagination.limit);
 
@@ -704,7 +758,7 @@ export class SocialPostsService {
           _postId: "$socialPost._id",
           _title: "$socialPost._title",
           _content: "$socialPost._content",
-          _image: "$socialPost._images",
+          _images: "$socialPost._images",
           _totalComment: "$socialPost._totalComment",
           _totalLike: "$socialPost._totalLike",
           _status: "$socialPost._status",
