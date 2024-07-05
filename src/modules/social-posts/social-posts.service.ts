@@ -862,7 +862,7 @@ export class SocialPostsService {
         { _id: reportedSocial._postId },
         {
           _status: 2,
-          _reason: reportedSocial._reason.toString(),
+          _reason: reportedSocial._reason,
           _inspectId: new mongoose.Types.ObjectId(inspectorId),
         },
         { session, new: true }

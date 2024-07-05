@@ -53,7 +53,7 @@ const socialPostsSchema = new mongoose.Schema({
         default: null,
     },
     _reason: {
-        type: String,
+        type: [String],
         default: null,
     }
 }, { timestamps: true });
