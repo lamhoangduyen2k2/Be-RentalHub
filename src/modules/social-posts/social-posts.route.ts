@@ -83,6 +83,11 @@ socialRoute.get(
   authMiddeleware.authorized,
   socialPostController.getReportedSocialPostById
 );
+socialRoute.get(
+  "/search-social-post-admin",
+  authMiddeleware.authorizedInspector,
+  socialPostController.searchSocialPostByKeyword
+)
 
 //API PATCH
 socialRoute.patch(

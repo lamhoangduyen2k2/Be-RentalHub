@@ -349,6 +349,31 @@ export class SocialPostsController {
     }
   };
 
+  public searchSocialPostByKeyword = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const keyword = req.query.keyword
+        ? req.query.keyword.toString()
+        : undefined;
+      const paignation = Pagination.getPagination(req);
+      const socialPosts = await this.socialPostService.searchSocialPostForAdmin(
+        keyword,
+        paignation
+      );
+
+      res.json(new ResponseData(socialPosts[0], null, socialPosts[1]));
+    } catch (error) {
+      console.log(
+        "🚀 ~ SocialPostsController ~ searchSocialPostByKeyword= ~ error:",
+        error
+      );
+      next(error);
+    }
+  };
+
   //Admin
   public unBlockSocialPost = async (
     req: Request,

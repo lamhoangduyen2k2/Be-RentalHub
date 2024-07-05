@@ -871,14 +871,207 @@ export class SocialPostsService {
   };
 
   //Search social post by id
-  public searchSocialPostById = async (postId: string) => {
-    //Get social post
-    const socialPost = await SocialPosts.findOne({
-      _id: new mongoose.Types.ObjectId(postId),
-    });
-    if (!socialPost) throw Errors.PostNotFound;
+  public searchSocialPostForAdmin = async (keyword: string, pagination: Pagination) => {
+    //Check keyword is ObjectId
+    const isObjectId = mongoose.Types.ObjectId.isValid(keyword);
 
-    return socialPost;
+    //Search social post by id
+    if (isObjectId) {
+      console.log("🚀 ~ SocialPostsService ~ searchSocialPostForAdmin= ~ keyword:", keyword);
+      const socialPost = await SocialPosts.aggregate([
+        {
+          $match: {
+            _id: new mongoose.Types.ObjectId(keyword),
+          }
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "_uId",
+            foreignField: "_id",
+            as: "author",
+          },
+        },
+        { $unwind: "$author" },
+        {
+          $lookup: {
+            from: "reported-social-posts",
+            localField: "_id",
+            foreignField: "_postId",
+            let: { status_post: "$_status" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: ["$_isSensored", true] },
+                      { $eq: ["$$status_post", 2] },
+                    ],
+                  },
+                },
+              },
+            ],
+            as: "reportedPost",
+          },
+        },
+        {
+          $unwind: {
+            preserveNullAndEmptyArrays: true,
+            path: "$reportedPost",
+          },
+        },
+        {
+          $addFields: {
+            _uRequest: {
+              $cond: {
+                if: "$reportedPost._uId",
+                then: { $size: "$reportedPost._uId" },
+                else: 0,
+              },
+            },
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            _title: 1,
+            _content: 1,
+            _images: 1,
+            _status: 1,
+            _inspectId: 1,
+            _reason: 1,
+            _totalLike: 1,
+            _totalComment: 1,
+            _uId: 1,
+            _auName: { $concat: ["$author._fname", " ", "$author._lname"] },
+            _auEmail: "$author._email",
+            _auAvatar: "$author._avatar",
+            _uRequest: 1,
+            _createdAt: 1,
+          },
+        },
+      ])
+      if (socialPost.length <= 0) throw Errors.PostNotFound;
+
+      //Convert UTC time to Local time
+      socialPost[0]._createdAtLocal = convertUTCtoLocal(socialPost[0]._createdAt);
+      delete socialPost[0]._createdAt;
+
+      return [
+        socialPost[0],
+        { page: pagination.page, limit: pagination.limit, total: 1 },
+      ];
+    } else {
+      //Search author for social post
+      const author = await Users.aggregate([
+        {
+          $match: {
+            _email: keyword,
+          }
+        },
+      ])
+      console.log("🚀 ~ SocialPostsService ~ searchSocialPostForAdmin= ~ author:", keyword)
+      if (author.length <= 0) throw Errors.UserNotFound;
+
+      //Count total social posts by author
+      const totalSocialPosts = await SocialPosts.countDocuments({
+        _uId: author[0]._id,
+      });
+      if (totalSocialPosts <= 0) throw Errors.PostNotFound;
+
+      //Calculate total pages
+      const totalPages = Math.ceil(totalSocialPosts / pagination.limit);
+      if (pagination.page > totalPages) throw Errors.PageNotFound;
+
+      //Search social post by author
+      const socialPost = await SocialPosts.aggregate([
+        {
+          $match: {
+            _uId: author[0]._id,
+          }
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "_uId",
+            foreignField: "_id",
+            as: "author",
+          },
+        },
+        { $unwind: "$author" },
+        {
+          $lookup: {
+            from: "reported-social-posts",
+            localField: "_id",
+            foreignField: "_postId",
+            let: { status_post: "$_status" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: ["$_isSensored", true] },
+                      { $eq: ["$$status_post", 2] },
+                    ],
+                  },
+                },
+              },
+            ],
+            as: "reportedPost",
+          },
+        },
+        {
+          $unwind: {
+            preserveNullAndEmptyArrays: true,
+            path: "$reportedPost",
+          },
+        },
+        {
+          $addFields: {
+            _uRequest: {
+              $cond: {
+                if: "$reportedPost._uId",
+                then: { $size: "$reportedPost._uId" },
+                else: 0,
+              },
+            },
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            _title: 1,
+            _content: 1,
+            _images: 1,
+            _status: 1,
+            _inspectId: 1,
+            _reason: 1,
+            _totalLike: 1,
+            _totalComment: 1,
+            _uId: 1,
+            _auName: { $concat: ["$author._fname", " ", "$author._lname"] },
+            _auEmail: "$author._email",
+            _auAvatar: "$author._avatar",
+            _uRequest: 1,
+            _createdAt: 1,
+          },
+        },
+      ])
+        .skip(pagination.offset)
+        .limit(pagination.limit);
+      if (socialPost.length <= 0) throw Errors.PostNotFound;
+
+      //Convert UTC time to Local time
+      socialPost.forEach(post => {
+        post._createdAtLocal = convertUTCtoLocal(post._createdAt);
+        delete post._createdAt;
+      })
+
+      return [
+        socialPost,
+        { page: pagination.page, limit: pagination.limit, total: totalPages },
+      ];
+    }
   };
 
   //Sensor reported social post
@@ -970,6 +1163,7 @@ export class SocialPostsService {
     );
     if (!unblockedPost) throw Errors.SaveToDatabaseFail;
 
+    await session.commitTransaction();
     return unblockedPost;
   };
 }
