@@ -43,7 +43,7 @@ payRoute.get("/", async (req, res) => {
 /**
  * Post request for payment redirect form
  */
-payRoute.post("/", async (req, res) => {
+payRoute.post("/create_payment_url", async (req, res) => {
   const bankList = await vnpay.getBankList();
   const productTypeList = Object.entries(ProductCode).map(([key, value]) => ({
     key,
