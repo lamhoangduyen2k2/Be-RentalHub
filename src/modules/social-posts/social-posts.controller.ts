@@ -356,8 +356,8 @@ export class SocialPostsController {
   ) => {
     try {
       const keyword = req.query.keyword
-        ? req.query.keyword.toString()
-        : undefined;
+      ? req.query.keyword.toString()
+      : undefined;
       const paignation = Pagination.getPagination(req);
       const socialPosts = await this.socialPostService.searchSocialPostForAdmin(
         keyword,

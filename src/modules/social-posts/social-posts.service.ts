@@ -877,7 +877,6 @@ export class SocialPostsService {
 
     //Search social post by id
     if (isObjectId) {
-      console.log("🚀 ~ SocialPostsService ~ searchSocialPostForAdmin= ~ keyword:", keyword);
       const socialPost = await SocialPosts.aggregate([
         {
           $match: {
