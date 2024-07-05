@@ -599,7 +599,7 @@ export class SocialPostsService {
     let count = 0;
 
     //Config pipeline stage
-    const pipeline : PipelineStage[] = [
+    const pipeline: PipelineStage[] = [
       {
         $lookup: {
           from: "users",
@@ -666,14 +666,14 @@ export class SocialPostsService {
           _createdAt: 1,
         },
       },
-    ]
+    ];
     //Check condition by status
     if (!isNaN(status)) {
       pipeline.unshift({
         $match: {
           _status: status,
         },
-      })
+      });
 
       count = await SocialPosts.countDocuments({
         _status: status,
