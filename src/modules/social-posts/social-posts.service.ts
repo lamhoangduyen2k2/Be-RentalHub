@@ -871,7 +871,10 @@ export class SocialPostsService {
   };
 
   //Search social post by id
-  public searchSocialPostForAdmin = async (keyword: string, pagination: Pagination) => {
+  public searchSocialPostForAdmin = async (
+    keyword: string,
+    pagination: Pagination
+  ) => {
     //Check keyword is ObjectId
     const isObjectId = mongoose.Types.ObjectId.isValid(keyword);
 
@@ -881,7 +884,7 @@ export class SocialPostsService {
         {
           $match: {
             _id: new mongoose.Types.ObjectId(keyword),
-          }
+          },
         },
         {
           $lookup: {
@@ -949,15 +952,17 @@ export class SocialPostsService {
             _createdAt: 1,
           },
         },
-      ])
+      ]);
       if (socialPost.length <= 0) throw Errors.PostNotFound;
 
       //Convert UTC time to Local time
-      socialPost[0]._createdAtLocal = convertUTCtoLocal(socialPost[0]._createdAt);
+      socialPost[0]._createdAtLocal = convertUTCtoLocal(
+        socialPost[0]._createdAt
+      );
       delete socialPost[0]._createdAt;
 
       return [
-        socialPost[0],
+        socialPost,
         { page: pagination.page, limit: pagination.limit, total: 1 },
       ];
     } else {
@@ -966,10 +971,13 @@ export class SocialPostsService {
         {
           $match: {
             _email: keyword,
-          }
+          },
         },
-      ])
-      console.log("🚀 ~ SocialPostsService ~ searchSocialPostForAdmin= ~ author:", keyword)
+      ]);
+      console.log(
+        "🚀 ~ SocialPostsService ~ searchSocialPostForAdmin= ~ author:",
+        keyword
+      );
       if (author.length <= 0) throw Errors.UserNotFound;
 
       //Count total social posts by author
@@ -987,7 +995,7 @@ export class SocialPostsService {
         {
           $match: {
             _uId: author[0]._id,
-          }
+          },
         },
         {
           $lookup: {
@@ -1061,10 +1069,10 @@ export class SocialPostsService {
       if (socialPost.length <= 0) throw Errors.PostNotFound;
 
       //Convert UTC time to Local time
-      socialPost.forEach(post => {
+      socialPost.forEach((post) => {
         post._createdAtLocal = convertUTCtoLocal(post._createdAt);
         delete post._createdAt;
-      })
+      });
 
       return [
         socialPost,
