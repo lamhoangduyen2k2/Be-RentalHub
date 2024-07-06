@@ -142,7 +142,8 @@ export class NotificationService {
       ],
     })
       .skip(pagination.offset)
-      .limit(pagination.limit);
+      .limit(pagination.limit)
+      .sort({ createdAt: -1 });
 
     if (notifications.length <= 0) throw Errors.NotificationNotFound;
 
@@ -216,7 +217,8 @@ export class NotificationService {
       ],
     })
       .skip(pagination.offset)
-      .limit(pagination.limit);
+      .limit(pagination.limit)
+      .sort({ createdAt: -1 });
 
     const result = {
       notifications: GetNotificationsInspectorDTO.toResponse(notifications),
@@ -274,7 +276,8 @@ export class NotificationService {
       ],
     })
       .skip(pagination.offset)
-      .limit(pagination.limit);
+      .limit(pagination.limit)
+      .sort({ createdAt: -1 });
 
     return [
       GetNotificationsInspectorDTO.toResponse(notifications),
