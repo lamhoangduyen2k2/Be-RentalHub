@@ -99,7 +99,7 @@ import payRoute from "./modules/vnpay/vnpay.route";
       ieNoOpen: false, // Disable ieNoOpen
     })
   );
-  app.use(cors());
+  app.use(cors({ credentials: true, origin: true}));
   app.use(morgan("combined"));
   app.use(cookieParser());
 

@@ -18,6 +18,8 @@ import dayjs from "dayjs";
 import querystring from "qs";
 import crypto from "crypto";
 import { ResponseData } from "../../helpers/response";
+import Container from "typedi";
+import { PaymenController } from "./vnpay.controller";
 
 const vnpay = new VNPay({
   secureSecret: process.env.VNPAY_SECURE_SECRET,
@@ -25,6 +27,7 @@ const vnpay = new VNPay({
 });
 
 const payRoute = express.Router();
+const paymentController = Container.get(PaymenController);
 
 /**
  * Display home views
@@ -50,47 +53,7 @@ payRoute.get("/", async (req, res, next) => {
  */
 payRoute.post(
   "/create_payment_url",
-  async (req: Request, res: Response, next: NextFunction) => {
-    process.env.TZ = "Asia/Ho_Chi_Minh";
-    const date = new Date();
-    const createDate = dayjs(date).format("YYYYMMDDHHmmss");
-
-    const ipAddr =
-      req.headers["x-forwarded-for"] ||
-      req.connection.remoteAddress ||
-      req.socket.remoteAddress;
-
-    const tmnCode = process.env.VNPAY_TMN_CODE;
-    const secretKey = process.env.VNPAY_SECURE_SECRET;
-    let vnpUrl = process.env.VNP_URL;
-    const returnUrl = process.env.VNP_RETURN_URL;
-    const orderId = dayjs(date).format("DDHHmmss");
-
-    const amount = req.body.amountInput || 20000;
-    let vnp_Params = {};
-    vnp_Params["vnp_Version"] = "2.1.0";
-    vnp_Params["vnp_Command"] = "pay";
-    vnp_Params["vnp_TmnCode"] = tmnCode;
-    vnp_Params["vnp_Locale"] = "vn";
-    vnp_Params["vnp_CurrCode"] = "VND";
-    vnp_Params["vnp_TxnRef"] = orderId;
-    vnp_Params["vnp_OrderInfo"] = "Thanh toan cho ma GD:" + orderId;
-    vnp_Params["vnp_OrderType"] = "other";
-    vnp_Params["vnp_Amount"] = amount * 100;
-    vnp_Params["vnp_ReturnUrl"] = returnUrl;
-    vnp_Params["vnp_IpAddr"] = ipAddr;
-    vnp_Params["vnp_CreateDate"] = createDate;
-
-    vnp_Params = sortObject(vnp_Params);
-
-    const signData = querystring.stringify(vnp_Params, { encode: false });
-    const hmac = crypto.createHmac("sha512", secretKey);
-    const signed = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
-    vnp_Params["vnp_SecureHash"] = signed;
-    vnpUrl += "?" + querystring.stringify(vnp_Params, { encode: false });
-
-    res.redirect(vnpUrl);
-  }
+  paymentController.createPaymentUrl
 );
 
 /**
@@ -98,42 +61,7 @@ payRoute.post(
  */
 payRoute.get(
   "/vnpay_return",
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      let vnp_Params = req.query;
-
-      const secureHash = vnp_Params["vnp_SecureHash"];
-
-      delete vnp_Params["vnp_SecureHash"];
-      delete vnp_Params["vnp_SecureHashType"];
-
-
-      delete vnp_Params["vnp_SecureHash"];
-      delete vnp_Params["vnp_SecureHashType"];
-
-      vnp_Params = sortObject(vnp_Params);
-
-      const tmnCode = process.env.VNPAY_TMN_CODE;
-      const secretKey = process.env.VNPAY_SECURE_SECRET;
-
-      const signData = querystring.stringify(vnp_Params, { encode: false });
-      const hmac = crypto.createHmac("sha512", secretKey);
-      const signed = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
-
-      console.log("🚀 ~ payRoute.get ~ secureHash:", secureHash);
-      console.log("🚀 ~ payRoute.get ~ signed:", signed);
-
-      res.json(new ResponseData(vnp_Params, null, null));
-      // if (secureHash === signed) {
-      //   //Kiem tra xem du lieu trong db co hop le hay khong va thong bao ket qua
-
-      // } else {}
-
-    } catch (error) {
-      console.log("🚀 ~ payRoute.get ~ error:", error);
-      next(error);
-    }
-  }
+  paymentController.returnPayment
 );
 
 function sortObject(obj) {

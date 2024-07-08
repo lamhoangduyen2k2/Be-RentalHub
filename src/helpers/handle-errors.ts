@@ -25,6 +25,12 @@ export const Errors = {
     500
   ),
 
+  PayingCancled: new ErrorModel(
+    "Paying is cancled!",
+    "PAYING_CANCLED",
+    500
+  ),
+
   FileSizeExceedLimit: new ErrorModel(
     "File size exceeds 10MB",
     "FILE_SIZE_EXCEED_LIMIT",

@@ -75,6 +75,14 @@ const usersSchema = new mongoose.Schema({
     type: String,
     default: "local",
   },
+  _totalPosts: {
+    type: Number,
+    default: 0,
+  },
+  _usePosts: {
+    type: Number,
+    default: 0,
+  }
 }, { timestamps: true });
 
 usersSchema.index({ _fname: "text", _lname: "text", _email: "text" });
