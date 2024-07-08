@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   BuildPaymentUrl,
   InpOrderAlreadyConfirmed,
@@ -12,7 +13,11 @@ import {
   VerifyReturnUrl,
   parseDate,
 } from "vnpay";
-import express from "express";
+import express, { NextFunction, Request, Response } from "express";
+import dayjs from "dayjs";
+import querystring from "qs";
+import crypto from "crypto";
+import { ResponseData } from "../../helpers/response";
 
 const vnpay = new VNPay({
   secureSecret: process.env.VNPAY_SECURE_SECRET,
@@ -24,7 +29,7 @@ const payRoute = express.Router();
 /**
  * Display home views
  */
-payRoute.get("/", async (req, res) => {
+payRoute.get("/", async (req, res, next) => {
   const bankList = await vnpay.getBankList();
   const productTypeList = Object.entries(ProductCode).map(([key, value]) => ({
     key,
@@ -43,166 +48,109 @@ payRoute.get("/", async (req, res) => {
 /**
  * Post request for payment redirect form
  */
-payRoute.post("/create_payment_url", async (req, res) => {
-  const bankList = await vnpay.getBankList();
-  const productTypeList = Object.entries(ProductCode).map(([key, value]) => ({
-    key,
-    value,
-  }));
-  const contentPaymentDefault = `Thanh toan don hang ${new Date().toISOString()}`;
+payRoute.post(
+  "/create_payment_url",
+  async (req: Request, res: Response, next: NextFunction) => {
+    process.env.TZ = "Asia/Ho_Chi_Minh";
+    const date = new Date();
+    const createDate = dayjs(date).format("YYYYMMDDHHmmss");
 
-  const {
-    amountInput,
-    contentPayment,
-    productTypeSelect,
-    bankSelect,
-    langSelect,
-  } = req.body;
-
-  // Validate amount
-  if (!amountInput || amountInput <= 0) {
-    return res.render("home", {
-      scripts: `<script>alert('Số tiền chưa hợp lệ');window.location.href = '/';</script>`,
-      bankList,
-      productTypeList,
-      contentPaymentDefault,
-    });
-  }
-
-  // Validate content payment
-  if (!contentPayment) {
-    return res.render("home", {
-      scripts: `<script>alert('Vui lòng điền nội dung thanh toán');window.location.href = '/';</script>`,
-      bankList,
-      productTypeList,
-      contentPaymentDefault,
-    });
-  }
-
-  /**
-   * Prepare data for build payment url
-   * Note: In the VNPay documentation, it's stated that you must multiply the amount by 100.
-   * However, when using the `vnpay` package, this is done automatically.
-   */
-  const data: BuildPaymentUrl = {
-    vnp_Amount: amountInput,
-    vnp_IpAddr:
-      req.headers.forwarded ||
-      req.ip ||
-      req.socket.remoteAddress ||
+    const ipAddr =
+      req.headers["x-forwarded-for"] ||
       req.connection.remoteAddress ||
-      "127.0.0.1",
-    vnp_OrderInfo: contentPayment,
-    vnp_ReturnUrl:
-      process.env.VNPAY_RETURN_URL ?? "http://localhost:3000/vnpay-return",
-    vnp_TxnRef: new Date().getTime().toString(),
-    vnp_BankCode: bankSelect ?? undefined,
-    vnp_Locale: langSelect,
-    vnp_OrderType: productTypeSelect,
-  };
-  console.log("🚀 ~ payRoute.post ~ data:", data);
-  const url = vnpay.buildPaymentUrl(data);
-  console.log("🚀 ~ payRoute.post ~ url:", url);
+      req.socket.remoteAddress;
 
-  return res.redirect(url);
-});
+    const tmnCode = process.env.VNPAY_TMN_CODE;
+    const secretKey = process.env.VNPAY_SECURE_SECRET;
+    let vnpUrl = process.env.VNP_URL;
+    const returnUrl = process.env.VNP_RETURN_URL;
+    const orderId = dayjs(date).format("DDHHmmss");
 
-/**
- * Redirect home
- */
-payRoute.get("/url", async (req, res) => {
-  return res.redirect("/");
-});
+    const amount = req.body.amountInput || 20000;
+    let vnp_Params = {};
+    vnp_Params["vnp_Version"] = "2.1.0";
+    vnp_Params["vnp_Command"] = "pay";
+    vnp_Params["vnp_TmnCode"] = tmnCode;
+    vnp_Params["vnp_Locale"] = "vn";
+    vnp_Params["vnp_CurrCode"] = "VND";
+    vnp_Params["vnp_TxnRef"] = orderId;
+    vnp_Params["vnp_OrderInfo"] = "Thanh toan cho ma GD:" + orderId;
+    vnp_Params["vnp_OrderType"] = "other";
+    vnp_Params["vnp_Amount"] = amount * 100;
+    vnp_Params["vnp_ReturnUrl"] = returnUrl;
+    vnp_Params["vnp_IpAddr"] = ipAddr;
+    vnp_Params["vnp_CreateDate"] = createDate;
 
-/**
- * Post request for create payment url
- */
-payRoute.post("/url", async (req, res) => {
-  const bankList = await vnpay.getBankList();
-  const productTypeList = Object.entries(ProductCode).map(([key, value]) => ({
-    key,
-    value,
-  }));
-  const contentPaymentDefault = `Thanh toan don hang ${new Date().toISOString()}`;
+    vnp_Params = sortObject(vnp_Params);
 
-  const {
-    amountInput,
-    contentPayment,
-    productTypeSelect,
-    bankSelect,
-    langSelect,
-  } = req.body;
+    const signData = querystring.stringify(vnp_Params, { encode: false });
+    const hmac = crypto.createHmac("sha512", secretKey);
+    const signed = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
+    vnp_Params["vnp_SecureHash"] = signed;
+    vnpUrl += "?" + querystring.stringify(vnp_Params, { encode: false });
 
-  // Validate amount
-  if (!amountInput || amountInput <= 0) {
-    return res.render("home", {
-      scripts: `<script>alert('Số tiền chưa hợp lệ');window.location.href = '/';</script>`,
-      bankList,
-      productTypeList,
-      contentPaymentDefault,
-    });
+    res.redirect(vnpUrl);
   }
-
-  // Validate content payment
-  if (!contentPayment) {
-    return res.render("home", {
-      scripts: `<script>alert('Vui lòng điền nội dung thanh toán');window.location.href = '/';</script>`,
-      bankList,
-      productTypeList,
-      contentPaymentDefault,
-    });
-  }
-
-  /**
-   * Prepare data for build payment url
-   * Note: In the VNPay documentation, it's stated that you must multiply the amount by 100.
-   * However, when using the `vnpay` package, this is done automatically.
-   */
-  const data: BuildPaymentUrl = {
-    vnp_Amount: amountInput,
-    vnp_IpAddr:
-      req.headers.forwarded ||
-      req.ip ||
-      req.socket.remoteAddress ||
-      req.connection.remoteAddress ||
-      "127.0.0.1",
-    vnp_OrderInfo: contentPayment,
-    vnp_ReturnUrl:
-      process.env.VNPAY_RETURN_URL ?? "http://localhost:3000/vnpay-return",
-    vnp_TxnRef: new Date().getTime().toString(),
-    vnp_BankCode: bankSelect ?? undefined,
-    vnp_Locale: langSelect,
-    vnp_OrderType: productTypeSelect,
-  };
-  // Build payment url
-  const url = vnpay.buildPaymentUrl(data);
-
-  // Render payment url to home view
-  return res.render("home", {
-    bankList,
-    productTypeList,
-    contentPaymentDefault,
-    url,
-  });
-});
+);
 
 /**
  * Get request for return url, just use for ui, ...
  */
-payRoute.get("/vnpay-return", async (req, res) => {
-  console.log("🚀 ~ req.headers:", req.headers);
-  const result = vnpay.verifyReturnUrl(req.query as unknown as VerifyReturnUrl);
-  console.log("🚀 ~ payRoute.get ~ result:", result);
+payRoute.get(
+  "/vnpay_return",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      let vnp_Params = req.query;
 
-  return res.render("result", {
-    result: {
-      ...result,
-      vnp_PayDate: parseDate(
-        result.vnp_PayDate ?? "Invalid Date"
-      ).toLocaleString(),
-    },
-  });
-});
+      const secureHash = vnp_Params["vnp_SecureHash"];
+
+      delete vnp_Params["vnp_SecureHash"];
+      delete vnp_Params["vnp_SecureHashType"];
+
+
+      delete vnp_Params["vnp_SecureHash"];
+      delete vnp_Params["vnp_SecureHashType"];
+
+      vnp_Params = sortObject(vnp_Params);
+
+      const tmnCode = process.env.VNPAY_TMN_CODE;
+      const secretKey = process.env.VNPAY_SECURE_SECRET;
+
+      const signData = querystring.stringify(vnp_Params, { encode: false });
+      const hmac = crypto.createHmac("sha512", secretKey);
+      const signed = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
+
+      console.log("🚀 ~ payRoute.get ~ secureHash:", secureHash);
+      console.log("🚀 ~ payRoute.get ~ signed:", signed);
+
+      res.json(new ResponseData(vnp_Params, null, null));
+      // if (secureHash === signed) {
+      //   //Kiem tra xem du lieu trong db co hop le hay khong va thong bao ket qua
+
+      // } else {}
+
+    } catch (error) {
+      console.log("🚀 ~ payRoute.get ~ error:", error);
+      next(error);
+    }
+  }
+);
+
+function sortObject(obj) {
+  const sorted = {};
+  const str: string[] = [];
+  let key: string | number;
+  for (key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      str.push(encodeURIComponent(key));
+    }
+  }
+  str.sort();
+  for (key = 0; key < str.length; key++) {
+    sorted[str[key]] = encodeURIComponent(obj[str[key]]).replace(/%20/g, "+");
+  }
+  return sorted;
+}
 
 /**
  * This is a GET request for the IPN URL. It's used for updating the order status, database, etc.

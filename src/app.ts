@@ -60,6 +60,7 @@ import payRoute from "./modules/vnpay/vnpay.route";
       }
     },
     credentials: true,
+    optionsSuccessStatus: 200
   };
   //Config socket.io
   const io = new Server(server, { cors: corsOptions });
@@ -125,7 +126,7 @@ import payRoute from "./modules/vnpay/vnpay.route";
   app.use("/api/social", socialRoute);
   app.use("/api/reaction", socialRoute);
   app.use("/api/comment", commentsRoute);
-  app.use(payRoute);
+  app.use("/order", payRoute);
 
   io.on("connection", (socket) => {
     console.log("🚀 ~ New connection ~ socket:", socket.id);
