@@ -33,6 +33,7 @@ import { Server } from "socket.io";
 import commentsRoute from "./modules/comments/comments.route";
 import { engine } from "express-handlebars";
 import { join } from "path";
+import payRoute from "./modules/vnpay/vnpay.route";
 //import bodyParser from "body-parser";
 
 (async () => {
@@ -88,10 +89,7 @@ import { join } from "path";
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use(compression());
-<<<<<<< HEAD
-  app.use(helmet());
-  app.use(cors(corsOptions));
-=======
+
   app.use(
     helmet({
       contentSecurityPolicy: false, // Disable CSP
@@ -103,7 +101,7 @@ import { join } from "path";
     })
   );
   app.use(cors({ credentials: true, origin: true}));
->>>>>>> payment
+
   app.use(morgan("combined"));
   app.use(cookieParser());
 
@@ -130,10 +128,9 @@ import { join } from "path";
   app.use("/api/social", socialRoute);
   app.use("/api/reaction", socialRoute);
   app.use("/api/comment", commentsRoute);
-<<<<<<< HEAD
-=======
+
   app.use("/order", payRoute);
->>>>>>> payment
+
 
   io.on("connection", (socket) => {
     console.log("🚀 ~ New connection ~ socket:", socket.id);
