@@ -105,10 +105,10 @@ import payRoute from "./modules/vnpay/vnpay.route";
   app.use(morgan("combined"));
   app.use(cookieParser());
 
-  // app.engine("hbs", hbs);
-  // app.set("view engine", "hbs");
-  // app.set("views", join(__dirname, "../", "views"));
-  // app.set("view layouts", join(__dirname, "../", "views", "layouts"));
+  app.engine("hbs", hbs);
+  app.set("view engine", "hbs");
+  app.set("views", join(__dirname, "../", "views"));
+  app.set("view layouts", join(__dirname, "../", "views", "layouts"));
 
   await DBconnect();
 
