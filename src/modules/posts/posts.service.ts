@@ -43,6 +43,8 @@ export class PostsService {
     }).session(session);
     if (!user) throw Errors.UserNotFound;
 
+    if (user._totalPosts <= 0) throw Errors.PostExceedLimit;
+
     //Check address is registered
     const address = await addressRental
       .findOne({
@@ -275,10 +277,17 @@ export class PostsService {
     }).session(session);
     if (!post) throw Errors.PostNotFound;
 
-    // if (postParam._status === 2) {
-    //   active = false;
-    //   isRented = true;
-    // }
+    //Check user is a host
+    const user = await Users.findOne({
+      $and: [
+        { _id: post._uId },
+        { _isHost: true },
+        { _active: true },
+      ]
+    }).session(session);
+    if (!user) throw Errors.UserNotFound;
+
+    if (user._totalPosts <= 0) throw Errors.PostExceedLimit;
 
     const updatedPost = await Posts.findOneAndUpdate(
       { _id: new mongoose.Types.ObjectId(postId) },
@@ -290,13 +299,15 @@ export class PostsService {
       { session, new: true }
     );
 
-    // await Rooms.updateOne(
-    //   { _id: updatedPost._rooms },
-    //   {
-    //     _isRented: isRented,
-    //   },
-    //   { session }
-    // );
+    //Update totalPosts for user
+    const newUser = await Users.findOneAndUpdate(
+      { _id: post._uId },
+      {
+        $inc: { _totalPosts: -1, _usePosts: 1 }
+      },
+      { session, new: true }
+    );
+    if (!newUser) throw Errors.SaveToDatabaseFail;
 
     //Create notification for user
     if (postParam._status === 1) {
