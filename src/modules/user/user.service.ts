@@ -663,20 +663,25 @@ export class UserService {
     if (!user._isHost) throw Errors.Unauthorized;
 
     //Upload certificate images to firebase
-    const urlCerf = await this.imageService.uploadCerf(img, addressInfo._uId.toString());
+    const urlCerf = await this.imageService.uploadCerf(
+      img,
+      addressInfo._uId.toString()
+    );
     if (!urlCerf) throw Errors.UploadImageFail;
 
     const addressUser = await addressRental.create(
-        [{
+      [
+        {
           _uId: addressInfo._uId,
           _address: addressInfo._address,
           _totalRoom: addressInfo._totalRoom ? addressInfo._totalRoom : 1,
           _imgLicense: urlCerf,
-        }],
-        { session }
+        },
+      ],
+      { session }
     );
     if (addressUser.length <= 0) throw Errors.SaveToDatabaseFail;
-    console.log("🚀 ~ UserService ~ addressUser:", addressUser[0]._id)
+    console.log("🚀 ~ UserService ~ addressUser:", addressUser[0]._id);
 
     //create notification for inspector
     const notification = CreateNotificationRegisterAddressDTO.fromService({
@@ -686,7 +691,7 @@ export class UserService {
       _title: "Yêu cầu đăng kí địa chỉ host",
       _message: `Người dùng mang id ${addressUser[0]._uId.toString()} đã gửi yêu cầu đăng kí địa chỉ phòng trọ. Vui lòng kiểm tra thông tin và cấp quyền cho người dùng này`,
     });
-    console.log("🚀 ~ UserService ~ notification:", notification)
+    console.log("🚀 ~ UserService ~ notification:", notification);
     const newNotification = await this.notificationService.createNotification(
       notification,
       session
@@ -698,7 +703,7 @@ export class UserService {
       ...newNotification[0],
       recipientRole: 2,
     });
-    
+
     await session.commitTransaction();
     return addressUser[0];
   };
@@ -874,6 +879,19 @@ export class UserService {
 
     await session.commitTransaction();
     return updatedAddress;
+  };
+
+  public getUserPackages = async (userId: string) => {
+    const user = await Users.findOne({
+      $and: [{ _id: new mongoose.Types.ObjectId(userId) }, { _active: true }],
+    });
+
+    if (!user) throw Errors.UserNotFound;
+
+    return {
+      _totalPosts: user._totalPosts,
+      _usePosts: user._usePosts,
+    }
   };
 
   //Inspector

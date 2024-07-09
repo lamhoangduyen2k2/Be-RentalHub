@@ -154,6 +154,12 @@ routerUser.get(
   authMiddleware.authorizedUser,
   userController.getIdentityUser
 );
+routerUser.get(
+  "/get-packages-user",
+  authMiddleware.authorizedUser,
+  userController.getUserPackages
+);
+
 
 
 // routerUser.post(

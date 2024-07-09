@@ -425,6 +425,21 @@ export class UserController {
     }
   };
 
+  public getUserPackages = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const userId = req.body._uId;
+      const packages = await this.userService.getUserPackages(userId);
+      res.json(new ResponseData(packages, null, null));
+    } catch (error) {
+      console.log("🚀 ~ UserController ~ error:", error)
+      next(error);
+    }
+  }
+
   //Inspector
   public getUserList = async (
     req: Request,
