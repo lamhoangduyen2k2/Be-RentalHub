@@ -2,7 +2,6 @@ import { Inject, Service } from "typedi";
 import { PaymentService } from "./vnpay.service";
 import { NextFunction, Request, Response } from "express";
 import dayjs from "dayjs";
-import { ResponseData } from "../../helpers/response";
 
 @Service()
 export class PaymenController {
@@ -44,8 +43,9 @@ export class PaymenController {
       const vnp_Params = req.query;
       const result = await this.paymentService.returnPayment(vnp_Params);
 
-      res.json(new ResponseData(result, null, null));
+      if (result._totalPosts >= 0) res.redirect(`http://localhost:4200/profile/post-new/${result._id}`);
     } catch (error) {
+      res.redirect(`http://localhost:4200/payment/packages`);
       console.log("🚀 ~ PaymenController ~ returnPayment= ~ error:", error);
       next(error);
     }
