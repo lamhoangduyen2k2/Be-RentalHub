@@ -118,7 +118,7 @@ export class PaymentService {
         _amount: amount,
         _uId: user._id,
         _type: type,
-      })
+      });
       if (!newPayment) throw Errors.SaveToDatabaseFail;
 
       return UserResponsesDTO.toResponse(user);
