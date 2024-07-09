@@ -59,6 +59,7 @@ import { join } from "path";
       }
     },
     credentials: true,
+    optionsSuccessStatus: 200
   };
   //Config socket.io
   const io = new Server(server, { cors: corsOptions });
@@ -87,8 +88,22 @@ import { join } from "path";
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use(compression());
+<<<<<<< HEAD
   app.use(helmet());
   app.use(cors(corsOptions));
+=======
+  app.use(
+    helmet({
+      contentSecurityPolicy: false, // Disable CSP
+      hsts: false, // Disable HSTS
+      frameguard: false, // Disable frameguard
+      xssFilter: false, // Disable XSS filter
+      noSniff: false, // Disable noSniff
+      ieNoOpen: false, // Disable ieNoOpen
+    })
+  );
+  app.use(cors({ credentials: true, origin: true}));
+>>>>>>> payment
   app.use(morgan("combined"));
   app.use(cookieParser());
 
@@ -115,6 +130,10 @@ import { join } from "path";
   app.use("/api/social", socialRoute);
   app.use("/api/reaction", socialRoute);
   app.use("/api/comment", commentsRoute);
+<<<<<<< HEAD
+=======
+  app.use("/order", payRoute);
+>>>>>>> payment
 
   io.on("connection", (socket) => {
     console.log("🚀 ~ New connection ~ socket:", socket.id);

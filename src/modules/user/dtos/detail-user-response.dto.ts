@@ -48,6 +48,9 @@ export class UserResponsesDTO {
   @Expose()
   _temptHostBlocked: boolean | null;
 
+  @Expose()
+  _totalPosts: number;
+
   static toResponse = (data: unknown) => {
     return plainToClass(UserResponsesDTO, data, {
       excludeExtraneousValues: true,
