@@ -7,6 +7,7 @@ import Users from "../user/model/users.model";
 import mongoose from "mongoose";
 import { Errors } from "../../helpers/handle-errors";
 import { UserResponsesDTO } from "../user/dtos/detail-user-response.dto";
+import Payments from "./models/payment.model";
 
 @Service()
 export class PaymentService {
@@ -66,6 +67,7 @@ export class PaymentService {
 
     if (secureHash === signed && vnp_Params["vnp_ResponseCode"] === "00") {
       let total = 0;
+      let type = "Cơ bản";
       //Kiem tra xem du lieu trong db co hop le hay khong va thong bao ket qua
       const userId = vnp_Params["vnp_TxnRef"].toString().slice(0, 24);
 
@@ -78,13 +80,16 @@ export class PaymentService {
       const amount = Number(vnp_Params["vnp_Amount"]) / 100;
       switch (amount) {
         case 100000:
-          total = 25;
+          total = 20;
+          type = "VIP20";
           break;
-        case 189000:
+        case 200000:
           total = 50;
+          type = "VIP50";
           break;
         default:
-          total = amount / 5000;
+          total = amount / 3000;
+          type = "GOD";
           break;
       }
 
@@ -106,6 +111,15 @@ export class PaymentService {
       );
 
       if (user._totalPosts === 0) throw Errors.SaveToDatabaseFail;
+
+      //Create payment for user
+      const newPayment = await Payments.create({
+        _orderId: vnp_Params["vnp_TxnRef"],
+        _amount: amount,
+        _uId: user._id,
+        _type: type,
+      })
+      if (!newPayment) throw Errors.SaveToDatabaseFail;
 
       return UserResponsesDTO.toResponse(user);
     } else if (secureHash === signed && vnp_Params["vnp_ResponseCode"] !== "00")
