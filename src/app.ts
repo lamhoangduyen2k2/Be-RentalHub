@@ -60,7 +60,7 @@ import payRoute from "./modules/vnpay/vnpay.route";
       }
     },
     credentials: true,
-    optionsSuccessStatus: 200
+    optionsSuccessStatus: 200,
   };
   //Config socket.io
   const io = new Server(server, { cors: corsOptions });
@@ -100,7 +100,7 @@ import payRoute from "./modules/vnpay/vnpay.route";
       ieNoOpen: false, // Disable ieNoOpen
     })
   );
-  app.use(cors({ credentials: true, origin: true}));
+  app.use(cors({ credentials: true, origin: true }));
 
   app.use(morgan("combined"));
   app.use(cookieParser());
@@ -130,7 +130,6 @@ import payRoute from "./modules/vnpay/vnpay.route";
   app.use("/api/comment", commentsRoute);
 
   app.use("/order", payRoute);
-
 
   io.on("connection", (socket) => {
     console.log("🚀 ~ New connection ~ socket:", socket.id);
