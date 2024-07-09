@@ -51,6 +51,9 @@ export class UserResponsesDTO {
   @Expose()
   _totalPosts: number;
 
+  @Expose()
+  _usePosts: number;
+
   static toResponse = (data: unknown) => {
     return plainToClass(UserResponsesDTO, data, {
       excludeExtraneousValues: true,
