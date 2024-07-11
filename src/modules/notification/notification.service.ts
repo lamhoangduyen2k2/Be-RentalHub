@@ -76,6 +76,7 @@ export class NotificationService {
         },
       ],
     })
+      .sort({ createdAt: -1 })
       .skip(pagination.offset)
       .limit(pagination.limit);
 
@@ -172,7 +173,9 @@ export class NotificationService {
     return resultId;
   };
 
-  public getNotificationsUnreadedInspector = async (pagination: PaginationNotification) => {
+  public getNotificationsUnreadedInspector = async (
+    pagination: PaginationNotification
+  ) => {
     const countNewNotifications = await Notification.countDocuments({
       $and: [
         {
@@ -231,7 +234,9 @@ export class NotificationService {
     ];
   };
 
-  public getNotificationsReadedInspector = async (pagination: PaginationNotification) => {
+  public getNotificationsReadedInspector = async (
+    pagination: PaginationNotification
+  ) => {
     const countNewNotifications = await Notification.countDocuments({
       $and: [
         {

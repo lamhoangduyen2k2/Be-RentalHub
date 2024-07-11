@@ -486,10 +486,11 @@ export class PostsController {
     const session = await startSession();
     try {
       session.startTransaction();
+      const status = isNaN(Number(req.body._status)) ? undefined : Number(req.body._status);
       const data = await this.postsService.sensorReportPost(
         req.params.reportedId,
         req.body._uId,
-        req.body.status,
+        status,
         session
       );
 
