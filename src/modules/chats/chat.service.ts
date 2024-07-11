@@ -3,14 +3,37 @@ import chatModel from "./chat.model";
 import { Errors } from "../../helpers/handle-errors";
 import mongoose, { ClientSession } from "mongoose";
 import { Pagination } from "../../helpers/response";
+import Users from "../user/model/users.model";
 
 @Service()
 export class ChatService {
   public createChat = async (
     firstId: string,
     secondId: string,
+    uId: string,
     session: ClientSession
   ) => {
+    let reciverId = "";
+    //Check userReciver
+    if (firstId === uId) {
+      reciverId = secondId;
+    } else {
+      reciverId = firstId;
+    }
+
+    //Get reciver info
+    const userReciver = await Users.findOne({
+      $and: [
+        {
+          _id: new mongoose.Types.ObjectId(reciverId),
+        },
+        {
+          _active: true,
+        },
+      ],
+    }).session(session);
+    if (!userReciver) throw Errors.UserNotFound;
+
     // Check chat is already exist
     const chat = await chatModel
       .findOne({
@@ -23,7 +46,12 @@ export class ChatService {
       })
       .session(session);
 
-    if (chat) return chat;
+    if (chat)
+      return {
+        ...chat.toObject(),
+        reciverName: `${userReciver._fname} ${userReciver._lname}`,
+        reciverAvatar: userReciver._avatar,
+      };
 
     // Create new chat
     const newChat = await chatModel.create(
@@ -38,7 +66,11 @@ export class ChatService {
     if (newChat.length <= 0) throw Errors.SaveToDatabaseFail;
 
     await session.commitTransaction();
-    return newChat[0];
+    return {
+      ...newChat[0].toObject(),
+      reciverName: `${userReciver._fname} ${userReciver._lname}`,
+      reciverAvatar: userReciver._avatar,
+    };
   };
 
   public findUserChats = async (userId: string) => {
@@ -234,9 +266,7 @@ export class ChatService {
     ];
   };
 
-  public findDetailUserChatsPagination = async (
-    userId: string,
-  ) => {
+  public findDetailUserChatsPagination = async (userId: string) => {
     const chats = await chatModel
       .aggregate([
         {
@@ -270,14 +300,14 @@ export class ChatService {
             members: 1,
             lsmessage: 1,
             lssender: 1,
-            "reciverName": {
+            reciverName: {
               $concat: ["$user._fname", " ", "$user._lname"],
             },
-            "reciverAvatar": "$user._avatar",
+            reciverAvatar: "$user._avatar",
             createdAt: 1,
             updatedAt: 1,
-          }
-        }
+          },
+        },
       ])
       .sort({ updatedAt: -1 });
 
@@ -362,7 +392,7 @@ export class ChatService {
       totalUnReadMessages: totalUnReadMessages[0]
         ? totalUnReadMessages[0]["totalUnRead"]
         : 0,
-    }
+    };
   };
 
   public findChat = async (firstId: string, secondId: string) => {

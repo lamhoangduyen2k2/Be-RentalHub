@@ -279,15 +279,12 @@ export class PostsService {
 
     //Check user is a host
     const user = await Users.findOne({
-      $and: [
-        { _id: post._uId },
-        { _isHost: true },
-        { _active: true },
-      ]
+      $and: [{ _id: post._uId }, { _isHost: true }, { _active: true }],
     }).session(session);
     if (!user) throw Errors.UserNotFound;
 
-    if (user._totalPosts <= 0) throw Errors.PostExceedLimit;
+    if (user._totalPosts <= 0 && postParam._status === 1)
+      throw Errors.PostExceedLimit;
 
     const updatedPost = await Posts.findOneAndUpdate(
       { _id: new mongoose.Types.ObjectId(postId) },
@@ -300,14 +297,16 @@ export class PostsService {
     );
 
     //Update totalPosts for user
-    const newUser = await Users.findOneAndUpdate(
-      { _id: post._uId },
-      {
-        $inc: { _totalPosts: -1, _usePosts: 1 }
-      },
-      { session, new: true }
-    );
-    if (!newUser) throw Errors.SaveToDatabaseFail;
+    if (post._status === 0 && updatedPost._status === 1) {
+      const newUser = await Users.findOneAndUpdate(
+        { _id: post._uId },
+        {
+          $inc: { _totalPosts: -1, _usePosts: 1 },
+        },
+        { session, new: true }
+      );
+      if (!newUser) throw Errors.SaveToDatabaseFail;
+    }
 
     //Create notification for user
     if (postParam._status === 1) {

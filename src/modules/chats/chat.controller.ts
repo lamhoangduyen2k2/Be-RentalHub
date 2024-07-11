@@ -19,8 +19,9 @@ export class ChatController {
     try {
       const firstId = req.body.firstId.toString();
       const secondId = req.body.secondId.toString();
+      const uId = req.body._uId.toString();
       session.startTransaction();
-      const chat = await this.chatService.createChat(firstId, secondId, session);
+      const chat = await this.chatService.createChat(firstId, secondId, uId, session);
 
       res.json(new ResponseData(chat, null, null));
     } catch (error) {
