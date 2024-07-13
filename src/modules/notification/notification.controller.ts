@@ -14,10 +14,11 @@ export class NotificationController {
   ) => {
     try {
       const pagination = PaginationNotification.getPagination(req);
-      const notifications = await this.notificationService.getNotificationsUnreadedList(
-        req.body._uId,
-        pagination
-      );
+      const notifications =
+        await this.notificationService.getNotificationsUnreadedList(
+          req.body._uId,
+          pagination
+        );
 
       res.json(new ResponseData(notifications[0], null, notifications[1]));
     } catch (error) {
@@ -33,10 +34,11 @@ export class NotificationController {
   ) => {
     try {
       const pagination = PaginationNotification.getPagination(req);
-      const notifications = await this.notificationService.getNotificationsReadedList(
-        req.body._uId,
-        pagination
-      );
+      const notifications =
+        await this.notificationService.getNotificationsReadedList(
+          req.body._uId,
+          pagination
+        );
 
       res.json(new ResponseData(notifications[0], null, notifications[1]));
     } catch (error) {
@@ -52,14 +54,17 @@ export class NotificationController {
   ) => {
     try {
       const pagination = PaginationNotification.getPagination(req);
-      const notifications = await this.notificationService.getNotificationsUnreadedInspector(pagination);
+      const notifications =
+        await this.notificationService.getNotificationsUnreadedInspector(
+          pagination
+        );
 
       res.json(new ResponseData(notifications[0], null, notifications[1]));
     } catch (error) {
       console.log("🚀 ~ NotificationController ~ error:", error);
       next(error);
     }
-  }
+  };
 
   public getNotificationsReadedInspector = async (
     req: Request,
@@ -68,14 +73,17 @@ export class NotificationController {
   ) => {
     try {
       const pagination = PaginationNotification.getPagination(req);
-      const notifications = await this.notificationService.getNotificationsReadedInspector(pagination);
+      const notifications =
+        await this.notificationService.getNotificationsReadedInspector(
+          pagination
+        );
 
       res.json(new ResponseData(notifications[0], null, notifications[1]));
     } catch (error) {
       console.log("🚀 ~ NotificationController ~ error:", error);
       next(error);
     }
-  }
+  };
 
   public getNotificationById = async (
     req: Request,
@@ -84,14 +92,16 @@ export class NotificationController {
   ) => {
     try {
       const notiId = req.query.notiId.toString();
-      const notification = await this.notificationService.getNotificationById(notiId);
+      const notification = await this.notificationService.getNotificationById(
+        notiId
+      );
 
       res.json(new ResponseData(notification && notiId, null, null));
     } catch (error) {
-      console.log("🚀 ~ NotificationController ~ error:", error)
-      next(error)
+      console.log("🚀 ~ NotificationController ~ error:", error);
+      next(error);
     }
-  }
+  };
 
   public readNotification = async (
     req: Request,
@@ -99,11 +109,28 @@ export class NotificationController {
     next: NextFunction
   ) => {
     try {
-      const notification = await this.notificationService.readAllNotifications(req.body._uId);
+      const notification = await this.notificationService.readAllNotifications(
+        req.body._uId
+      );
       res.json(new ResponseData(notification, null, null));
     } catch (error) {
-      console.log("🚀 ~ NotificationController ~ error:", error)
-      next(error)
+      console.log("🚀 ~ NotificationController ~ error:", error);
+      next(error);
     }
-  }
+  };
+
+  public readNotificationInspector = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const notification = await this.notificationService.readAllNotificationsInspector();
+      
+      res.json(new ResponseData(notification, null, null));
+    } catch (error) {
+      console.log("🚀 ~ NotificationController ~ error:", error);
+      next(error);
+    }
+  };
 }

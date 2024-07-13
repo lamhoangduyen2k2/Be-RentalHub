@@ -222,6 +222,7 @@ export class NotificationService {
       .skip(pagination.offset)
       .limit(pagination.limit)
       .sort({ createdAt: -1 });
+    console.log("🚀 ~ NotificationService ~ notifications:", notifications);
 
     const result = {
       notifications: GetNotificationsInspectorDTO.toResponse(notifications),
@@ -298,6 +299,32 @@ export class NotificationService {
         {
           _type: {
             $nin: [
+              "ACTIVE_HOST",
+              "REGISTER_ADDRESS",
+              "CREATE_POST",
+              "NEW_REPORT_POST",
+              "UPDATE_ADDRESS",
+              "NEW_REPORT_SOCIAL_POST",
+            ],
+          },
+        },
+      ],
+    });
+
+    unreadNotifications.forEach(async (notification) => {
+      await Notification.findByIdAndUpdate(notification._id, { _read: true });
+    });
+
+    return true;
+  };
+
+  public readAllNotificationsInspector = async () => {
+    const unreadNotifications = await Notification.find({
+      $and: [
+        { _read: false },
+        {
+          _type: {
+            $in: [
               "ACTIVE_HOST",
               "REGISTER_ADDRESS",
               "CREATE_POST",

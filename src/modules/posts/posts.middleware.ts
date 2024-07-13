@@ -20,7 +20,6 @@ export class PostsMiddleWare {
         const tags = infoPost._tags as string
         infoPost._tags = tags.split(',')
       }
-      console.log("🚀 ~ file: posts.middleware.ts:19 ~ PostsMiddleWare ~ infoPost:", infoPost)
       const errors: ValidationError[] = await validate(infoPost);
       if (errors[0]) throw errors;
 

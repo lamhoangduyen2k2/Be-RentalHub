@@ -195,6 +195,7 @@ import payRoute from "./modules/vnpay/vnpay.route";
     if (eventEmitter.listenerCount("sendNotification") === 0) {
       eventEmitter.on("sendNotification", (notification) => {
         if (notification.recipientRole === 2) {
+          console.log("🚀 ~ eventEmitter.on ~ notification:", notification);
           // Send notification for all inspectors
           onlineInspectors.forEach((inspector) => {
             io.to(inspector.socketId).emit(

@@ -34,7 +34,13 @@ notifiRoute.get(
 );
 notifiRoute.get(
   "/read-all-notification",
-  authMiddleware.authorized,
+  authMiddleware.authorizedUser,
   notifiController.readNotification
+);
+
+notifiRoute.get(
+  "/read-all-notification-inspector",
+  authMiddleware.authorizedInspector,
+  notifiController.readNotificationInspector
 );
 export default notifiRoute;
