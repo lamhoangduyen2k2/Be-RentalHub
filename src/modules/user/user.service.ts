@@ -729,6 +729,7 @@ export class UserService {
 
     const addresses = await addressRental
       .find({ $and: [{ _uId: userId }, { _status: status }] })
+      .sort({ createdAt: -1 })
       .limit(pagination.limit)
       .skip(pagination.offset);
 
@@ -1031,6 +1032,7 @@ export class UserService {
         },
       },
       { $unwind: "$user" },
+      { $sort: { updatedAt: -1 } },
       {
         $project: {
           _id: 1,
@@ -1187,6 +1189,7 @@ export class UserService {
           },
         },
         { $unwind: "$user" },
+        { $sort: { updatedAt: -1 } },
         {
           $project: {
             _id: 1,

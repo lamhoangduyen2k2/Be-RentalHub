@@ -136,6 +136,7 @@ import payRoute from "./modules/vnpay/vnpay.route";
 
     //listen to a connection
     socket.on("addNewUser", (user) => {
+      console.log("🚀 ~ socket.on ~ user:", user)
       if (user.userId === onlineAdmins.userId) {
         //Add admin to online of Users
         !onlineUsers.some((u) => u.userId === user.userId) &&

@@ -439,22 +439,14 @@ export class PostsService {
 
     const condition = [];
 
-    if (Object.keys(sort).length > 0) {
-      condition.push(
-        {
-          $match: {
-            $and: [{ _status: 1 }, ...arrange],
-          },
-        },
-        { $sort: sort }
-      );
-    } else {
-      condition.push({
+    condition.push(
+      {
         $match: {
           $and: [{ _status: 1 }, ...arrange],
         },
-      });
-    }
+      },
+      { $sort: { ...sort, updatedAt: -1 } }
+    );
 
     const posts = await Posts.aggregate([
       {
@@ -614,6 +606,7 @@ export class PostsService {
         },
       },
       condition,
+      { $sort: { updatedAt: -1 } },
       {
         $project: {
           _id: 1,
@@ -873,6 +866,7 @@ export class PostsService {
       },
       { $unwind: "$author" },
       condition,
+      { $sort: { updatedAt: -1 } },
       {
         $project: {
           _id: 1,
@@ -1865,6 +1859,7 @@ export class PostsService {
         },
       },
       { $unwind: "$author" },
+      { $sort: { updatedAt: -1 } },
       {
         $project: {
           _id: 1,
@@ -2164,6 +2159,7 @@ export class PostsService {
         },
       },
       { $unwind: "$author" },
+      { $sort: { updatedAt: -1 } },
       {
         $project: {
           _id: 1,
@@ -2282,6 +2278,7 @@ export class PostsService {
           preserveNullAndEmptyArrays: true, // Giữ lại các bài post không có inspector
         },
       },
+      { $sort: { updatedAt: -1 } },
       {
         $project: {
           _id: 1,

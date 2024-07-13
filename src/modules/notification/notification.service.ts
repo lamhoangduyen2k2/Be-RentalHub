@@ -222,7 +222,6 @@ export class NotificationService {
       .skip(pagination.offset)
       .limit(pagination.limit)
       .sort({ createdAt: -1 });
-    console.log("🚀 ~ NotificationService ~ notifications:", notifications);
 
     const result = {
       notifications: GetNotificationsInspectorDTO.toResponse(notifications),
