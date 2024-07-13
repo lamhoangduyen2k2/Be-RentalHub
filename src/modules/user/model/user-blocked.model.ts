@@ -12,7 +12,6 @@ const userBlockedShema = new mongoose.Schema(
     },
     _idCard: {
       type: String,
-      required: [true, "ID Card is required"],
       unique: true,
       ref: Indentities,
     },
@@ -24,7 +23,6 @@ const userBlockedShema = new mongoose.Schema(
     },
     _phone: {
       type: String,
-      required: [true, "Phone is required"],
       unique: true,
       ref: Users,
     },

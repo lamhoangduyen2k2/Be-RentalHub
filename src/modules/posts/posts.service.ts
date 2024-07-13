@@ -2043,12 +2043,16 @@ export class PostsService {
       { session }
     );
     if (!reportPost) throw Errors.ReportedPostNotFound;
+    console.log("🚀 ~ PostsService ~ reportPost:", reportPost)
+
 
     if (status) {
       const post = await Posts.findOne({ _id: reportPost._postId }).session(
         session
       );
       if (!post) throw Errors.PostNotFound;
+
+      console.log("🚀 ~ PostsService ~ post:", post)
 
       const sensorReport = await Posts.findOneAndUpdate(
         { _id: reportPost._postId },
