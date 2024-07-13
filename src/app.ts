@@ -196,22 +196,21 @@ import payRoute from "./modules/vnpay/vnpay.route";
     if (eventEmitter.listenerCount("sendNotification") === 0) {
       eventEmitter.on("sendNotification", (notification) => {
         if (notification.recipientRole === 2) {
-          console.log("🚀 ~ eventEmitter.on ~ notification:", notification);
           // Send notification for all inspectors
           onlineInspectors.forEach((inspector) => {
+            console.log("🚀 ~ eventEmitter.on ~ notification:", notification);
             io.to(inspector.socketId).emit(
               "getNotification",
               notification._doc
             );
           });
         } else if (notification.recipientRole === 0) {
-          console.log("🚀 ~ eventEmitter.on ~ notification:", notification);
           // Send notification for a specific user
           const recipient = onlineUsers.find(
             (user) => user.userId === notification.recipientId.toString()
           );
-          console.log("🚀 ~ eventEmitter.on ~ recipient:", recipient);
           if (recipient) {
+            console.log("🚀 ~ eventEmitter.on ~ notification:", notification);
             io.to(recipient.socketId).emit(
               "getNotification",
               notification._doc

@@ -283,7 +283,7 @@ export class PostsService {
     }).session(session);
     if (!user) throw Errors.UserNotFound;
 
-    if (user._totalPosts <= 0 && postParam._status === 1)
+    if (user._totalPosts <= 0 && postParam._status === 1 && post._status === 0)
       throw Errors.PostExceedLimit;
 
     const updatedPost = await Posts.findOneAndUpdate(
