@@ -36,6 +36,10 @@ const notificationSchema = new mongoose.Schema(
       default: null,
       ref: addressRental,
     },
+    _address: {
+      type: String,
+      default: null
+    },
     _title: {
       type: String,
       required: true,

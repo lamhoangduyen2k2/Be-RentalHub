@@ -1247,6 +1247,7 @@ export class UserService {
         $and: [{ _id: addressId }, { _status: 0 }],
       })
       .session(session);
+    console.log("🚀 ~ UserService ~ addressRequest:", addressRequest)
     if (!addressRequest) throw Errors.AddressRentakNotFound;
 
     const user = await Users.findOne({ _id: addressRequest._uId }).session(
@@ -1267,7 +1268,9 @@ export class UserService {
         _title: "Thông báo xác thực địa chỉ host thành công",
         _message:
           "Thông tin địa chỉ trọ của bạn đã được xác thực. Bạn đã có thể sử dụng địa chỉ này để đăng bài",
+        _address: addressRequest._address,
       });
+      console.log("🚀 ~ UserService ~ notification:", notification)
       newAddressRental = [...user._addressRental, addressRequest._address];
     } else if (status === 2) {
       updateObj = {
@@ -1563,6 +1566,7 @@ export class UserService {
         _title: "Thông báo xác thực địa chỉ host thành công",
         _message:
           "Thông tin địa chỉ trọ của bạn đã được xác thực. Bạn đã có thể sử dụng địa chỉ này để đăng bài",
+        _address: addressRequest._address,
       });
       newAddressRental = [...user._addressRental, addressRequest._address];
     } else if (status === 2) {

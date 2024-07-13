@@ -12,6 +12,9 @@ export class CreateNotificationInspectorDTO {
   @Expose()
   _message: string;
 
+  @Expose()
+  _address: string;
+  
   @Exclude()
   _read: boolean;
 
