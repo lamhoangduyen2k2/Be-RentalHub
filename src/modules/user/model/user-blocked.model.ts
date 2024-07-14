@@ -25,6 +25,7 @@ const userBlockedShema = new mongoose.Schema(
       type: String,
       unique: true,
       ref: Users,
+      default: null,
     },
     _reason: {
       type: String,

@@ -19,7 +19,7 @@ export class CommentsService {
     @Inject() private imageService: ImageService
   ) {}
   //Create comment
-  public createComment =  async (
+  public createComment = async (
     commentInfo: CreateCommentDTO,
     files: Express.Multer.File[],
     session: ClientSession
@@ -27,8 +27,8 @@ export class CommentsService {
     let comment = {};
     let parentId: string = "";
     let rootId: string = "";
-    let notification: CreateNotificationCommentDTO;
-    let notificationRoot: CreateNotificationCommentDTO;
+    let notification: CreateNotificationCommentDTO = null;
+    let notificationRoot: CreateNotificationCommentDTO = null;
     //Check  user is exist
     const user = await Users.findOne({
       $and: [
@@ -37,7 +37,7 @@ export class CommentsService {
         { _active: true },
       ],
     }).session(session);
-    if (!user) throw Errors.UserNotFound;                       
+    if (!user) throw Errors.UserNotFound;
     //Check post is exist
     const post = await SocialPosts.findOne({
       _id: new mongoose.Types.ObjectId(commentInfo._postId),
@@ -67,6 +67,7 @@ export class CommentsService {
 
     //Create comment
     if (parentId !== "") {
+      //Create new child comment
       const newComment = await Comments.create(
         [
           {
@@ -89,7 +90,7 @@ export class CommentsService {
         totalReplies: 0,
       };
 
-      if (newComment[0]._uId.toString() !== post._uId.toString()) {
+      if (newComment[0]._uId.toString() !== post._uId.toString() && parentId !== post._uId.toString()) {
         notificationRoot = CreateNotificationCommentDTO.fromService({
           _commentId: newComment[0]._id,
           _rootId: newComment[0]._rootId,
@@ -102,16 +103,18 @@ export class CommentsService {
         });
       }
 
-      notification = CreateNotificationCommentDTO.fromService({
-        _commentId: newComment[0]._id,
-        _rootId: newComment[0]._rootId,
-        _title: "Có người đã trả lời bình luận của bạn",
-        _message: `Có người đã trả lời bình luận của bạn trong bài viết ${post._id}`,
-        _uId: new mongoose.Types.ObjectId(parentId),
-        _senderId: new mongoose.Types.ObjectId(commentInfo._uId),
-        _postId: post._id,
-        _type: "NEW_COMMENT",
-      });
+      if (newComment[0]._uId.toString() !== parentId) {
+        notification = CreateNotificationCommentDTO.fromService({
+          _commentId: newComment[0]._id,
+          _rootId: newComment[0]._rootId,
+          _title: "Có người đã trả lời bình luận của bạn",
+          _message: `Có người đã trả lời bình luận của bạn trong bài viết ${post._id}`,
+          _uId: new mongoose.Types.ObjectId(parentId),
+          _senderId: new mongoose.Types.ObjectId(commentInfo._uId),
+          _postId: post._id,
+          _type: "NEW_COMMENT",
+        });                  
+      }
     } else {
       const newComment = await Comments.create(
         [
@@ -153,12 +156,13 @@ export class CommentsService {
       { $inc: { _totalComment: 1 } }
     ).session(session);
 
-    //Create notification
+    //Check and Create notification
     if (notification) {
       const newNotification = await this.notificationService.createNotification(
         notification,
         session
       );
+      console.log("🚀 ~ CommentsService ~ newNotification:", newNotification[0])
       if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
 
       //Emit event "sendNotification"
@@ -169,14 +173,15 @@ export class CommentsService {
       });
     }
 
-    //Create notification root
+    //Check and Create notification root
     if (notificationRoot) {
       const newNotificationRoot =
-        await this.notificationService.createNotification(
-          notificationRoot,
-          session
-        );
+      await this.notificationService.createNotification(
+        notificationRoot,
+        session
+      );
       if (newNotificationRoot.length <= 0) throw Errors.SaveToDatabaseFail;
+      console.log("🚀 ~ CommentsService ~ newNotificationRoot:", newNotificationRoot[0])
 
       //Emit event "sendNotification"
       eventEmitter.emit("sendNotification", {

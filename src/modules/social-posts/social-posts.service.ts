@@ -1135,8 +1135,8 @@ export class SocialPostsService {
 
       //Create notification or block user
       if (totalReported >= 2) {
-        console.log("🚀 ~ SocialPostsService ~ blockedPost:", blockedPost._uId);
-        const blockedUser = await this.userService.blockUser(
+        console.log("🚀 ~ SocialPostsService ~ blockedPost:", blockedPost._uId.toString());
+        const blockedUser = await this.userService.blockUserAccount(
           blockedPost._uId.toString(),
           session
         );

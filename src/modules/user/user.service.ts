@@ -2107,27 +2107,20 @@ body, #bodyTable { background-color: rgb(244, 244, 244); }.mceText, .mceLabel { 
   public blockUser = async (userId: string, session: ClientSession) => {
     const user = await Users.findOne({ _id: userId }).session(session);
     if (!user) throw Errors.UserNotFound;
+    console.log("🚀 ~ UserService ~ blockUser= ~ user:", user);
 
     const identity = await Indentities.findOne({ _uId: userId }).session(
       session
     );
 
     //Block user
-    if (identity) {
-      const updateUser = await Users.findOneAndUpdate(
-        { _id: new mongoose.Types.ObjectId(userId) },
-        { _isHost: false, _temptHostBlocked: false },
-        { session, new: true }
-      );
-      if (!updateUser) throw Errors.SaveToDatabaseFail;
-    } else {
-      const updateUser = await Users.findOneAndUpdate(
-        { _id: new mongoose.Types.ObjectId(userId) },
-        { _active: false },
-        { session, new: true }
-      );
-      if (!updateUser) throw Errors.SaveToDatabaseFail;
-    }
+    const updateUser = await Users.findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(userId) },
+      { _isHost: false, _temptHostBlocked: false },
+      { session, new: true }
+    );
+    console.log("🚀 ~ UserService ~ blockUser= ~ identity:", identity);
+    if (!updateUser) throw Errors.SaveToDatabaseFail;
 
     //Create block user
     const userBlock = await UserBlocked.create(
@@ -2144,27 +2137,55 @@ body, #bodyTable { background-color: rgb(244, 244, 244); }.mceText, .mceLabel { 
     );
     if (userBlock.length <= 0) throw Errors.SaveToDatabaseFail;
 
-    if (identity) {
-      //create notification for user
-      const notification = CreateNotificationDTO.fromService({
-        _uId: new mongoose.Types.ObjectId(userId),
-        _type: "BLOCK_USER",
-        _title: "Thông báo khóa tài khoản",
-        _message: `Tài khoản của bạn đã bị khóa chức năng host do có 3 bài viết bị báo cáo. Vui lòng liên hệ với admin nếu có sai sót`,
-      });
-      const newNotification = await this.notificationService.createNotification(
-        notification,
-        session
-      );
-      if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
+    //create notification for user
+    const notification = CreateNotificationDTO.fromService({
+      _uId: new mongoose.Types.ObjectId(userId),
+      _type: "BLOCK_USER",
+      _title: "Thông báo khóa tài khoản",
+      _message: `Tài khoản của bạn đã bị khóa chức năng host do có 3 bài viết bị báo cáo. Vui lòng liên hệ với admin nếu có sai sót`,
+    });
+    const newNotification = await this.notificationService.createNotification(
+      notification,
+      session
+    );
+    if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
 
-      //Emit event "sendNotification" for inspector
-      eventEmitter.emit("sendNotification", {
-        ...newNotification[0],
-        recipientRole: 0,
-        recipientId: userId,
-      });
-    }
+    //Emit event "sendNotification" for inspector
+    eventEmitter.emit("sendNotification", {
+      ...newNotification[0],
+      recipientRole: 0,
+      recipientId: userId,
+    });
+
+    return userBlock[0];
+  };
+
+  public blockUserAccount = async (userId: string, session: ClientSession) => {
+    const user = await Users.findOne({ _id: userId }).session(session);
+    if (!user) throw Errors.UserNotFound;
+    console.log("🚀 ~ UserService ~ blockUser= ~ user:", user);
+
+    //Block user
+    const updateUser = await Users.findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(userId) },
+      { _active: false },
+      { session, new: true }
+    );
+    if (!updateUser) throw Errors.SaveToDatabaseFail;
+
+    //Create block user
+    const userBlock = await UserBlocked.create(
+      [
+        {
+          _uId: new mongoose.Types.ObjectId(userId),
+          _email: user._email,
+          _phone: user?._phone,
+          _reason: "Có 3 bài viết bị báo cáo",
+        },
+      ],
+      { session }
+    );
+    if (userBlock.length <= 0) throw Errors.SaveToDatabaseFail;
 
     return userBlock[0];
   };
