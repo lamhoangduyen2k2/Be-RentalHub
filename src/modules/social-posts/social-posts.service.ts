@@ -1132,16 +1132,16 @@ export class SocialPostsService {
         { session, new: true }
       );
       if (!blockedPost) throw Errors.SaveToDatabaseFail;
-      
+
       //Create notification or block user
       if (totalReported >= 2) {
-        console.log("🚀 ~ SocialPostsService ~ blockedPost:", blockedPost._uId)
+        console.log("🚀 ~ SocialPostsService ~ blockedPost:", blockedPost._uId);
         const blockedUser = await this.userService.blockUser(
           blockedPost._uId.toString(),
           session
         );
         if (!blockedUser) throw Errors.SaveToDatabaseFail;
-        console.log("🚀 ~ SocialPostsService ~ blockedUser:", blockedUser)
+        console.log("🚀 ~ SocialPostsService ~ blockedUser:", blockedUser);
 
         //send mail to user
         const payload: SendMailDTO = {
@@ -1271,13 +1271,14 @@ body, #bodyTable { background-color: rgb(244, 244, 244); }.mceText, .mceLabel { 
           _title: "Bài viết mạng xã hội của bạn đã bị xóa",
           _message: `Bài viết mang ID ${reportedSocial._postId} của bạn đã bị xóa do vi phạm quy định của chúng tôi.`,
         });
-  
-        const newNotification = await this.notificationService.createNotification(
-          notification,
-          session
-        );
+
+        const newNotification =
+          await this.notificationService.createNotification(
+            notification,
+            session
+          );
         if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
-  
+
         //Emit event "sendNotification" for internal server
         eventEmitter.emit("sendNotification", {
           ...newNotification[0],
@@ -1285,7 +1286,7 @@ body, #bodyTable { background-color: rgb(244, 244, 244); }.mceText, .mceLabel { 
           recipientId: reportedSocial._uIdReported,
         });
       }
-      
+
       await session.commitTransaction();
       return blockedPost;
     }

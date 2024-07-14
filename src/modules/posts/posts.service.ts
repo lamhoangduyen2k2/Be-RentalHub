@@ -350,6 +350,7 @@ export class PostsService {
   ) => {
     let status: number = 2;
     let isRented: boolean = true;
+    let notification: CreateNotificationDTO = null;
     const post = await Posts.findOne({
       $and: [{ _id: postId }, { _uId: postParam._uId }],
     }).session(session);
@@ -358,6 +359,14 @@ export class PostsService {
     if (postParam._active) {
       status = 0;
       isRented = false;
+      //Create notification for inspector
+      notification = CreateNotificationDTO.fromService({
+        _title: "Có bài đăng mới cần kiểm duyệt",
+        _message: `Bài đăng ${post._id} cần kiểm duyệt`,
+        _type: "CREATE_POST",
+        _uId: post._uId,
+        _postId: post._id,
+      });
     }
 
     await Posts.updateOne(
@@ -374,6 +383,19 @@ export class PostsService {
       { _isRented: isRented },
       { session }
     );
+
+    if (notification) {
+      const newNotification = await this.notificationService.createNotification(
+        notification,
+        session
+      );
+      if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
+      //Emit event "sendNotification" for internal server
+      eventEmitter.emit("sendNotification", {
+        ...newNotification[0],
+        recipientRole: 2,
+      });
+    }
 
     await session.commitTransaction();
     return true;
@@ -660,6 +682,7 @@ export class PostsService {
   };
 
   public getPostById = async (postId: string, notiId: string) => {
+    console.log("🚀 ~ PostsService ~ getPostById= ~ notiId:", notiId);
     if (notiId) this.notificationService.getNotificationById(notiId);
     const condition = {
       $match: {
@@ -2043,8 +2066,7 @@ export class PostsService {
       { session }
     );
     if (!reportPost) throw Errors.ReportedPostNotFound;
-    console.log("🚀 ~ PostsService ~ reportPost:", reportPost)
-
+    console.log("🚀 ~ PostsService ~ reportPost:", reportPost);
 
     if (status) {
       const post = await Posts.findOne({ _id: reportPost._postId }).session(
@@ -2052,7 +2074,7 @@ export class PostsService {
       );
       if (!post) throw Errors.PostNotFound;
 
-      console.log("🚀 ~ PostsService ~ post:", post)
+      console.log("🚀 ~ PostsService ~ post:", post);
 
       const sensorReport = await Posts.findOneAndUpdate(
         { _id: reportPost._postId },
@@ -2062,46 +2084,51 @@ export class PostsService {
       if (!sensorReport) throw Errors.SaveToDatabaseFail;
 
       //Increase totalReported or block user
-      const user = await Users.findOne({
-        _id: reportPost._uIdReported,
-      }).session(session);
-      if (!user) throw Errors.UserNotFound;
+      // const user = await Users.findOne({
+      //   _id: reportPost._uIdReported,
+      // }).session(session);
+      // if (!user) throw Errors.UserNotFound;
 
-      if (user._totalReported >= 2) {
+      //Check totalReported to block user
+      const totalReported = await Posts.countDocuments({
+        $and: [{ _uId: reportPost._uIdReported }, { _status: 4 }],
+      });
+
+      if (totalReported > 2) {
         const userBlocked = await this.userService.blockUser(
-          user._id.toString(),
+          reportPost._uIdReported.toString(),
           session
         );
         if (!userBlocked) throw Errors.SaveToDatabaseFail;
       } else {
-        const userTotalReported = await this.userService.increaseTotalReported(
-          user._id.toString(),
-          session
-        );
-        if (!userTotalReported) throw Errors.SaveToDatabaseFail;
+        // const userTotalReported = await this.userService.increaseTotalReported(
+        //   user._id.toString(),
+        //   session
+        // );
+        // if (!userTotalReported) throw Errors.SaveToDatabaseFail;
+        //Create notification
+        const notification = CreateNotificationDTO.fromService({
+          _uId: reportPost._uIdReported,
+          _postId: reportPost._postId,
+          _type: "REPORTED_POST",
+          _title: "Bài viết của bạn đã bị xóa",
+          _message: `Bài viết mang ID ${reportPost._postId} của bạn đã bị xóa do vi phạm quy định của chúng tôi.`,
+        });
+
+        const newNotification =
+          await this.notificationService.createNotification(
+            notification,
+            session
+          );
+        if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
+
+        //Emit event "sendNotification" for internal server
+        eventEmitter.emit("sendNotification", {
+          ...newNotification[0],
+          recipientRole: 0,
+          recipientId: reportPost._uIdReported,
+        });
       }
-
-      //Create notification
-      const notification = CreateNotificationDTO.fromService({
-        _uId: reportPost._uIdReported,
-        _postId: reportPost._postId,
-        _type: "REPORTED_POST",
-        _title: "Bài viết của bạn đã bị xóa",
-        _message: `Bài viết mang ID ${reportPost._postId} của bạn đã bị xóa do vi phạm quy định của chúng tôi.`,
-      });
-
-      const newNotification = await this.notificationService.createNotification(
-        notification,
-        session
-      );
-      if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
-
-      //Emit event "sendNotification" for internal server
-      eventEmitter.emit("sendNotification", {
-        ...newNotification[0],
-        recipientRole: 0,
-        recipientId: reportPost._uIdReported,
-      });
 
       await session.commitTransaction();
       return sensorReport;

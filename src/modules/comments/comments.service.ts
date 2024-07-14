@@ -19,7 +19,7 @@ export class CommentsService {
     @Inject() private imageService: ImageService
   ) {}
   //Create comment
-  public createComment = async (
+  public createComment =  async (
     commentInfo: CreateCommentDTO,
     files: Express.Multer.File[],
     session: ClientSession
@@ -37,8 +37,7 @@ export class CommentsService {
         { _active: true },
       ],
     }).session(session);
-    if (!user) throw Errors.UserNotFound;
-
+    if (!user) throw Errors.UserNotFound;                       
     //Check post is exist
     const post = await SocialPosts.findOne({
       _id: new mongoose.Types.ObjectId(commentInfo._postId),
