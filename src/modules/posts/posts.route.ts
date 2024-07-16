@@ -84,6 +84,14 @@ route.patch(
   postsController.updatePost
 );
 route.patch(
+  "/update-post-again/:postId",
+  imageMiddleWare.upload.array("_images"),
+  imageMiddleWare.checkUploadImages,
+  authMiddleware.authorizedUser,
+  postMiddleWare.checkValidationUpdatePostRequest,
+  postsController.updatePostRequest
+);
+route.patch(
   "/update-post-status/:postId",
   authMiddleware.authorizedUser,
   postsController.updatePostStatus

@@ -23,6 +23,7 @@ import addressRental from "../user/model/user-address.model";
 import { UserService } from "../user/user.service";
 import eventEmitter from "../socket/socket";
 import { ClientSession } from "mongoose";
+import { PostRequestUpdateDTO } from "./dtos/post-update-request.dto";
 
 @Service()
 export class PostsService {
@@ -136,38 +137,33 @@ export class PostsService {
     files: Express.Multer.File[],
     session: ClientSession
   ) => {
-    let status: number = 0;
+    let status: number = 1;
     let active: boolean = true;
     let images: string[] = [];
 
     //Find post of user is exist
     const post = await Posts.findOne({
-      $and: [
-        { _id: postId },
-        { _uId: postParam._uId },
-        { $or: [{ _status: 0 }, { _status: 1 }] },
-      ],
+      $and: [{ _id: postId }, { _uId: postParam._uId }],
     }).session(session);
 
     if (!post) throw Errors.PostNotFound;
 
     // Check address is registered
-    if (postParam._address) {
-      const address = await addressRental
-        .findOne({
-          $and: [
-            { _uId: postParam._uId },
-            { _address: postParam._address },
-            { _status: 1 },
-          ],
-        })
-        .session(session);
-      if (!address) throw Errors.AddressRentakNotFound;
-    }
+    // if (postParam._address) {
+    //   const address = await addressRental
+    //     .findOne({
+    //       $and: [
+    //         { _uId: postParam._uId },
+    //         { _address: postParam._address },
+    //         { _status: 1 },
+    //       ],
+    //     })
+    //     .session(session);
+    //   if (!address) throw Errors.AddressRentakNotFound;
+    // }
 
-    // if (post._status === 2) {
-    //   status = 2;
-    //   active = false;
+    // if (post._status === 3) {
+    //   status = 0;
     // }
 
     const isRented = /true/i.test(postParam._isRented);
@@ -218,10 +214,132 @@ export class PostsService {
     const roomUpdated = await Rooms.findOneAndUpdate(
       { _id: post._rooms },
       {
-        _street: postParam._street,
+        //_street: postParam._street,
         // _district: postParam._district,
         // _city: postParam._city,
         //_address: postParam._address,
+        _services: postParam._services
+          ? postParam._services.split(",")
+          : undefined,
+        _utilities: postParam._utilities
+          ? postParam._utilities.split(",")
+          : undefined,
+        _area: postParam._area,
+        _price: postParam._price,
+        _electricPrice: postParam._electricPrice,
+        _waterPrice: postParam._waterPrice,
+        _isRented: postParam._isRented,
+      },
+      { session, new: true }
+    );
+
+    // if (postUdated._status === 0) {
+    //   //Create notification for inspector
+    //   const notification = CreateNotificationDTO.fromService({
+    //     _title: "Có bài đăng mới cần kiểm duyệt",
+    //     _message: `Bài đăng ${postUdated._id} cần kiểm duyệt`,
+    //     _type: "CREATE_POST",
+    //     _uId: postUdated._uId,
+    //     _postId: postUdated._id,
+    //   });
+
+    //   const newNotification = await this.notificationService.createNotification(
+    //     notification,
+    //     session
+    //   );
+    //   if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
+    //   //Emit event "sendNotification" for internal server
+    //   eventEmitter.emit("sendNotification", {
+    //     ...newNotification[0],
+    //     recipientRole: 2,
+    //   });
+    // }
+
+    await session.commitTransaction();
+    return PostResponseDTO.toResponse({
+      ...postUdated.toObject(),
+      ...roomUpdated.toObject(),
+    });
+  };
+
+  public updatePostRequest = async (
+    postParam: PostRequestUpdateDTO,
+    postId: string,
+    files: Express.Multer.File[],
+    session: ClientSession
+  ) => {
+    let images: string[] = [];
+
+    //Find post of user is exist
+    const post = await Posts.findOne({
+      $and: [{ _id: postId }, { _uId: postParam._uId }, { _status: 3 }],
+    }).session(session);
+
+    if (!post) throw Errors.PostNotFound;
+
+    //Check address is registered
+    if (postParam._address) {
+      const address = await addressRental
+        .findOne({
+          $and: [
+            { _uId: postParam._uId },
+            { _address: postParam._address },
+            { _status: 1 },
+          ],
+        })
+        .session(session);
+      if (!address) throw Errors.AddressRentakNotFound;
+    }
+
+    // const isRented = /true/i.test(postParam._isRented);
+    // if (isRented) {
+    //   status = 2;
+    //   active = false;
+    // }
+
+    if (postParam._deleteImages && postParam._deleteImages.length > 0) {
+      const deleteArr = postParam._deleteImages.split(",");
+
+      post._images.forEach((image, index) => {
+        if (!deleteArr.includes(index.toString())) {
+          images.push(image as string);
+        }
+      });
+    } else {
+      images = [...post._images] as string[];
+    }
+
+    //Check file images are exist
+    if (files.length > 0) {
+      if (images.length + files.length > 10) throw Errors.FileCountExceedLimit;
+      //Upload images to firebase
+      postParam._images = [
+        ...images,
+        ...(await this.imageService.uploadImage(files)),
+      ];
+      if (postParam._images.length <= 0) throw Errors.UploadImageFail;
+    } else {
+      postParam._images = [...images];
+    }
+
+    const postUdated = await Posts.findOneAndUpdate(
+      { _id: postId },
+      {
+        _title: postParam._title,
+        _images: postParam._images,
+        _content: postParam._content,
+        _desc: postParam._desc,
+        _tags: postParam._tags,
+        _status: 0,
+        _active: true,
+      },
+      { session, new: true }
+    );
+
+    const roomUpdated = await Rooms.findOneAndUpdate(
+      { _id: post._rooms },
+      {
+        _address: postParam._address,
         _services: postParam._services
           ? postParam._services.split(",")
           : undefined,

@@ -9,6 +9,7 @@ import { PostSensorDTO } from "./dtos/post-sensor.dto";
 import { PostUpdateStatusDTO } from "./dtos/post-update-status.dto";
 import { ReportCreateDTO } from "./dtos/post-reported.dto";
 import { startSession } from "mongoose";
+import { PostRequestUpdateDTO } from "./dtos/post-update-request.dto";
 
 @Service()
 export class PostsController {
@@ -207,6 +208,33 @@ export class PostsController {
       const postInfo = PostUpdateDTO.fromRequest(req);
       session.startTransaction();
       const post = await this.postsService.updatePost(
+        postInfo,
+        req.params.postId,
+        files,
+        session
+      );
+
+      res.json(new ResponseData(post, null, null));
+    } catch (error) {
+      await session.abortTransaction();
+      console.log("🚀 ~ PostsController ~ error:", error)
+      next(error);
+    } finally {
+      session.endSession();
+    }
+  };
+
+  public updatePostRequest = async (
+    req: BodyResquest<PostRequestUpdateDTO>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const session = await startSession();
+    try {
+      const files = req.files as Express.Multer.File[];
+      const postInfo = PostRequestUpdateDTO.fromRequest(req);
+      session.startTransaction();
+      const post = await this.postsService.updatePostRequest(
         postInfo,
         req.params.postId,
         files,

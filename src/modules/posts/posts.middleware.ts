@@ -5,6 +5,7 @@ import { NextFunction, Response } from "express";
 import { ValidationError, validate } from "class-validator";
 import { handleErrorOfValidation } from "../../helpers/handle-errors";
 import { PostUpdateDTO } from "./dtos/post-update.dto";
+import { PostRequestUpdateDTO } from "./dtos/post-update-request.dto";
 
 
 @Service()
@@ -38,6 +39,27 @@ export class PostsMiddleWare {
   ) => {
     try {
       const infoPost = PostUpdateDTO.fromRequest(req);
+      if (infoPost._tags && !Array.isArray(infoPost._tags)) {
+        const tags = infoPost._tags as string
+        infoPost._tags = tags.split(',')
+      }
+      const errors: ValidationError[] = await validate(infoPost);
+      if (errors[0]) throw errors;
+
+      next();
+    } catch (error) {
+      const err = handleErrorOfValidation(error);
+      next(err);
+    }
+  };
+
+  public checkValidationUpdatePostRequest = async (
+    req: BodyResquest<PostRequestUpdateDTO>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const infoPost = PostRequestUpdateDTO.fromRequest(req);
       if (infoPost._tags && !Array.isArray(infoPost._tags)) {
         const tags = infoPost._tags as string
         infoPost._tags = tags.split(',')
