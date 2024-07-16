@@ -142,7 +142,11 @@ export class PostsService {
 
     //Find post of user is exist
     const post = await Posts.findOne({
-      $and: [{ _id: postId }, { _uId: postParam._uId }],
+      $and: [
+        { _id: postId },
+        { _uId: postParam._uId },
+        { $or: [{ _status: 0 }, { _status: 1 }] },
+      ],
     }).session(session);
 
     if (!post) throw Errors.PostNotFound;
@@ -161,10 +165,10 @@ export class PostsService {
       if (!address) throw Errors.AddressRentakNotFound;
     }
 
-    if (post._status === 2) {
-      status = 2;
-      active = false;
-    }
+    // if (post._status === 2) {
+    //   status = 2;
+    //   active = false;
+    // }
 
     const isRented = /true/i.test(postParam._isRented);
     if (isRented) {
@@ -350,23 +354,23 @@ export class PostsService {
   ) => {
     let status: number = 2;
     let isRented: boolean = true;
-    let notification: CreateNotificationDTO = null;
+    //let notification: CreateNotificationDTO = null;
     const post = await Posts.findOne({
       $and: [{ _id: postId }, { _uId: postParam._uId }],
     }).session(session);
     if (!post) throw Errors.PostNotFound;
 
     if (postParam._active) {
-      status = 0;
+      status = 1;
       isRented = false;
-      //Create notification for inspector
-      notification = CreateNotificationDTO.fromService({
-        _title: "Có bài đăng mới cần kiểm duyệt",
-        _message: `Bài đăng ${post._id} cần kiểm duyệt`,
-        _type: "CREATE_POST",
-        _uId: post._uId,
-        _postId: post._id,
-      });
+      // //Create notification for inspector
+      // notification = CreateNotificationDTO.fromService({
+      //   _title: "Có bài đăng mới cần kiểm duyệt",
+      //   _message: `Bài đăng ${post._id} cần kiểm duyệt`,
+      //   _type: "CREATE_POST",
+      //   _uId: post._uId,
+      //   _postId: post._id,
+      // });
     }
 
     await Posts.updateOne(
@@ -384,18 +388,18 @@ export class PostsService {
       { session }
     );
 
-    if (notification) {
-      const newNotification = await this.notificationService.createNotification(
-        notification,
-        session
-      );
-      if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
-      //Emit event "sendNotification" for internal server
-      eventEmitter.emit("sendNotification", {
-        ...newNotification[0],
-        recipientRole: 2,
-      });
-    }
+    // if (notification) {
+    //   const newNotification = await this.notificationService.createNotification(
+    //     notification,
+    //     session
+    //   );
+    //   if (newNotification.length <= 0) throw Errors.SaveToDatabaseFail;
+    //   //Emit event "sendNotification" for internal server
+    //   eventEmitter.emit("sendNotification", {
+    //     ...newNotification[0],
+    //     recipientRole: 2,
+    //   });
+    // }
 
     await session.commitTransaction();
     return true;

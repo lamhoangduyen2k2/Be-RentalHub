@@ -67,9 +67,10 @@ export class PostUpdateDTO {
   @IsString()
   _city: string;
 
-  @ValidateIf((o: PostUpdateDTO) => o._address !== undefined)
-  @Expose()
-  @IsString()
+  // @ValidateIf((o: PostUpdateDTO) => o._address !== undefined)
+  // @Expose()
+  // @IsString()
+  @Exclude()
   _address: string;
 
   @ValidateIf((o: PostUpdateDTO) => o._services !== undefined)
