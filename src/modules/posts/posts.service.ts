@@ -221,7 +221,7 @@ export class PostsService {
         _street: postParam._street,
         // _district: postParam._district,
         // _city: postParam._city,
-        _address: postParam._address,
+        //_address: postParam._address,
         _services: postParam._services
           ? postParam._services.split(",")
           : undefined,
