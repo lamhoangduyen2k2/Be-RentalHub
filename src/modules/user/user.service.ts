@@ -45,6 +45,8 @@ import chatModel from "../chats/chat.model";
 import eventEmitter from "../socket/socket";
 import { session } from "passport";
 import { CreateAddressDTO } from "./dtos/create-address.dto";
+import Posts from "../posts/models/posts.model";
+import SocialPosts from "../social-posts/models/social-posts.model";
 //require("esm-hook");
 //const fetch = require("node-fetch").default;
 // const http = require("http");
@@ -2107,7 +2109,7 @@ body, #bodyTable { background-color: rgb(244, 244, 244); }.mceText, .mceLabel { 
   public blockUser = async (userId: string, session: ClientSession) => {
     const user = await Users.findOne({ _id: userId }).session(session);
     if (!user) throw Errors.UserNotFound;
-    console.log("🚀 ~ UserService ~ blockUser= ~ user:", user);
+    //console.log("🚀 ~ UserService ~ blockUser= ~ user:", user);
 
     const identity = await Indentities.findOne({ _uId: userId }).session(
       session
@@ -2127,7 +2129,7 @@ body, #bodyTable { background-color: rgb(244, 244, 244); }.mceText, .mceLabel { 
       [
         {
           _uId: new mongoose.Types.ObjectId(userId),
-          _idCard: identity?._idCard || null,
+          _idCard: identity ? identity._idCard : null,
           _email: user._email,
           _phone: user._phone,
           _reason: "Có 3 bài viết bị báo cáo",
@@ -2136,6 +2138,14 @@ body, #bodyTable { background-color: rgb(244, 244, 244); }.mceText, .mceLabel { 
       { session }
     );
     if (userBlock.length <= 0) throw Errors.SaveToDatabaseFail;
+    console.log("🚀 ~ UserService ~ blockUser= ~ userBlock:", userBlock);
+
+    //Block all posts of user
+    await Posts.updateMany(
+      { _uId: new mongoose.Types.ObjectId(userId) },
+      { _active: false, _status: 4 },
+      { session }
+    );
 
     //create notification for user
     const notification = CreateNotificationDTO.fromService({
@@ -2186,6 +2196,13 @@ body, #bodyTable { background-color: rgb(244, 244, 244); }.mceText, .mceLabel { 
       { session }
     );
     if (userBlock.length <= 0) throw Errors.SaveToDatabaseFail;
+
+    //Block all social posts of user
+    await SocialPosts.updateMany(
+      { _uId: new mongoose.Types.ObjectId(userId) },
+      { _status: 1, _reason: ["Do tài khoản bị khóa"] },
+      { session }
+    );
 
     return userBlock[0];
   };

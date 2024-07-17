@@ -2188,15 +2188,12 @@ export class PostsService {
       { session }
     );
     if (!reportPost) throw Errors.ReportedPostNotFound;
-    console.log("🚀 ~ PostsService ~ reportPost:", reportPost);
 
     if (status) {
       const post = await Posts.findOne({ _id: reportPost._postId }).session(
         session
       );
       if (!post) throw Errors.PostNotFound;
-
-      console.log("🚀 ~ PostsService ~ post:", post);
 
       const sensorReport = await Posts.findOneAndUpdate(
         { _id: reportPost._postId },
@@ -2215,8 +2212,9 @@ export class PostsService {
       const totalReported = await Posts.countDocuments({
         $and: [{ _uId: reportPost._uIdReported }, { _status: 4 }],
       });
+      console.log("🚀 ~ PostsService ~ totalReported:", totalReported)
 
-      if (totalReported > 2) {
+      if (totalReported >= 2) {
         const userBlocked = await this.userService.blockUser(
           reportPost._uIdReported.toString(),
           session
