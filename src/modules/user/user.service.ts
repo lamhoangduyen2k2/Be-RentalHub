@@ -2200,7 +2200,7 @@ body, #bodyTable { background-color: rgb(244, 244, 244); }.mceText, .mceLabel { 
     //Block all social posts of user
     await SocialPosts.updateMany(
       { _uId: new mongoose.Types.ObjectId(userId) },
-      { _status: 1, _reason: ["Do tài khoản bị khóa"] },
+      { _status: 2, _reason: ["Do tài khoản bị khóa"] },
       { session }
     );
 
