@@ -2206,23 +2206,4 @@ body, #bodyTable { background-color: rgb(244, 244, 244); }.mceText, .mceLabel { 
 
     return userBlock[0];
   };
-
-  // public sendSMS = async (
-  //   phones: string[],
-  //   content: string,
-  //   type: number,
-  //   sender: string
-  // ) => {
-  //   client.verify.v2
-  //     .services(process.env.TWILIO_VERIFY_SID)
-  //     .verifications.create({ to: "+84818492109", channel: "sms" })
-  //     .then((verification) => console.log(verification));
-  // };
-
-  // public verifySMS = async (phone: string, code: string) => {
-  //   client.verify.v2
-  //     .services(process.env.TWILIO_VERIFY_SID)
-  //     .verificationChecks.create({ to: "+84818492109", code: "2922" })
-  //     .then((verification_check) => console.log(verification_check.valid));
-  // };
 }
