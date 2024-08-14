@@ -49,13 +49,7 @@ export class AuthService {
         _avatar: loginInfo.picture,
         _loginType: loginInfo.type_login,
       }], { session });
-      // const newUser = await Users.create({
-      //   _email: loginInfo.email,
-      //   _fname: loginInfo.family_name,
-      //   _lname: loginInfo.given_name,
-      //   _avatar: loginInfo.picture,
-      //   _loginType: loginInfo.type_login,
-      // });
+    
       if (newUser.length <= 0) throw Errors.SaveToDatabaseFail;
 
       user = newUser[0];
